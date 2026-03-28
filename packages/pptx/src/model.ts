@@ -46,9 +46,11 @@ export interface PresentationTimingNode {
   presetId?: string;
   id?: string;
   duration?: string;
+  repeatDuration?: string;
   repeatCount?: string;
   restart?: string;
   fill?: string;
+  autoReverse?: boolean;
   acceleration?: string;
   deceleration?: string;
   triggerEvent?: string;
