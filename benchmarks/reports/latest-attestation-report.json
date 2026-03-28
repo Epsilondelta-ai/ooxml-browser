@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T16:19:36.243Z",
+  "generatedAt": "2026-03-28T16:30:32.871Z",
   "results": [
     {
       "fixtureId": "docx-basic",
@@ -200,6 +200,24 @@
       }
     },
     {
+      "fixtureId": "xlsx-charted",
+      "format": "xlsx",
+      "manifestPath": "fixtures/manifests/xlsx/charted.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-5-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-5-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
       "fixtureId": "xlsx-commented",
       "format": "xlsx",
       "manifestPath": "fixtures/manifests/xlsx/commented.json",
@@ -259,12 +277,14 @@
       "seed-fixture-attestation-pending": 3,
       "stage-2-attestation-pending": 4,
       "stage-4-attestation-pending": 4,
+      "stage-5-attestation-pending": 1,
       "stage-3-attestation-pending": 3
     },
     "libreOffice": {
       "seed-fixture-attestation-pending": 3,
       "stage-2-attestation-pending": 4,
       "stage-4-attestation-pending": 4,
+      "stage-5-attestation-pending": 1,
       "stage-3-attestation-pending": 3
     }
   }

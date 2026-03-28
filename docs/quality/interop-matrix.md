@@ -27,6 +27,7 @@ Generated from `fixtures/manifests/**`, `benchmarks/reports/latest-fixture-resul
 | Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | xlsx-basic | sharedStrings, formula, worksheet | cell-value-edit | true | true | true | 4/5 | /xl/worksheets/sheet1.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
+| xlsx-charted | charts, chart-style, chart-title-policy, chart-display-policy, chart-axis-metadata | cell-value-edit | true | true | true | 8/9 | /xl/worksheets/sheet1.xml | stage-5-attestation-pending | stage-5-attestation-pending |
 | xlsx-commented | comments, tables | comment-text-edit | true | true | true | 6/7 | /xl/comments1.xml | stage-3-attestation-pending | stage-3-attestation-pending |
 | xlsx-structured | defined-names, merged-cells, frozen-panes, formula-references | cell-value-edit | true | true | true | 3/4 | /xl/worksheets/sheet1.xml | stage-3-attestation-pending | stage-3-attestation-pending |
 | xlsx-styled | styles, number-formats | cell-value-edit | true | true | true | 5/6 | /xl/worksheets/sheet1.xml | stage-3-attestation-pending | stage-3-attestation-pending |
