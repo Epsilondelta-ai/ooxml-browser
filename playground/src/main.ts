@@ -11,6 +11,7 @@ import {
   setPresentationSize,
   setPresentationSlideLayout,
   setPresentationSlideMaster,
+  setPresentationSlideTheme,
   setPresentationTransition,
   setWorkbookCellFormula,
   setWorkbookCellStyle,
@@ -271,6 +272,7 @@ function renderEditorControls(): void {
       const transitionType = officeDocument.slides[0]?.transition?.type ?? '';
       const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
       const masterUri = officeDocument.slides[0]?.masterUri ?? '';
+      const themeUri = officeDocument.slides[0]?.themeUri ?? '';
       const sizeCx = officeDocument.size.cx;
       const sizeCy = officeDocument.size.cy;
       editorControls.innerHTML = `
@@ -298,6 +300,10 @@ function renderEditorControls(): void {
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Master URI</div>
           <input id="pptx-master-input" value="${escapeHtml(masterUri)}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Theme URI</div>
+          <input id="pptx-theme-input" value="${escapeHtml(themeUri)}" style="width: 100%; padding: 8px;" />
+        </label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <label>
             <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Deck width (cx)</div>
@@ -315,6 +321,7 @@ function renderEditorControls(): void {
       const transitionInput = window.document.getElementById('pptx-transition-input') as HTMLInputElement;
       const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
       const masterInput = window.document.getElementById('pptx-master-input') as HTMLInputElement;
+      const themeInput = window.document.getElementById('pptx-theme-input') as HTMLInputElement;
       const sizeCxInput = window.document.getElementById('pptx-size-cx-input') as HTMLInputElement;
       const sizeCyInput = window.document.getElementById('pptx-size-cy-input') as HTMLInputElement;
       const update = () => {
@@ -338,6 +345,9 @@ function renderEditorControls(): void {
         if (masterInput.value) {
           setPresentationSlideMaster(presentationEditor, 0, masterInput.value);
         }
+        if (themeInput.value) {
+          setPresentationSlideTheme(presentationEditor, 0, themeInput.value);
+        }
         const cx = Number(sizeCxInput.value);
         const cy = Number(sizeCyInput.value);
         if (!Number.isNaN(cx) && !Number.isNaN(cy)) {
@@ -351,6 +361,7 @@ function renderEditorControls(): void {
       transitionInput.addEventListener('input', update);
       layoutInput.addEventListener('input', update);
       masterInput.addEventListener('input', update);
+      themeInput.addEventListener('input', update);
       sizeCxInput.addEventListener('input', update);
       sizeCyInput.addEventListener('input', update);
       break;
