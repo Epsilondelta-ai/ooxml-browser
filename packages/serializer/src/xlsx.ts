@@ -97,6 +97,7 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
     if (
       chart.chartType !== originalChart?.chartType
       || chart.title !== originalChart?.title
+      || chart.legendPosition !== originalChart?.legendPosition
       || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])
     ) {
       const existingSource = chart.chartType === originalChart?.chartType ? graph.parts[chart.targetUri]?.text : undefined;
@@ -430,20 +431,28 @@ function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGr
 }
 
 function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: string): string {
-  if (existingSource) {
-    const operations: Array<Parameters<typeof applyXmlPatchPlan>[1][number]> = [];
-    if (chart.title !== undefined) {
+    if (existingSource) {
+      const operations: Array<Parameters<typeof applyXmlPatchPlan>[1][number]> = [];
+      if (chart.title !== undefined) {
       operations.push({
         op: 'replaceText',
         containerTag: 'c:title',
         occurrence: 0,
         textTag: 'a:t',
-        newText: chart.title
-      });
-    }
-    for (const [seriesIndex, seriesName] of chart.seriesNames.entries()) {
-      operations.push({
-        op: 'replaceText',
+          newText: chart.title
+        });
+      }
+      if (chart.legendPosition !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:legendPos',
+          targetAttr: 'val',
+          newValue: chart.legendPosition
+        });
+      }
+      for (const [seriesIndex, seriesName] of chart.seriesNames.entries()) {
+        operations.push({
+          op: 'replaceText',
         containerTag: 'c:ser',
         occurrence: seriesIndex,
         textTag: 'a:t',
@@ -457,7 +466,8 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
 
   const chartType = chart.chartType ?? 'barChart';
   const seriesXml = chart.seriesNames.map((seriesName, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesName)}</a:t></c:rich></c:tx></c:ser>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}</c:${chartType}></c:plotArea></c:chart></c:chartSpace>`;
+  const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}</c:${chartType}></c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {

@@ -18,6 +18,7 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartSeriesName,
   setWorksheetChartTarget,
@@ -215,6 +216,7 @@ function renderEditorControls(): void {
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       const firstChartTitle = firstSheet?.charts[0]?.title ?? '';
+      const firstChartLegend = firstSheet?.charts[0]?.legendPosition ?? '';
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
       editorControls.innerHTML = `
@@ -271,6 +273,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-title-input" value="${escapeHtml(firstChartTitle)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart legend</div>
+          <input id="xlsx-chart-legend-input" value="${escapeHtml(firstChartLegend)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart series</div>
           <input id="xlsx-chart-series-input" value="${escapeHtml(firstChartSeriesName)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -296,6 +302,7 @@ function renderEditorControls(): void {
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const chartTitleInput = window.document.getElementById('xlsx-chart-title-input') as HTMLInputElement;
+      const chartLegendInput = window.document.getElementById('xlsx-chart-legend-input') as HTMLInputElement;
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
@@ -405,6 +412,14 @@ function renderEditorControls(): void {
             chartTitleInput.value
           );
         }
+        if (chartLegendInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartLegendPosition(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartLegendInput.value
+          );
+        }
         if (chartSeriesInput.value && workbookEditor.document.sheets[0]?.charts[0]?.seriesNames[0] !== undefined) {
           setWorksheetChartSeriesName(
             workbookEditor,
@@ -446,6 +461,7 @@ function renderEditorControls(): void {
       chartTypeInput.addEventListener('input', update);
       chartTargetInput.addEventListener('input', update);
       chartTitleInput.addEventListener('input', update);
+      chartLegendInput.addEventListener('input', update);
       chartSeriesInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);

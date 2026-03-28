@@ -321,6 +321,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const chartRoot = chartXml?.document;
     const chartTitleNode = chartRoot ? findElementsByLocalName(chartRoot, 'title')[0] : undefined;
     const chartTitle = chartTitleNode ? findElementsByLocalName(chartTitleNode, 't').map((node) => xmlText(node)).join('') : undefined;
+    const legendNode = chartRoot ? findElementsByLocalName(chartRoot, 'legendPos')[0] : undefined;
     const chartType = chartRoot
       ? ['barChart', 'lineChart', 'pieChart', 'areaChart', 'scatterChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
@@ -339,6 +340,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       name: xmlAttr(nonVisual, 'name'),
       chartType,
       title: chartTitle || undefined,
+      legendPosition: xmlAttr(legendNode, 'val') ?? undefined,
       seriesNames
     }];
   });

@@ -55,6 +55,7 @@ export interface XlsxChart {
   name?: string;
   chartType?: string;
   title?: string;
+  legendPosition?: string;
   seriesNames: string[];
 }
 
