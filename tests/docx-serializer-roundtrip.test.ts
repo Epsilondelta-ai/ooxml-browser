@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setDocxCommentAuthor, setDocxCommentText } from '@ooxml/editor';
+import { addDocxComment, createOfficeEditor, setDocxCommentAuthor, setDocxCommentText } from '@ooxml/editor';
 import { parseDocx, resolveDocxNumbering, resolveDocxStyle } from '@ooxml/docx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -82,6 +82,19 @@ describe('docx patch preservation', () => {
 
     expect(reopened.comments[0]?.author).toBe('Reviewer');
     expect(reopenedGraph.parts['/word/comments.xml']?.text).toContain('w:author="Reviewer"');
+  });
+
+  it('creates comments parts on demand when the source package has none', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createRevisionsDocxFixture())));
+    addDocxComment(editor, { id: '5', author: 'Reviewer', text: 'Created comment' });
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseDocx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.comments).toEqual([{ id: '5', author: 'Reviewer', text: 'Created comment' }]);
+    expect(reopenedGraph.parts['/word/comments.xml']?.text).toContain('Created comment');
+    expect(reopenedGraph.parts['/word/_rels/document.xml.rels']?.text).toContain('comments.xml');
   });
 
   it('leaves styles.xml untouched for simple styled paragraph edits', async () => {

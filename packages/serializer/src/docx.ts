@@ -24,9 +24,13 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   }
 
   const commentsUri = '/word/comments.xml';
-  if (graph.parts[commentsUri] && JSON.stringify(document.comments) !== JSON.stringify(originalDocument.comments)) {
+  if (document.comments.length > 0 && (!graph.parts[commentsUri] || JSON.stringify(document.comments) !== JSON.stringify(originalDocument.comments))) {
+    ensureDocxCommentsRelationship(graph, document.packageGraph.rootDocumentUri ?? '/word/document.xml');
     const existingSource = graph.parts[commentsUri].text;
-    const nextSource = existingSource ? patchDocxCommentsXml(existingSource, document.comments) : buildCommentsXml(document.comments);
+    const existingCommentCount = existingSource ? (existingSource.match(/<w:comment\b/g) ?? []).length : 0;
+    const nextSource = existingSource && existingCommentCount === document.comments.length
+      ? patchDocxCommentsXml(existingSource, document.comments)
+      : buildCommentsXml(document.comments);
     updatePackagePartText(
       graph,
       commentsUri,
@@ -55,6 +59,16 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function ensureDocxCommentsRelationship(graph: DocxDocument['packageGraph'], mainDocumentUri: string): void {
+  const existing = graph.relationshipsBySource[mainDocumentUri]?.find((relationship) => relationship.type.includes('/comments'));
+  upsertRelationship(graph, mainDocumentUri, {
+    id: existing?.id ?? nextRelationshipId(graph.relationshipsBySource[mainDocumentUri] ?? []),
+    type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments',
+    target: 'comments.xml',
+    targetMode: 'Internal'
+  });
 }
 
 function syncSectionReferenceRelationships(graph: DocxDocument['packageGraph'], originalSection: DocxSection | undefined, section: DocxSection | undefined): void {
@@ -177,6 +191,17 @@ function relativeRelationshipTarget(sourceUri: string, targetUri: string): strin
   }
 
   return `${sourceSegments.map(() => '..').join('/')}${sourceSegments.length ? '/' : ''}${targetSegments.join('/')}`;
+}
+
+function nextRelationshipId(relationships: Array<{ id: string }>): string {
+  let candidateIndex = relationships.length + 1;
+  let candidate = `rId${candidateIndex}`;
+  const existingIds = new Set(relationships.map((relationship) => relationship.id));
+  while (existingIds.has(candidate)) {
+    candidateIndex += 1;
+    candidate = `rId${candidateIndex}`;
+  }
+  return candidate;
 }
 
 

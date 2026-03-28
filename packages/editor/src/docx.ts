@@ -1,3 +1,4 @@
+import { relationshipsFor, updatePackagePartText, upsertRelationship } from '@ooxml/core';
 import type { DocxDocument } from '@ooxml/docx';
 
 import type { OfficeEditor } from './types';
@@ -151,6 +152,23 @@ export function setDocxCommentText(editor: OfficeEditor<DocxDocument>, commentId
   });
 }
 
+export function addDocxComment(editor: OfficeEditor<DocxDocument>, comment: { id: string; author?: string; text: string }): DocxDocument {
+  return editor.transaction((draft) => {
+    const commentsUri = ensureDocxCommentsPart(draft);
+    if (!commentsUri) {
+      return;
+    }
+
+    if (!draft.comments.find((entry) => entry.id === comment.id)) {
+      draft.comments.push({
+        id: comment.id,
+        author: comment.author,
+        text: comment.text
+      });
+    }
+  });
+}
+
 export function setDocxCommentAuthor(editor: OfficeEditor<DocxDocument>, commentId: string, author: string): DocxDocument {
   return editor.transaction((draft) => {
     const comment = draft.comments.find((entry) => entry.id === commentId);
@@ -174,6 +192,40 @@ export function setDocxSectionLayout(editor: OfficeEditor<DocxDocument>, section
       section.pageMargins = { ...layout.pageMargins };
     }
   });
+}
+
+function ensureDocxCommentsPart(document: DocxDocument): string | undefined {
+  const mainDocumentUri = document.packageGraph.rootDocumentUri ?? '/word/document.xml';
+  const existingRelationship = relationshipsFor(document.packageGraph, mainDocumentUri).find((relationship) => relationship.type.includes('/comments'));
+  if (existingRelationship?.resolvedTarget && document.packageGraph.parts[existingRelationship.resolvedTarget]) {
+    return existingRelationship.resolvedTarget;
+  }
+
+  const commentsUri = '/word/comments.xml';
+  updatePackagePartText(
+    document.packageGraph,
+    commentsUri,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<w:comments xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"></w:comments>`,
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml'
+  );
+  upsertRelationship(document.packageGraph, mainDocumentUri, {
+    id: existingRelationship?.id ?? nextRelationshipId(relationshipsFor(document.packageGraph, mainDocumentUri)),
+    type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments',
+    target: 'comments.xml',
+    targetMode: 'Internal'
+  });
+  return commentsUri;
+}
+
+function nextRelationshipId(relationships: ReturnType<typeof relationshipsFor>): string {
+  let candidateIndex = relationships.length + 1;
+  let candidate = `rId${candidateIndex}`;
+  const existingIds = new Set(relationships.map((relationship) => relationship.id));
+  while (existingIds.has(candidate)) {
+    candidateIndex += 1;
+    candidate = `rId${candidateIndex}`;
+  }
+  return candidate;
 }
 
 export function setDocxSectionReferenceType(
