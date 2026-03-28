@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { addPresentationComment, createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { addPresentationComment, createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationSlideMaster, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -108,6 +108,18 @@ describe('pptx editor round-trips', () => {
     expect(reopened.slides[0]?.layoutUri).toBe('/ppt/slideLayouts/slideLayout2.xml');
     expect(reopened.slides[0]?.layoutName).toBe('Two Content');
     expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../slideLayouts/slideLayout2.xml');
+  });
+
+  it('persists edited slide master targets', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createInheritedPptxFixture())));
+    setPresentationSlideMaster(editor, 0, '/ppt/slideMasters/slideMaster2.xml');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+    expect(reopened.slides[0]?.masterUri).toBe('/ppt/slideMasters/slideMaster2.xml');
+    expect(reopened.slides[0]?.themeUri).toBe('/ppt/theme/theme2.xml');
+    expect(reopenedGraph.parts['/ppt/slideLayouts/_rels/slideLayout1.xml.rels']?.text).toContain('../slideMasters/slideMaster2.xml');
   });
 
   it('persists edited slide transition metadata', async () => {

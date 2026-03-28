@@ -120,6 +120,17 @@ export function setPresentationSlideLayout(editor: OfficeEditor<PresentationDocu
   });
 }
 
+export function setPresentationSlideMaster(editor: OfficeEditor<PresentationDocument>, slideIndex: number, masterUri: string): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (slide) {
+      slide.masterUri = masterUri;
+      slide.masterName = undefined;
+      slide.themeUri = undefined;
+    }
+  });
+}
+
 export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];

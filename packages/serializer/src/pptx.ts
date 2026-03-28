@@ -20,6 +20,7 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
   for (const slide of presentation.slides) {
     const originalSlide = originalSlidesByUri.get(slide.uri);
     syncSlideLayoutRelationship(graph, slide.uri, originalSlide, slide);
+    syncSlideMasterRelationship(graph, originalSlide, slide);
     syncSlideImageRelationships(graph, slide.uri, originalSlide, slide);
     const existingSlideSource = graph.parts[slide.uri]?.text;
     const nextSlideSource =
@@ -74,6 +75,25 @@ function syncSlideLayoutRelationship(graph: PresentationDocument['packageGraph']
     id: layoutRelationship.id,
     type: layoutRelationship.type,
     target: relativeRelationshipTarget(slideUri, slide.layoutUri),
+    targetMode: 'Internal'
+  });
+}
+
+function syncSlideMasterRelationship(graph: PresentationDocument['packageGraph'], originalSlide: PresentationSlide | undefined, slide: PresentationSlide): void {
+  if (!slide.layoutUri || !slide.masterUri || slide.masterUri === originalSlide?.masterUri) {
+    return;
+  }
+
+  const layoutRelationships = relationshipsFor(graph, slide.layoutUri);
+  const masterRelationship = layoutRelationships.find((relationship) => relationship.type.includes('/slideMaster'));
+  if (!masterRelationship) {
+    return;
+  }
+
+  upsertRelationship(graph, slide.layoutUri, {
+    id: masterRelationship.id,
+    type: masterRelationship.type,
+    target: relativeRelationshipTarget(slide.layoutUri, slide.masterUri),
     targetMode: 'Internal'
   });
 }
