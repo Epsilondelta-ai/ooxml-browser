@@ -88,6 +88,7 @@ export interface XlsxChart {
   targetUri: string;
   name?: string;
   chartType?: string;
+  barDirection?: string;
   scatterStyle?: string;
   bubbleScale?: number;
   showNegativeBubbles?: boolean;

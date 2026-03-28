@@ -516,6 +516,16 @@ export function setWorksheetChartType(editor: OfficeEditor<XlsxWorkbook>, sheetN
   });
 }
 
+export function setWorksheetChartBarDirection(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, barDirection: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.barDirection = barDirection;
+    }
+  });
+}
+
 export function setWorksheetChartScatterStyle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, scatterStyle: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

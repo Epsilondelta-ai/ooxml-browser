@@ -387,6 +387,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
       : undefined;
     const chartTypeNode = chartType && chartRoot ? findElementsByLocalName(chartRoot, chartType)[0] : undefined;
+    const barDirectionNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'barDir')[0] : undefined;
     const scatterStyleNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'scatterStyle')[0] : undefined;
     const bubbleScaleNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'bubbleScale')[0] : undefined;
     const showNegativeBubblesNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'showNegBubbles')[0] : undefined;
@@ -433,6 +434,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
       chartType,
+      barDirection: xmlAttr(barDirectionNode, 'val') ?? undefined,
       scatterStyle: xmlAttr(scatterStyleNode, 'val') ?? undefined,
       bubbleScale: (() => { const value = xmlAttr(bubbleScaleNode, 'val'); return value ? Number(value) : undefined; })(),
       showNegativeBubbles: xmlAttr(showNegativeBubblesNode, 'val') === '1' ? true : xmlAttr(showNegativeBubblesNode, 'val') === '0' ? false : undefined,
