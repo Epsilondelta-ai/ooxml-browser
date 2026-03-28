@@ -259,11 +259,17 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
   }
 
   const body = nodes.map((node) => {
+    const startTargetXml = node.triggerShapeId
+      ? `<p:tgtEl><p:spTgt spid="${escapeXml(node.triggerShapeId)}"/></p:tgtEl>`
+      : '';
     const conditionXml = node.triggerEvent || node.triggerDelay
-      ? `<p:stCondLst><p:cond${node.triggerEvent ? ` evt="${escapeXml(node.triggerEvent)}"` : ''}${node.triggerDelay ? ` delay="${escapeXml(node.triggerDelay)}"` : ''}/></p:stCondLst>`
+      ? `<p:stCondLst><p:cond${node.triggerEvent ? ` evt="${escapeXml(node.triggerEvent)}"` : ''}${node.triggerDelay ? ` delay="${escapeXml(node.triggerDelay)}"` : ''}>${startTargetXml}</p:cond></p:stCondLst>`
+      : '';
+    const endTargetXml = node.endTriggerShapeId
+      ? `<p:tgtEl><p:spTgt spid="${escapeXml(node.endTriggerShapeId)}"/></p:tgtEl>`
       : '';
     const endConditionXml = node.endTriggerEvent || node.endTriggerDelay
-      ? `<p:endCondLst><p:cond${node.endTriggerEvent ? ` evt="${escapeXml(node.endTriggerEvent)}"` : ''}${node.endTriggerDelay ? ` delay="${escapeXml(node.endTriggerDelay)}"` : ''}/></p:endCondLst>`
+      ? `<p:endCondLst><p:cond${node.endTriggerEvent ? ` evt="${escapeXml(node.endTriggerEvent)}"` : ''}${node.endTriggerDelay ? ` delay="${escapeXml(node.endTriggerDelay)}"` : ''}>${endTargetXml}</p:cond></p:endCondLst>`
       : '';
     const targetXml = node.targetShapeId
       ? `<p:tgtEl><p:spTgt spid="${escapeXml(node.targetShapeId)}"/></p:tgtEl>`

@@ -201,8 +201,12 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
       const commonTiming = xmlChild<Record<string, unknown>>(node, 'p:cTn');
       const startConditionList = xmlChild<Record<string, unknown>>(node, 'p:stCondLst');
       const startCondition = xmlChild<Record<string, unknown>>(startConditionList, 'p:cond');
+      const startTargetElement = xmlChild<Record<string, unknown>>(startCondition, 'p:tgtEl');
+      const startShapeTarget = xmlChild<Record<string, unknown>>(startTargetElement, 'p:spTgt');
       const endConditionList = xmlChild<Record<string, unknown>>(node, 'p:endCondLst');
       const endCondition = xmlChild<Record<string, unknown>>(endConditionList, 'p:cond');
+      const endTargetElement = xmlChild<Record<string, unknown>>(endCondition, 'p:tgtEl');
+      const endShapeTarget = xmlChild<Record<string, unknown>>(endTargetElement, 'p:spTgt');
       const targetElement = xmlChild<Record<string, unknown>>(node, 'p:tgtEl');
       const shapeTarget = xmlChild<Record<string, unknown>>(targetElement, 'p:spTgt');
       nodes.push({
@@ -220,8 +224,10 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
         deceleration: xmlAttr(commonTiming, 'decel') ?? xmlAttr(node, 'decel') ?? undefined,
         triggerEvent: xmlAttr(startCondition, 'evt') ?? undefined,
         triggerDelay: xmlAttr(startCondition, 'delay') ?? undefined,
+        triggerShapeId: xmlAttr(startShapeTarget, 'spid') ?? undefined,
         endTriggerEvent: xmlAttr(endCondition, 'evt') ?? undefined,
         endTriggerDelay: xmlAttr(endCondition, 'delay') ?? undefined,
+        endTriggerShapeId: xmlAttr(endShapeTarget, 'spid') ?? undefined,
         targetShapeId: xmlAttr(shapeTarget, 'spid') ?? undefined
       });
     }

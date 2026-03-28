@@ -164,18 +164,18 @@ describe('pptx editor round-trips', () => {
   it('persists edited slide timing metadata', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createTimedPptxFixture())));
     setPresentationTimingNodes(editor, 0, [
-      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatDuration: '1800', repeatCount: '2', restart: 'never', fill: 'hold', autoReverse: true, acceleration: '15000', deceleration: '25000', triggerEvent: 'onClick', triggerDelay: '100', endTriggerEvent: 'afterEffect', endTriggerDelay: '180', targetShapeId: '2' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatDuration: '2400', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', autoReverse: false, acceleration: '0', deceleration: '4000', triggerEvent: 'afterPrevious', triggerDelay: '250', endTriggerEvent: 'onEnd', endTriggerDelay: '300', targetShapeId: '2' },
-      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatDuration: '900', repeatCount: '1', restart: 'always', fill: 'remove', autoReverse: true, acceleration: '5000', deceleration: '1000', triggerEvent: 'withPrevious', triggerDelay: '0', endTriggerEvent: 'onClick', endTriggerDelay: '0', targetShapeId: '2' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatDuration: '1800', repeatCount: '2', restart: 'never', fill: 'hold', autoReverse: true, acceleration: '15000', deceleration: '25000', triggerEvent: 'onClick', triggerDelay: '100', triggerShapeId: '3', endTriggerEvent: 'afterEffect', endTriggerDelay: '180', endTriggerShapeId: '4', targetShapeId: '2' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatDuration: '2400', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', autoReverse: false, acceleration: '0', deceleration: '4000', triggerEvent: 'afterPrevious', triggerDelay: '250', triggerShapeId: '3', endTriggerEvent: 'onEnd', endTriggerDelay: '300', endTriggerShapeId: '4', targetShapeId: '2' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatDuration: '900', repeatCount: '1', restart: 'always', fill: 'remove', autoReverse: true, acceleration: '5000', deceleration: '1000', triggerEvent: 'withPrevious', triggerDelay: '0', triggerShapeId: '3', endTriggerEvent: 'onClick', endTriggerDelay: '0', endTriggerShapeId: '4', targetShapeId: '2' }
     ]);
 
     const serialized = serializeOfficeDocument(editor.document);
     const reopened = parsePptx(await openPackage(serialized));
     const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.timing?.nodes).toEqual([
-      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatDuration: '1800', repeatCount: '2', restart: 'never', fill: 'hold', autoReverse: true, acceleration: '15000', deceleration: '25000', triggerEvent: 'onClick', triggerDelay: '100', endTriggerEvent: 'afterEffect', endTriggerDelay: '180', targetShapeId: '2' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatDuration: '2400', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', autoReverse: false, acceleration: '0', deceleration: '4000', triggerEvent: 'afterPrevious', triggerDelay: '250', endTriggerEvent: 'onEnd', endTriggerDelay: '300', targetShapeId: '2' },
-      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatDuration: '900', repeatCount: '1', restart: 'always', fill: 'remove', autoReverse: true, acceleration: '5000', deceleration: '1000', triggerEvent: 'withPrevious', triggerDelay: '0', endTriggerEvent: 'onClick', endTriggerDelay: '0', targetShapeId: '2' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatDuration: '1800', repeatCount: '2', restart: 'never', fill: 'hold', autoReverse: true, acceleration: '15000', deceleration: '25000', triggerEvent: 'onClick', triggerDelay: '100', triggerShapeId: '3', endTriggerEvent: 'afterEffect', endTriggerDelay: '180', endTriggerShapeId: '4', targetShapeId: '2' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatDuration: '2400', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', autoReverse: false, acceleration: '0', deceleration: '4000', triggerEvent: 'afterPrevious', triggerDelay: '250', triggerShapeId: '3', endTriggerEvent: 'onEnd', endTriggerDelay: '300', endTriggerShapeId: '4', targetShapeId: '2' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatDuration: '900', repeatCount: '1', restart: 'always', fill: 'remove', autoReverse: true, acceleration: '5000', deceleration: '1000', triggerEvent: 'withPrevious', triggerDelay: '0', triggerShapeId: '3', endTriggerEvent: 'onClick', endTriggerDelay: '0', endTriggerShapeId: '4', targetShapeId: '2' }
     ]);
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('dur="900"');
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('repeatCount="indefinite"');
@@ -189,6 +189,8 @@ describe('pptx editor round-trips', () => {
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('delay="100"');
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('p:endCondLst');
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('afterEffect');
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('spid="3"');
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('spid="4"');
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('spid="2"');
   });
 });
