@@ -15,7 +15,7 @@ describe('pptx timing and transitions', () => {
     expect(slide?.timing?.nodeCount).toBe(2);
     expect(slide?.timing?.nodes).toEqual([
       { nodeType: 'par', presetClass: 'entr', presetId: '1', id: '10', duration: '500', repeatDuration: '1500', repeatCount: '1', restart: 'always', fill: 'hold', autoReverse: true, acceleration: '10000', deceleration: '20000', triggerEvent: 'onBegin', triggerDelay: '0', triggerShapeId: '3', endTriggerEvent: 'onEnd', endTriggerDelay: '50', endTriggerShapeId: '4', targetShapeId: '2' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '2', id: '20', duration: '750', repeatDuration: '2000', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', autoReverse: false, acceleration: '0', deceleration: '5000', triggerEvent: 'onClick', triggerDelay: '250', triggerShapeId: '3', endTriggerEvent: 'afterEffect', endTriggerDelay: '400', endTriggerShapeId: '4', targetShapeId: '2' }
+      { nodeType: 'seq', concurrent: true, nextAction: 'seek', previousAction: 'none', presetClass: 'exit', presetId: '2', id: '20', duration: '750', repeatDuration: '2000', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', autoReverse: false, acceleration: '0', deceleration: '5000', triggerEvent: 'onClick', triggerDelay: '250', triggerShapeId: '3', endTriggerEvent: 'afterEffect', endTriggerDelay: '400', endTriggerShapeId: '4', targetShapeId: '2' }
     ]);
   });
 
@@ -25,6 +25,6 @@ describe('pptx timing and transitions', () => {
 
     expect(html).toContain('fade (fast) click:true after:7000');
     expect(html).toContain('data-timing-count="2"');
-    expect(html).toContain('par:entr#10@500 repeatDur:1500×1 restart:always fill:hold autoRev:true accel:10000 decel:20000!onBegin+0^3 ~onEnd=50^4->2, seq:exit#20@750 repeatDur:2000×indefinite restart:whenNotActive fill:freeze autoRev:false accel:0 decel:5000!onClick+250^3 ~afterEffect=400^4->2');
+    expect(html).toContain('par:entr#10@500 repeatDur:1500×1 restart:always fill:hold autoRev:true accel:10000 decel:20000!onBegin+0^3 ~onEnd=50^4->2, seq:exit concurrent:true next:seek prev:none#20@750 repeatDur:2000×indefinite restart:whenNotActive fill:freeze autoRev:false accel:0 decel:5000!onClick+250^3 ~afterEffect=400^4->2');
   });
 });

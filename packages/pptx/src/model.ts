@@ -44,6 +44,9 @@ export interface PresentationTransition {
 
 export interface PresentationTimingNode {
   nodeType: string;
+  concurrent?: boolean;
+  nextAction?: string;
+  previousAction?: string;
   presetClass?: string;
   presetId?: string;
   id?: string;

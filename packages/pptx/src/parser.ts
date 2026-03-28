@@ -211,6 +211,9 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
       const shapeTarget = xmlChild<Record<string, unknown>>(targetElement, 'p:spTgt');
       nodes.push({
         nodeType: nodeType.split(':')[1],
+        concurrent: xmlAttr(node, 'concurrent') === '1' ? true : xmlAttr(node, 'concurrent') === '0' ? false : undefined,
+        nextAction: xmlAttr(node, 'nextAc') ?? undefined,
+        previousAction: xmlAttr(node, 'prevAc') ?? undefined,
         presetClass: xmlAttr(commonTiming, 'presetClass') ?? xmlAttr(node, 'presetClass') ?? undefined,
         presetId: xmlAttr(commonTiming, 'presetID') ?? xmlAttr(node, 'presetID') ?? undefined,
         id: xmlAttr(commonTiming, 'id') ?? xmlAttr(node, 'id') ?? undefined,

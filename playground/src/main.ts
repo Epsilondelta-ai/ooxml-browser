@@ -944,6 +944,9 @@ function renderEditorControls(): void {
       const firstTimingEndTrigger = officeDocument.slides[0]?.timing?.nodes[0]?.endTriggerEvent ?? '';
       const firstTimingEndTriggerShape = officeDocument.slides[0]?.timing?.nodes[0]?.endTriggerShapeId ?? '';
       const firstTimingTarget = officeDocument.slides[0]?.timing?.nodes[0]?.targetShapeId ?? '';
+      const secondTimingConcurrent = officeDocument.slides[0]?.timing?.nodes[1]?.concurrent;
+      const secondTimingNextAction = officeDocument.slides[0]?.timing?.nodes[1]?.nextAction ?? '';
+      const secondTimingPreviousAction = officeDocument.slides[0]?.timing?.nodes[1]?.previousAction ?? '';
       const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
       const masterUri = officeDocument.slides[0]?.masterUri ?? '';
       const themeUri = officeDocument.slides[0]?.themeUri ?? '';
@@ -1007,6 +1010,18 @@ function renderEditorControls(): void {
           <input id="pptx-timing-target-input" value="${escapeHtml(firstTimingTarget)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Second timing concurrent</div>
+          <input id="pptx-timing-concurrent-input" value="${escapeHtml(secondTimingConcurrent === undefined ? '' : String(secondTimingConcurrent))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Second timing next action</div>
+          <input id="pptx-timing-next-action-input" value="${escapeHtml(secondTimingNextAction)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Second timing previous action</div>
+          <input id="pptx-timing-prev-action-input" value="${escapeHtml(secondTimingPreviousAction)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Layout URI</div>
           <input id="pptx-layout-input" value="${escapeHtml(layoutUri)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -1043,6 +1058,9 @@ function renderEditorControls(): void {
       const timingEndTriggerInput = window.document.getElementById('pptx-timing-end-trigger-input') as HTMLInputElement;
       const timingEndTriggerShapeInput = window.document.getElementById('pptx-timing-end-trigger-shape-input') as HTMLInputElement;
       const timingTargetInput = window.document.getElementById('pptx-timing-target-input') as HTMLInputElement;
+      const timingConcurrentInput = window.document.getElementById('pptx-timing-concurrent-input') as HTMLInputElement;
+      const timingNextActionInput = window.document.getElementById('pptx-timing-next-action-input') as HTMLInputElement;
+      const timingPrevActionInput = window.document.getElementById('pptx-timing-prev-action-input') as HTMLInputElement;
       const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
       const masterInput = window.document.getElementById('pptx-master-input') as HTMLInputElement;
       const themeInput = window.document.getElementById('pptx-theme-input') as HTMLInputElement;
@@ -1137,6 +1155,19 @@ function renderEditorControls(): void {
             currentNodes.map((node, index) => index === 0 ? { ...node, targetShapeId: timingTargetInput.value } : node)
           );
         }
+        if ((timingConcurrentInput.value || timingNextActionInput.value || timingPrevActionInput.value) && (presentationEditor.document.slides[0]?.timing?.nodes.length ?? 0) > 1) {
+          const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
+          setPresentationTimingNodes(
+            presentationEditor,
+            0,
+            currentNodes.map((node, index) => index === 1 ? {
+              ...node,
+              concurrent: timingConcurrentInput.value ? timingConcurrentInput.value === 'true' : node.concurrent,
+              nextAction: timingNextActionInput.value || node.nextAction,
+              previousAction: timingPrevActionInput.value || node.previousAction
+            } : node)
+          );
+        }
         if (layoutInput.value) {
           setPresentationSlideLayout(presentationEditor, 0, layoutInput.value);
         }
@@ -1167,6 +1198,9 @@ function renderEditorControls(): void {
       timingEndTriggerInput.addEventListener('input', update);
       timingEndTriggerShapeInput.addEventListener('input', update);
       timingTargetInput.addEventListener('input', update);
+      timingConcurrentInput.addEventListener('input', update);
+      timingNextActionInput.addEventListener('input', update);
+      timingPrevActionInput.addEventListener('input', update);
       layoutInput.addEventListener('input', update);
       masterInput.addEventListener('input', update);
       themeInput.addEventListener('input', update);
