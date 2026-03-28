@@ -346,6 +346,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const holeSizeNode = chartRoot ? findElementsByLocalName(chartRoot, 'holeSize')[0] : undefined;
     const plotVisibleOnlyNode = chartRoot ? findElementsByLocalName(chartRoot, 'plotVisOnly')[0] : undefined;
     const displayBlanksAsNode = chartRoot ? findElementsByLocalName(chartRoot, 'dispBlanksAs')[0] : undefined;
+    const showDataLabelsOverMaxNode = chartRoot ? findElementsByLocalName(chartRoot, 'showDLblsOverMax')[0] : undefined;
     const legendNode = chartRoot ? findElementsByLocalName(chartRoot, 'legendPos')[0] : undefined;
     const categoryAxisNode = chartRoot ? findElementsByLocalName(chartRoot, 'catAx')[0] : undefined;
     const valueAxisNode = chartRoot ? findElementsByLocalName(chartRoot, 'valAx')[0] : undefined;
@@ -438,6 +439,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       holeSize: (() => { const value = xmlAttr(holeSizeNode, 'val'); return value ? Number(value) : undefined; })(),
       plotVisibleOnly: xmlAttr(plotVisibleOnlyNode, 'val') === '1' ? true : xmlAttr(plotVisibleOnlyNode, 'val') === '0' ? false : undefined,
       displayBlanksAs: xmlAttr(displayBlanksAsNode, 'val') ?? undefined,
+      showDataLabelsOverMax: xmlAttr(showDataLabelsOverMaxNode, 'val') === '1' ? true : xmlAttr(showDataLabelsOverMaxNode, 'val') === '0' ? false : undefined,
       legendPosition: xmlAttr(legendNode, 'val') ?? undefined,
       categoryAxisTitle: categoryAxisTitleNode ? findElementsByLocalName(categoryAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
       categoryAxisPosition: xmlAttr(categoryAxisPositionNode, 'val') ?? undefined,

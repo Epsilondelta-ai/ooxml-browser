@@ -102,6 +102,7 @@ export interface XlsxChart {
   holeSize?: number;
   plotVisibleOnly?: boolean;
   displayBlanksAs?: string;
+  showDataLabelsOverMax?: boolean;
   legendPosition?: string;
   categoryAxisTitle?: string;
   categoryAxisPosition?: string;

@@ -51,7 +51,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Chart per-series invert-if-negative | `setWorksheetChartSeriesInvertIfNegative` | Persisted | Preserves per-series negative-value display metadata inside chart parts. |
 | Chart per-series markers | `setWorksheetChartSeriesMarker` | Persisted | Preserves per-series marker symbol/size metadata inside chart parts. |
 | Chart grouping / overlap | `setWorksheetChartGrouping`, `setWorksheetChartOverlap` | Persisted | Preserves chart-family grouping and overlap metadata inside chart parts. |
-| Chart plot-visible / blanks-as | `setWorksheetChartPlotVisibleOnly`, `setWorksheetChartDisplayBlanksAs` | Persisted | Preserves chart-level visibility and blank-cell display policy inside chart parts. |
+| Chart plot-visible / blanks-as | `setWorksheetChartPlotVisibleOnly`, `setWorksheetChartDisplayBlanksAs`, `setWorksheetChartShowDataLabelsOverMax` | Persisted | Preserves chart-level visibility, label-over-max, and blank-cell display policy inside chart parts. |
 | Scatter / bubble policy | `setWorksheetChartScatterStyle`, `setWorksheetChartBubbleScale`, `setWorksheetChartShowNegativeBubbles`, `setWorksheetChartSizeRepresents` | Persisted | Preserves scatter/bubble chart family metadata inside chart parts. |
 | Pie/doughnut slice layout | `setWorksheetChartFirstSliceAngle`, `setWorksheetChartHoleSize`, `setWorksheetChartSeriesExplosion` | Persisted | Preserves pie/doughnut angle, hole-size, and per-series explosion metadata inside chart parts. |
 | Media/object target URI | `setWorksheetMediaTarget` | Persisted | Retargets drawing-backed image and embedded-object relationships without rewriting worksheet markup. |

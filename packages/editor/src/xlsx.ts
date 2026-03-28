@@ -606,6 +606,16 @@ export function setWorksheetChartDisplayBlanksAs(editor: OfficeEditor<XlsxWorkbo
   });
 }
 
+export function setWorksheetChartShowDataLabelsOverMax(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.showDataLabelsOverMax = enabled;
+    }
+  });
+}
+
 export function setWorksheetChartLegendPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, legendPosition: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
