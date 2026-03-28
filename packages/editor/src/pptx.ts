@@ -131,6 +131,15 @@ export function setPresentationSlideMaster(editor: OfficeEditor<PresentationDocu
   });
 }
 
+export function setPresentationSlideTheme(editor: OfficeEditor<PresentationDocument>, slideIndex: number, themeUri: string): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (slide) {
+      slide.themeUri = themeUri;
+    }
+  });
+}
+
 export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];

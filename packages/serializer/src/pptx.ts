@@ -21,6 +21,7 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
     const originalSlide = originalSlidesByUri.get(slide.uri);
     syncSlideLayoutRelationship(graph, slide.uri, originalSlide, slide);
     syncSlideMasterRelationship(graph, originalSlide, slide);
+    syncSlideThemeRelationship(graph, originalSlide, slide);
     syncSlideImageRelationships(graph, slide.uri, originalSlide, slide);
     const existingSlideSource = graph.parts[slide.uri]?.text;
     const nextSlideSource =
@@ -75,6 +76,26 @@ function syncSlideLayoutRelationship(graph: PresentationDocument['packageGraph']
     id: layoutRelationship.id,
     type: layoutRelationship.type,
     target: relativeRelationshipTarget(slideUri, slide.layoutUri),
+    targetMode: 'Internal'
+  });
+}
+
+function syncSlideThemeRelationship(graph: PresentationDocument['packageGraph'], originalSlide: PresentationSlide | undefined, slide: PresentationSlide): void {
+  const masterUri = slide.masterUri ?? originalSlide?.masterUri;
+  if (!masterUri || !slide.themeUri || slide.themeUri === originalSlide?.themeUri) {
+    return;
+  }
+
+  const masterRelationships = relationshipsFor(graph, masterUri);
+  const themeRelationship = masterRelationships.find((relationship) => relationship.type.includes('/theme'));
+  if (!themeRelationship) {
+    return;
+  }
+
+  upsertRelationship(graph, masterUri, {
+    id: themeRelationship.id,
+    type: themeRelationship.type,
+    target: relativeRelationshipTarget(masterUri, slide.themeUri),
     targetMode: 'Internal'
   });
 }
