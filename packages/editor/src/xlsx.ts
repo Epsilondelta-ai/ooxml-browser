@@ -23,6 +23,27 @@ export function setWorkbookCellValue(editor: OfficeEditor<XlsxWorkbook>, sheetNa
   });
 }
 
+export function setWorkbookCellFormula(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, formula: string, value: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    for (const row of sheet.rows) {
+      const cell = row.cells.find((entry) => entry.reference === reference);
+      if (!cell) {
+        continue;
+      }
+
+      cell.formula = formula;
+      cell.value = value;
+      cell.type = 'n';
+      return;
+    }
+  });
+}
+
 
 export function insertWorkbookRow(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, rowIndex: number): XlsxWorkbook {
   return editor.transaction((draft) => {
