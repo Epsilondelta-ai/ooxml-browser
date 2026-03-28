@@ -14,8 +14,8 @@ describe('pptx timing and transitions', () => {
     expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast' });
     expect(slide?.timing?.nodeCount).toBe(2);
     expect(slide?.timing?.nodes).toEqual([
-      { nodeType: 'par', presetClass: 'entr', presetId: '1', id: '10', duration: '500', repeatCount: '1', triggerEvent: 'onBegin', triggerDelay: '0', targetShapeId: '2' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '2', id: '20', duration: '750', repeatCount: 'indefinite', triggerEvent: 'onClick', triggerDelay: '250', targetShapeId: '2' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '1', id: '10', duration: '500', repeatCount: '1', restart: 'always', fill: 'hold', triggerEvent: 'onBegin', triggerDelay: '0', targetShapeId: '2' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '2', id: '20', duration: '750', repeatCount: 'indefinite', restart: 'whenNotActive', fill: 'freeze', triggerEvent: 'onClick', triggerDelay: '250', targetShapeId: '2' }
     ]);
   });
 
@@ -25,6 +25,6 @@ describe('pptx timing and transitions', () => {
 
     expect(html).toContain('fade (fast)');
     expect(html).toContain('data-timing-count="2"');
-    expect(html).toContain('par:entr#10@500×1!onBegin+0->2, seq:exit#20@750×indefinite!onClick+250->2');
+    expect(html).toContain('par:entr#10@500×1 restart:always fill:hold!onBegin+0->2, seq:exit#20@750×indefinite restart:whenNotActive fill:freeze!onClick+250->2');
   });
 });

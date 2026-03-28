@@ -162,7 +162,7 @@ export function setPresentationTransition(editor: OfficeEditor<PresentationDocum
   });
 }
 
-export function setPresentationTimingNodes(editor: OfficeEditor<PresentationDocument>, slideIndex: number, nodes: Array<{ nodeType: string; presetClass?: string; presetId?: string; id?: string; duration?: string; repeatCount?: string; triggerEvent?: string; triggerDelay?: string; targetShapeId?: string }>): PresentationDocument {
+export function setPresentationTimingNodes(editor: OfficeEditor<PresentationDocument>, slideIndex: number, nodes: Array<{ nodeType: string; presetClass?: string; presetId?: string; id?: string; duration?: string; repeatCount?: string; restart?: string; fill?: string; triggerEvent?: string; triggerDelay?: string; targetShapeId?: string }>): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];
     if (slide) {
