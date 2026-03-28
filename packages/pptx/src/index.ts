@@ -1,7 +1,9 @@
 export type {
+  PresentationComment,
   PresentationDocument,
   PresentationSlide,
   PresentationTheme,
-  SlideShape
+  SlideShape,
+  SlideShapeMedia
 } from './model';
 export { parsePptx } from './parser';

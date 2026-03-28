@@ -1,10 +1,16 @@
 import type { PackageGraph } from '@ooxml/core';
 
+export interface SlideShapeMedia {
+  type: 'image';
+  targetUri?: string;
+}
+
 export interface SlideShape {
   id: string;
   name?: string;
   text: string;
   placeholderType?: string;
+  media?: SlideShapeMedia;
 }
 
 export interface PresentationTheme {
@@ -13,6 +19,12 @@ export interface PresentationTheme {
   colorSchemeName?: string;
   majorLatinFont?: string;
   minorLatinFont?: string;
+}
+
+export interface PresentationComment {
+  author?: string;
+  text: string;
+  index: number;
 }
 
 export interface PresentationSlide {
@@ -26,6 +38,7 @@ export interface PresentationSlide {
   masterName?: string;
   themeUri?: string;
   shapes: SlideShape[];
+  comments: PresentationComment[];
 }
 
 export interface PresentationDocument {

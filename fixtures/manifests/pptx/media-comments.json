@@ -1,0 +1,12 @@
+{
+  "id": "pptx-media-comments",
+  "sourceApplication": "repo-generated",
+  "format": "pptx",
+  "featureTags": ["image", "comments"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "media/comment render"],
+  "reopenExpectations": {"parser": true, "office": "stage-4-attestation-pending", "libreoffice": "stage-4-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

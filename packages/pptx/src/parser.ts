@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, findElementsByLocalName, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { PresentationDocument, PresentationSlide, PresentationTheme, SlideShape } from './model';
+import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTheme, SlideShape } from './model';
 
 export function parsePptx(graph: PackageGraph): PresentationDocument {
   const presentationUri = graph.rootDocumentUri ?? '/ppt/presentation.xml';
@@ -45,11 +45,16 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const slide = xml.document['p:sld'];
   const commonSlideData = xmlChild<Record<string, unknown>>(slide, 'p:cSld');
   const shapeTree = xmlChild<Record<string, unknown>>(commonSlideData, 'p:spTree');
-  const layoutRelationship = relationshipsFor(graph, uri).find((relationship) => relationship.type.includes('/slideLayout'));
+  const slideRelationships = relationshipsFor(graph, uri);
+  const layoutRelationship = slideRelationships.find((relationship) => relationship.type.includes('/slideLayout'));
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
-  const shapes = xmlChildren<Record<string, unknown>>(shapeTree, 'p:sp').map((shape) => parseShape(shape));
+  const shapes = [
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:sp').map((shape) => parseShape(shape)),
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:pic').map((picture) => parsePicture(picture, slideRelationships))
+  ];
   const notesInfo = parseNotesInfo(graph, uri);
   const title = shapes.find((shape) => shape.text.trim())?.text ?? 'Slide';
+  const comments = parseSlideComments(graph, uri);
 
   return {
     title,
@@ -61,7 +66,8 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
     masterUri: layoutInfo?.masterUri,
     masterName: layoutInfo?.masterName,
     themeUri: layoutInfo?.themeUri,
-    shapes
+    shapes,
+    comments
   };
 }
 
@@ -77,6 +83,25 @@ function parseShape(shape: Record<string, unknown>): SlideShape {
     name: xmlAttr(cNvPr, 'name'),
     text: textNodes.map((node) => xmlText(node)).join(''),
     placeholderType: xmlAttr(placeholder, 'type')
+  };
+}
+
+function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>): SlideShape {
+  const nvPicPr = xmlChild<Record<string, unknown>>(picture, 'p:nvPicPr');
+  const cNvPr = xmlChild<Record<string, unknown>>(nvPicPr, 'p:cNvPr');
+  const blipFill = xmlChild<Record<string, unknown>>(picture, 'p:blipFill');
+  const blip = xmlChild<Record<string, unknown>>(blipFill, 'a:blip');
+  const relationshipId = xmlAttr(blip, 'r:embed');
+  const target = relationshipId ? relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget : undefined;
+
+  return {
+    id: xmlAttr(cNvPr, 'id') ?? '',
+    name: xmlAttr(cNvPr, 'name'),
+    text: '',
+    media: {
+      type: 'image',
+      targetUri: target ?? undefined
+    }
   };
 }
 
@@ -142,4 +167,23 @@ function parseNotesInfo(graph: PackageGraph, slideUri: string): { uri?: string; 
     uri: notesRelationship.resolvedTarget,
     text: findElementsByLocalName(xml.document, 't').map((node) => xmlText(node)).join('')
   };
+}
+
+function parseSlideComments(graph: PackageGraph, slideUri: string): PresentationComment[] {
+  const commentsRelationship = relationshipsFor(graph, slideUri).find((relationship) => relationship.type.includes('/comments'));
+  if (!commentsRelationship?.resolvedTarget) {
+    return [];
+  }
+
+  const xml = getParsedXmlPart(graph, commentsRelationship.resolvedTarget);
+  if (!xml) {
+    return [];
+  }
+
+  const root = xml.document['p:cmLst'];
+  return xmlChildren<Record<string, unknown>>(root, 'p:cm').map((commentNode, index) => ({
+    author: xmlAttr(commentNode, 'authorId') ?? undefined,
+    text: xmlText(xmlChild(commentNode, 'p:text')),
+    index
+  }));
 }
