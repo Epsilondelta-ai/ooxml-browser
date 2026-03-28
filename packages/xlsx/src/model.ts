@@ -109,6 +109,7 @@ export interface XlsxChart {
   categoryAxisCrossesAt?: number;
   categoryAxisMajorTickMark?: string;
   categoryAxisMinorTickMark?: string;
+  categoryAxisTickLabelPosition?: string;
   valueAxisTitle?: string;
   valueAxisPosition?: string;
   valueAxisCrosses?: string;
@@ -119,6 +120,7 @@ export interface XlsxChart {
   valueAxisMinorUnit?: number;
   valueAxisMajorTickMark?: string;
   valueAxisMinorTickMark?: string;
+  valueAxisTickLabelPosition?: string;
   dataLabels?: XlsxChartDataLabels;
   series: XlsxChartSeries[];
   seriesNames: string[];

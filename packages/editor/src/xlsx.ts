@@ -686,6 +686,16 @@ export function setWorksheetChartCategoryAxisMinorTickMark(editor: OfficeEditor<
   });
 }
 
+export function setWorksheetChartCategoryAxisTickLabelPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickLabelPosition: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisTickLabelPosition = tickLabelPosition;
+    }
+  });
+}
+
 export function setWorksheetChartValueAxisPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, position: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
@@ -772,6 +782,16 @@ export function setWorksheetChartValueAxisMinorTickMark(editor: OfficeEditor<Xls
     const chart = sheet?.charts[chartIndex];
     if (chart) {
       chart.valueAxisMinorTickMark = tickMark;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisTickLabelPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickLabelPosition: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisTickLabelPosition = tickLabelPosition;
     }
   });
 }
