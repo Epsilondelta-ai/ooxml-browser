@@ -111,6 +111,10 @@ function parseCell(cell: Record<string, unknown>, graph: PackageGraph): Workshee
   const styleIndex = styleIndexValue ? Number(styleIndexValue) : undefined;
   let value = rawValue;
 
+  if (type === 'inlineStr') {
+    value = xmlText(xmlChild(cell, 'is'));
+  }
+
   if (type === 's') {
     const workbook = graph.rootDocumentUri ?? '/xl/workbook.xml';
     const sharedStrings = parseSharedStrings(graph, workbook);
