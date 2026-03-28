@@ -15,6 +15,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment text | `setDocxCommentText` | Persisted | Comment XML patch path preserves unrelated story parts. |
 | Comment author | `setDocxCommentAuthor` | Persisted | Comment XML patch path updates `w:author`. |
 | Comment create/update | `addDocxComment` | Persisted | Creates a comments part and main-document relationship on demand when missing. |
+| Comment delete | `removeDocxComment` | Persisted | Clears the comment part entry when the last comment is removed. |
 | Revision metadata | `setDocxRevisionMetadata` | Persisted | Supports tracked-change id/kind/author/date/text edits through the revision-aware serializer path. |
 | Section page size/margins | `setDocxSectionLayout` | Persisted | Section changes disable paragraph-only patch fast path. |
 | Header/footer reference type | `setDocxSectionReferenceType` | Persisted | Reuses the section rebuild path for `sectPr` reference metadata. |
@@ -34,6 +35,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
 | Comment create/update | `upsertWorksheetComment` | Persisted | Creates a comments part and worksheet relationship on demand when missing. |
+| Comment delete | `removeWorksheetComment` | Persisted | Persists an empty comments part when the last worksheet comment is removed. |
 | Table name | `setWorksheetTableName` | Persisted | Table-part serializer keeps `name`/`displayName` aligned. |
 | Table range | `setWorksheetTableRange` | Persisted | Table-part patch updates `ref`. |
 | Frozen pane | `setWorksheetFrozenPane` | Persisted | Worksheet patch path updates pane attributes. |
@@ -55,6 +57,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment text | `setPresentationCommentText` | Persisted | Comment-part patch path. |
 | Comment author | `setPresentationCommentAuthor` | Persisted | Occurrence-aware attribute patch path. |
 | Comment create/update | `addPresentationComment` | Persisted | Creates a comments part and slide relationship on demand when missing. |
+| Comment delete | `removePresentationComment` | Persisted | Deletes comments from the slide model and persists an empty comments part when needed. |
 | Transition | `setPresentationTransition` | Persisted | Slide metadata rebuild path. |
 | Timing nodes | `setPresentationTimingNodes` | Persisted | Parser reads `p:cTn` preset metadata. |
 | Presentation size | `setPresentationSize` | Persisted | Serializer patches `p:sldSz` in `presentation.xml`. |
