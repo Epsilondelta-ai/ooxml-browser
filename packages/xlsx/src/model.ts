@@ -109,6 +109,7 @@ export interface XlsxChart {
   displayBlanksAs?: string;
   showDataLabelsOverMax?: boolean;
   legendPosition?: string;
+  legendOverlay?: boolean;
   categoryAxisTitle?: string;
   categoryAxisPosition?: string;
   categoryAxisCrosses?: string;

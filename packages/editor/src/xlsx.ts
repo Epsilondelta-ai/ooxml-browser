@@ -676,6 +676,16 @@ export function setWorksheetChartLegendPosition(editor: OfficeEditor<XlsxWorkboo
   });
 }
 
+export function setWorksheetChartLegendOverlay(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, legendOverlay: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.legendOverlay = legendOverlay;
+    }
+  });
+}
+
 export function setWorksheetChartCategoryAxisTitle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, title: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
