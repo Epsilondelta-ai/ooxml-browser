@@ -14,7 +14,7 @@ const sharedGlobals = {
 
 export default [
   {
-    ignores: ['**/dist/**', 'node_modules/**', '.omx/**']
+    ignores: ['**/dist/**', '**/*.d.ts', '**/*.d.ts.map', 'node_modules/**', '.omx/**']
   },
   js.configs.recommended,
   {
@@ -33,6 +33,7 @@ export default [
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': 'off',
       'no-undef': 'off'
     }
   },

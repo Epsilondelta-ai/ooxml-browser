@@ -5,7 +5,10 @@
     "outDir": "dist"
   },
   "references": [
-    { "path": "../core" }
+    { "path": "../core" },
+    { "path": "../docx" },
+    { "path": "../xlsx" },
+    { "path": "../pptx" }
   ],
   "include": ["src/**/*.ts"]
 }
