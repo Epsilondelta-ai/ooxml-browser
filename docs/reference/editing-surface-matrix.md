@@ -38,6 +38,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Page margins | `setWorksheetPageMargins` | Persisted | Parser/renderer/editor preserve worksheet `pageMargins` metadata for print fidelity. |
 | Page setup | `setWorksheetPageSetup` | Persisted | Preserves worksheet orientation, paper size, scale, and fit-to-page settings. |
 | Chart target URI | `setWorksheetChartTarget` | Persisted | Retargets chart relationships from drawing parts without regenerating worksheet markup. |
+| Image target URI | `setWorksheetMediaTarget` | Persisted | Retargets drawing image relationships without rewriting worksheet markup. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
@@ -73,7 +74,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 
 ## Gaps that remain outside the public editing surface
 
-- XLSX chart/comment-threaded extensions and relationship-backed media retargeting
+- XLSX chart/comment-threaded extensions
 - PPTX richer animation graph editing beyond flat timing nodes
 - Relationship-safe embedded-object retargeting across all formats
 

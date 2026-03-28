@@ -54,6 +54,14 @@ export interface XlsxChart {
   name?: string;
 }
 
+export interface XlsxMedia {
+  relationshipId: string;
+  drawingUri: string;
+  targetUri: string;
+  type: 'image';
+  name?: string;
+}
+
 export interface WorkbookSheet {
   name: string;
   uri: string;
@@ -66,6 +74,7 @@ export interface WorkbookSheet {
   pageMargins?: XlsxPageMargins;
   pageSetup?: XlsxPageSetup;
   charts: XlsxChart[];
+  media: XlsxMedia[];
   tables: XlsxTable[];
   comments: XlsxComment[];
 }

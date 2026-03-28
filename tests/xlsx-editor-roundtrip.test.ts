@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartTarget, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartTarget, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createChartedXlsxFixture, createCommentedXlsxFixture, createStructuredXlsxFixture, createXlsxFixture } from './fixture-builders';
+import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createStructuredXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -265,6 +265,19 @@ describe('xlsx editor round-trips', () => {
 
     expect(reopened.sheets[0]?.charts[0]?.targetUri).toBe('/xl/charts/chart2.xml');
     expect(reopenedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toContain('../charts/chart2.xml');
+    expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
+  });
+
+  it('retargets worksheet media relationships through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createMediaXlsxFixture())));
+    setWorksheetMediaTarget(editor, 'Sheet1', 0, '/xl/media/image2.png');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.media[0]?.targetUri).toBe('/xl/media/image2.png');
+    expect(reopenedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toContain('../media/image2.png');
     expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
   });
 });

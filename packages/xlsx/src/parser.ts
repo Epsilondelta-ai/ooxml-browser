@@ -1,6 +1,6 @@
 import { findElementsByLocalName, getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxChart, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxChart, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxMedia, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -94,6 +94,7 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
     pageMargins,
     pageSetup,
     charts: parseSheetCharts(graph, uri),
+    media: parseSheetMedia(graph, uri),
     tables: parseSheetTables(graph, uri),
     comments: parseSheetComments(graph, uri)
   };
@@ -320,6 +321,39 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       relationshipId,
       drawingUri,
       targetUri: target,
+      name: xmlAttr(nonVisual, 'name')
+    }];
+  });
+}
+
+function parseSheetMedia(graph: PackageGraph, sheetUri: string): XlsxMedia[] {
+  return relationshipsFor(graph, sheetUri)
+    .filter((relationship) => relationship.type.includes('/drawing') && relationship.resolvedTarget)
+    .flatMap((relationship) => parseDrawingMedia(graph, relationship.resolvedTarget!));
+}
+
+function parseDrawingMedia(graph: PackageGraph, drawingUri: string): XlsxMedia[] {
+  const xml = getParsedXmlPart(graph, drawingUri);
+  if (!xml) {
+    return [];
+  }
+
+  const drawingRelationships = relationshipsFor(graph, drawingUri);
+  const pictures = findElementsByLocalName(xml.document, 'pic');
+  return pictures.flatMap((picture) => {
+    const blip = findElementsByLocalName(picture, 'blip')[0];
+    const relationshipId = xmlAttr(blip, 'r:embed');
+    const target = relationshipId ? drawingRelationships.find((entry) => entry.id === relationshipId)?.resolvedTarget : undefined;
+    if (!relationshipId || !target) {
+      return [];
+    }
+
+    const nonVisual = findElementsByLocalName(picture, 'cNvPr')[0];
+    return [{
+      relationshipId,
+      drawingUri,
+      targetUri: target,
+      type: 'image' as const,
       name: xmlAttr(nonVisual, 'name')
     }];
   });

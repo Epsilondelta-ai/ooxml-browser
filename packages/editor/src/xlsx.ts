@@ -357,6 +357,16 @@ export function setWorksheetChartTarget(editor: OfficeEditor<XlsxWorkbook>, shee
   });
 }
 
+export function setWorksheetMediaTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mediaIndex: number, targetUri: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const media = sheet?.media[mediaIndex];
+    if (media) {
+      media.targetUri = targetUri;
+    }
+  });
+}
+
 function createSheetReferenceRewriter(currentName: string, nextName: string): (value: string) => string {
   const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const quotedPattern = new RegExp(`'${escapedCurrent}'!`, 'g');

@@ -2,6 +2,7 @@ export type {
   WorkbookSheet,
   XlsxChart,
   XlsxComment,
+  XlsxMedia,
   WorksheetCell,
   WorksheetRow,
   XlsxCellFormat,

@@ -16,6 +16,7 @@ export function renderWorkbook(workbook: XlsxWorkbook, options: RenderOptions): 
   const pageSetupMarkup = sheet.pageSetup ? `<p class="ooxml-xlsx-page-setup" data-orientation="${escapeHtml(sheet.pageSetup.orientation ?? '')}">Page setup: ${escapeHtml(sheet.pageSetup.orientation ?? 'default')}${sheet.pageSetup.fitToWidth !== undefined || sheet.pageSetup.fitToHeight !== undefined ? ` (fit ${escapeHtml(String(sheet.pageSetup.fitToWidth ?? ''))}×${escapeHtml(String(sheet.pageSetup.fitToHeight ?? ''))})` : ''}</p>` : '';
   const mergedRangesMarkup = sheet.mergedRanges.length ? `<p class="ooxml-xlsx-merged-ranges">Merged: ${sheet.mergedRanges.map((range) => escapeHtml(range)).join(', ')}</p>` : '';
   const chartsMarkup = sheet.charts.length ? `<p class="ooxml-xlsx-charts">Charts: ${sheet.charts.map((chart) => `${escapeHtml(chart.name ?? chart.relationshipId)} (${escapeHtml(chart.targetUri)})`).join(', ')}</p>` : '';
+  const mediaMarkup = sheet.media.length ? `<p class="ooxml-xlsx-media">Media: ${sheet.media.map((asset) => `${escapeHtml(asset.name ?? asset.relationshipId)} (${escapeHtml(asset.targetUri)})`).join(', ')}</p>` : '';
   const tablesMarkup = sheet.tables.length ? `<p class="ooxml-xlsx-tables">Tables: ${sheet.tables.map((table) => `${escapeHtml(table.name)} (${escapeHtml(table.range)})`).join(', ')}</p>` : '';
   const commentsMarkup = sheet.comments.length ? `<ul class="ooxml-xlsx-comments">${sheet.comments.map((comment) => `<li data-ref="${escapeHtml(comment.reference)}">${escapeHtml(comment.reference)}: ${escapeHtml(comment.text)}${comment.author ? ` — ${escapeHtml(comment.author)}` : ''}</li>`).join('')}</ul>` : '';
 
@@ -27,7 +28,7 @@ export function renderWorkbook(workbook: XlsxWorkbook, options: RenderOptions): 
     return `<tr><th scope="row">${row.index}</th>${cells}</tr>`;
   }).join('');
 
-  return `<section class="ooxml-render ooxml-render--xlsx"><h2>${escapeHtml(sheet.name)}</h2>${frozenPaneMarkup}${selectionMarkup}${pageMarginsMarkup}${pageSetupMarkup}${mergedRangesMarkup}${chartsMarkup}${tablesMarkup}${commentsMarkup}<table class="ooxml-xlsx-grid"><tbody>${rows}</tbody></table></section>`;
+  return `<section class="ooxml-render ooxml-render--xlsx"><h2>${escapeHtml(sheet.name)}</h2>${frozenPaneMarkup}${selectionMarkup}${pageMarginsMarkup}${pageSetupMarkup}${mergedRangesMarkup}${chartsMarkup}${mediaMarkup}${tablesMarkup}${commentsMarkup}<table class="ooxml-xlsx-grid"><tbody>${rows}</tbody></table></section>`;
 }
 
 function escapeHtml(value: string): string {
