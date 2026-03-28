@@ -45,3 +45,12 @@ export function setPresentationShapeTransform(editor: OfficeEditor<PresentationD
     }
   });
 }
+
+export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (slide) {
+      slide.transition = transition;
+    }
+  });
+}

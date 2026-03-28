@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createMediaPptxFixture, createPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createMediaPptxFixture, createPptxFixture, createTimedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx editor round-trips', () => {
   it('persists edited slide comment text', async () => {
@@ -45,5 +45,13 @@ describe('pptx editor round-trips', () => {
 
     expect(shape?.text).toBe('Moved shape');
     expect(shape?.transform).toEqual({ x: 150, y: 250, cx: 3500, cy: 4500 });
+  });
+
+  it('persists edited slide transition metadata', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createTimedPptxFixture())));
+    setPresentationTransition(editor, 0, { type: 'push', speed: 'slow' });
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.slides[0]?.transition).toEqual({ type: 'push', speed: 'slow' });
   });
 });
