@@ -343,6 +343,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const chartStyleNode = chartRoot ? findElementsByLocalName(chartRoot, 'style')[0] : undefined;
     const autoTitleDeletedNode = chartRoot ? findElementsByLocalName(chartRoot, 'autoTitleDeleted')[0] : undefined;
     const chartTitleNode = chartRoot ? findElementsByLocalName(chartRoot, 'title')[0] : undefined;
+    const titleOverlayNode = chartTitleNode ? findElementsByLocalName(chartTitleNode, 'overlay')[0] : undefined;
     const chartTitle = chartTitleNode ? findElementsByLocalName(chartTitleNode, 't').map((node) => xmlText(node)).join('') : undefined;
     const firstSliceAngleNode = chartRoot ? findElementsByLocalName(chartRoot, 'firstSliceAng')[0] : undefined;
     const holeSizeNode = chartRoot ? findElementsByLocalName(chartRoot, 'holeSize')[0] : undefined;
@@ -441,6 +442,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       chartType,
       barDirection: xmlAttr(barDirectionNode, 'val') ?? undefined,
       autoTitleDeleted: xmlAttr(autoTitleDeletedNode, 'val') === '1' ? true : xmlAttr(autoTitleDeletedNode, 'val') === '0' ? false : undefined,
+      titleOverlay: xmlAttr(titleOverlayNode, 'val') === '1' ? true : xmlAttr(titleOverlayNode, 'val') === '0' ? false : undefined,
       scatterStyle: xmlAttr(scatterStyleNode, 'val') ?? undefined,
       bubbleScale: (() => { const value = xmlAttr(bubbleScaleNode, 'val'); return value ? Number(value) : undefined; })(),
       showNegativeBubbles: xmlAttr(showNegativeBubblesNode, 'val') === '1' ? true : xmlAttr(showNegativeBubblesNode, 'val') === '0' ? false : undefined,

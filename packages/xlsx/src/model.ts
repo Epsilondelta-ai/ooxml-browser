@@ -91,6 +91,7 @@ export interface XlsxChart {
   chartType?: string;
   barDirection?: string;
   autoTitleDeleted?: boolean;
+  titleOverlay?: boolean;
   scatterStyle?: string;
   bubbleScale?: number;
   showNegativeBubbles?: boolean;

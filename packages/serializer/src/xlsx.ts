@@ -146,6 +146,7 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.chartType !== originalChart?.chartType
       || chart.barDirection !== originalChart?.barDirection
       || chart.autoTitleDeleted !== originalChart?.autoTitleDeleted
+      || chart.titleOverlay !== originalChart?.titleOverlay
       || chart.scatterStyle !== originalChart?.scatterStyle
       || chart.bubbleScale !== originalChart?.bubbleScale
       || chart.showNegativeBubbles !== originalChart?.showNegativeBubbles
@@ -203,6 +204,7 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || JSON.stringify(chart.series) !== JSON.stringify(originalChart?.series ?? [])
     ) {
       const requiresRebuild = chart.chartType !== originalChart?.chartType
+        || chart.titleOverlay !== originalChart?.titleOverlay
         || chart.scatterStyle !== originalChart?.scatterStyle
         || chart.bubbleScale !== originalChart?.bubbleScale
         || chart.showNegativeBubbles !== originalChart?.showNegativeBubbles
@@ -560,10 +562,19 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newValue: chart.autoTitleDeleted ? '1' : '0'
         });
       }
+      if (chart.titleOverlay !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:overlay',
+          targetAttr: 'val',
+          newValue: chart.titleOverlay ? '1' : '0',
+          occurrence: 0
+        });
+      }
       if (chart.title !== undefined) {
-      operations.push({
-        op: 'replaceText',
-        containerTag: 'c:title',
+        operations.push({
+          op: 'replaceText',
+          containerTag: 'c:title',
         occurrence: 0,
         textTag: 'a:t',
           newText: chart.title
@@ -1116,6 +1127,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const chartType = chart.chartType ?? 'barChart';
   const chartStyleXml = chart.chartStyle !== undefined ? `<c:style val="${chart.chartStyle}"/>` : '';
   const autoTitleDeletedXml = chart.autoTitleDeleted !== undefined ? `<c:autoTitleDeleted val="${chart.autoTitleDeleted ? '1' : '0'}"/>` : '';
+  const titleOverlayXml = chart.titleOverlay !== undefined ? `<c:overlay val="${chart.titleOverlay ? '1' : '0'}"/>` : '';
   const seriesXml = chart.series.map((seriesEntry, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesEntry.name)}</a:t></c:rich></c:tx>${seriesEntry.invertIfNegative !== undefined ? `<c:invertIfNegative val="${seriesEntry.invertIfNegative ? '1' : '0'}"/>` : ''}${seriesEntry.markerSymbol !== undefined || seriesEntry.markerSize !== undefined ? `<c:marker>${seriesEntry.markerSymbol !== undefined ? `<c:symbol val="${escapeXml(seriesEntry.markerSymbol)}"/>` : ''}${seriesEntry.markerSize !== undefined ? `<c:size val="${seriesEntry.markerSize}"/>` : ''}</c:marker>` : ''}${seriesEntry.explosion !== undefined ? `<c:explosion val="${seriesEntry.explosion}"/>` : ''}</c:ser>`).join('');
   const barDirectionXml = chart.barDirection !== undefined && chartType === 'barChart' ? `<c:barDir val="${escapeXml(chart.barDirection)}"/>` : '';
   const scatterStyleXml = chart.scatterStyle !== undefined ? `<c:scatterStyle val="${escapeXml(chart.scatterStyle)}"/>` : '';
@@ -1141,7 +1153,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition || chart.valueAxisCrosses || chart.valueAxisCrossesAt !== undefined || chart.valueAxisCrossBetween || chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined || chart.valueAxisMajorUnit !== undefined || chart.valueAxisMinorUnit !== undefined || chart.valueAxisMajorGridlines !== undefined || chart.valueAxisMinorGridlines !== undefined || chart.valueAxisMajorTickMark || chart.valueAxisMinorTickMark || chart.valueAxisTickLabelPosition || chart.valueAxisDeleted !== undefined || chart.valueAxisDisplayUnits ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined ? `<c:scaling>${chart.valueAxisMinimum !== undefined ? `<c:min val="${chart.valueAxisMinimum}"/>` : ''}${chart.valueAxisMaximum !== undefined ? `<c:max val="${chart.valueAxisMaximum}"/>` : ''}</c:scaling>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}${chart.valueAxisCrosses ? `<c:crosses val="${escapeXml(chart.valueAxisCrosses)}"/>` : ''}${chart.valueAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.valueAxisCrossesAt}"/>` : ''}${chart.valueAxisCrossBetween ? `<c:crossBetween val="${escapeXml(chart.valueAxisCrossBetween)}"/>` : ''}${chart.valueAxisMajorUnit !== undefined ? `<c:majorUnit val="${chart.valueAxisMajorUnit}"/>` : ''}${chart.valueAxisMinorUnit !== undefined ? `<c:minorUnit val="${chart.valueAxisMinorUnit}"/>` : ''}${chart.valueAxisMajorGridlines !== undefined ? `<c:majorGridlines val="${chart.valueAxisMajorGridlines ? '1' : '0'}"/>` : ''}${chart.valueAxisMinorGridlines !== undefined ? `<c:minorGridlines val="${chart.valueAxisMinorGridlines ? '1' : '0'}"/>` : ''}${chart.valueAxisMajorTickMark ? `<c:majorTickMark val="${escapeXml(chart.valueAxisMajorTickMark)}"/>` : ''}${chart.valueAxisMinorTickMark ? `<c:minorTickMark val="${escapeXml(chart.valueAxisMinorTickMark)}"/>` : ''}${chart.valueAxisTickLabelPosition ? `<c:tickLblPos val="${escapeXml(chart.valueAxisTickLabelPosition)}"/>` : ''}${chart.valueAxisDeleted !== undefined ? `<c:delete val="${chart.valueAxisDeleted ? '1' : '0'}"/>` : ''}${chart.valueAxisDisplayUnits ? `<c:dispUnits val="${escapeXml(chart.valueAxisDisplayUnits)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.separator !== undefined ? `<c:separator>${escapeXml(chart.dataLabels.separator)}</c:separator>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showSeriesName !== undefined ? `<c:showSerName val="${chart.dataLabels.showSeriesName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLegendKey !== undefined ? `<c:showLegendKey val="${chart.dataLabels.showLegendKey ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLeaderLines !== undefined ? `<c:showLeaderLines val="${chart.dataLabels.showLeaderLines ? '1' : '0'}"/>` : ''}${chart.dataLabels.showPercent !== undefined ? `<c:showPercent val="${chart.dataLabels.showPercent ? '1' : '0'}"/>` : ''}${chart.dataLabels.showBubbleSize !== undefined ? `<c:showBubbleSize val="${chart.dataLabels.showBubbleSize ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition || chart.legendOverlay !== undefined ? `<c:legend>${chart.legendPosition ? `<c:legendPos val="${escapeXml(chart.legendPosition)}"/>` : ''}${chart.legendOverlay !== undefined ? `<c:overlay val="${chart.legendOverlay ? '1' : '0'}"/>` : ''}</c:legend>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">${chartStyleXml}<c:chart>${autoTitleDeletedXml}<c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${barDirectionXml}${scatterStyleXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}${dropLinesXml}${hiLowLinesXml}${seriesLinesXml}${upDownBarsXml}${bubbleScaleXml}${showNegativeBubblesXml}${sizeRepresentsXml}${firstSliceAngleXml}${holeSizeXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}${showDataLabelsOverMaxXml}${roundedCornersXml}</c:chart></c:chartSpace>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">${chartStyleXml}<c:chart>${autoTitleDeletedXml}<c:title>${titleOverlayXml}<c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${barDirectionXml}${scatterStyleXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}${dropLinesXml}${hiLowLinesXml}${seriesLinesXml}${upDownBarsXml}${bubbleScaleXml}${showNegativeBubblesXml}${sizeRepresentsXml}${firstSliceAngleXml}${holeSizeXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}${showDataLabelsOverMaxXml}${roundedCornersXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
