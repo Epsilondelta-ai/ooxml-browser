@@ -1,5 +1,5 @@
-import { clonePackageGraph, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
-import type { PresentationDocument, PresentationSlide, SlideShape } from '@ooxml/pptx';
+import { clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTimingNode, SlideShape } from '@ooxml/pptx';
 
 export function serializePptx(presentation: PresentationDocument): Uint8Array {
   const graph = clonePackageGraph(presentation.packageGraph);
@@ -8,7 +8,7 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
     updatePackagePartText(
       graph,
       slide.uri,
-      buildSlideXml(slide),
+      buildSlideXml(slide, relationshipsFor(graph, slide.uri)),
       'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
     );
 
@@ -21,22 +21,64 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
         'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml'
       );
     }
+
+    const commentsRelationship = relationshipsFor(graph, slide.uri).find((relationship) => relationship.type.includes('/comments'));
+    if (commentsRelationship?.resolvedTarget) {
+      updatePackagePartText(
+        graph,
+        commentsRelationship.resolvedTarget,
+        buildCommentsXml(slide.comments),
+        'application/vnd.openxmlformats-officedocument.presentationml.comment+xml'
+      );
+    }
   }
 
   return serializePackageGraph(graph);
 }
 
-function buildSlideXml(slide: PresentationSlide): string {
-  const shapes = slide.shapes.map((shape) => buildShapeXml(shape)).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree>${shapes}</p:spTree></p:cSld></p:sld>`;
+function buildSlideXml(slide: PresentationSlide, slideRelationships: ReturnType<typeof relationshipsFor>): string {
+  const shapes = slide.shapes.map((shape) => buildShapeXml(shape, slideRelationships)).join('');
+  const transitionXml = slide.transition ? buildTransitionXml(slide.transition.type, slide.transition.speed) : '';
+  const timingXml = slide.timing ? buildTimingXml(slide.timing.nodes) : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree>${shapes}</p:spTree></p:cSld>${transitionXml}${timingXml}</p:sld>`;
 }
 
-function buildShapeXml(shape: SlideShape): string {
-  return `<p:sp><p:nvSpPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Shape')}"/></p:nvSpPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(shape.text)}</a:t></a:r></a:p></p:txBody></p:sp>`;
+function buildShapeXml(shape: SlideShape, slideRelationships: ReturnType<typeof relationshipsFor>): string {
+  if (shape.media?.type === 'image') {
+    const relationshipId = slideRelationships.find((relationship) => relationship.resolvedTarget === shape.media?.targetUri)?.id ?? 'rIdImage';
+    return `<p:pic><p:nvPicPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Image')}"/></p:nvPicPr><p:blipFill><a:blip r:embed="${escapeXml(relationshipId)}"/></p:blipFill></p:pic>`;
+  }
+
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Shape')}"/><p:nvPr>${shape.placeholderType ? `<p:ph type="${escapeXml(shape.placeholderType)}"/>` : ''}</p:nvPr></p:nvSpPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(shape.text)}</a:t></a:r></a:p></p:txBody></p:sp>`;
+}
+
+function buildTransitionXml(type: string | undefined, speed: string | undefined): string {
+  if (!type) {
+    return '';
+  }
+
+  return `<p:transition${speed ? ` spd="${escapeXml(speed)}"` : ''}><p:${escapeXml(type)}/></p:transition>`;
+}
+
+function buildTimingXml(nodes: PresentationTimingNode[]): string {
+  if (nodes.length === 0) {
+    return '';
+  }
+
+  const body = nodes.map((node) => `<p:${node.nodeType}><p:cTn${node.presetClass ? ` presetClass="${escapeXml(node.presetClass)}"` : ''}${node.presetId ? ` presetID="${escapeXml(node.presetId)}"` : ''}/></p:${node.nodeType}>`).join('');
+  return `<p:timing><p:tnLst>${body}</p:tnLst></p:timing>`;
+}
+
+function buildCommentsXml(comments: PresentationComment[]): string {
+  const body = comments.map((comment) => `<p:cm${comment.author ? ` authorId="${escapeXml(comment.author)}"` : ''}><p:text>${escapeXml(comment.text)}</p:text></p:cm>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<p:cmLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">${body}</p:cmLst>`;
 }
 
 function buildNotesXml(notesText: string): string {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<p:notes xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(notesText)}</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:notes>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<p:notes xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(notesText)}</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:notes>`;
 }
 
 function escapeXml(value: string): string {

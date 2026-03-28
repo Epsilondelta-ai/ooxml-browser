@@ -1,0 +1,36 @@
+import { describe, expect, it } from 'vitest';
+
+import { openPackage } from '@ooxml/core';
+import { parsePptx } from '@ooxml/pptx';
+import { serializeOfficeDocument } from '@ooxml/serializer';
+
+import { createInheritedPptxFixture, createMediaPptxFixture, createTimedPptxFixture } from './fixture-builders';
+
+describe('pptx serializer persistence', () => {
+  it('preserves layout/master/theme metadata through serialize/reopen', async () => {
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(parsePptx(await openPackage(createInheritedPptxFixture())))));
+    const slide = reopened.slides[0];
+    const theme = slide?.themeUri ? reopened.themes[slide.themeUri] : undefined;
+
+    expect(slide?.layoutUri).toBe('/ppt/slideLayouts/slideLayout1.xml');
+    expect(slide?.masterUri).toBe('/ppt/slideMasters/slideMaster1.xml');
+    expect(theme?.majorLatinFont).toBe('Aptos Display');
+  });
+
+  it('preserves media and comments through serialize/reopen', async () => {
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(parsePptx(await openPackage(createMediaPptxFixture())))));
+    const slide = reopened.slides[0];
+
+    expect(slide?.shapes.find((shape) => shape.media?.type === 'image')?.media?.targetUri).toBe('/ppt/media/image1.png');
+    expect(slide?.comments).toEqual([{ author: 'Codex', text: 'Review image placement', index: 0 }]);
+  });
+
+  it('preserves timing and transition metadata through serialize/reopen', async () => {
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(parsePptx(await openPackage(createTimedPptxFixture())))));
+    const slide = reopened.slides[0];
+
+    expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast' });
+    expect(slide?.timing?.nodeCount).toBe(2);
+    expect(slide?.timing?.nodes.map((node) => node.nodeType)).toEqual(['par', 'seq']);
+  });
+});
