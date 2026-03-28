@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T13:12:55.083Z",
+  "generatedAt": "2026-03-28T13:18:29.247Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.037,
-      "parseMs": 0.524,
-      "renderMs": 0.15,
-      "serializeMs": 5.787,
+      "openMs": 3.865,
+      "parseMs": 0.472,
+      "renderMs": 0.141,
+      "serializeMs": 5.651,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 9.814,
-      "parseMs": 0.599,
-      "renderMs": 0.136,
-      "serializeMs": 0.844,
+      "openMs": 9.466,
+      "parseMs": 0.543,
+      "renderMs": 0.138,
+      "serializeMs": 0.788,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 10.952,
-      "parseMs": 0.49,
-      "renderMs": 0.126,
-      "serializeMs": 0.51,
+      "openMs": 10.494,
+      "parseMs": 0.413,
+      "renderMs": 0.11,
+      "serializeMs": 0.514,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.326,
-      "parseMs": 0.224,
-      "renderMs": 0.013,
-      "serializeMs": 0.226,
+      "openMs": 0.273,
+      "parseMs": 0.26,
+      "renderMs": 0.01,
+      "serializeMs": 0.24,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.315,
-      "parseMs": 0.292,
-      "renderMs": 0.016,
-      "serializeMs": 0.497,
+      "openMs": 0.307,
+      "parseMs": 0.25,
+      "renderMs": 0.019,
+      "serializeMs": 0.432,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.549,
-      "parseMs": 0.538,
+      "openMs": 0.528,
+      "parseMs": 0.549,
       "renderMs": 0.013,
-      "serializeMs": 0.903,
+      "serializeMs": 0.62,
       "outputBytes": 3931,
       "htmlLength": 659
     }
