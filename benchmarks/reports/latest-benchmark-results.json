@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-micro",
-  "generatedAt": "2026-03-28T06:20:34.710Z",
+  "generatedAt": "2026-03-28T06:21:36.167Z",
   "results": [
     {
       "label": "docx-micro",
-      "openMs": 5.553,
-      "parseMs": 0.389,
-      "renderMs": 0.14,
-      "serializeMs": 6.021,
+      "openMs": 4.965,
+      "parseMs": 0.37,
+      "renderMs": 0.139,
+      "serializeMs": 5.884,
       "outputBytes": 917,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.56,
-      "parseMs": 0.443,
-      "renderMs": 0.088,
-      "serializeMs": 0.397,
+      "openMs": 10.109,
+      "parseMs": 0.403,
+      "renderMs": 0.083,
+      "serializeMs": 0.367,
       "outputBytes": 1795,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 10.85,
-      "parseMs": 0.409,
-      "renderMs": 0.084,
-      "serializeMs": 0.273,
+      "openMs": 10.392,
+      "parseMs": 0.393,
+      "renderMs": 0.083,
+      "serializeMs": 0.259,
       "outputBytes": 1620,
       "htmlLength": 311
     }

@@ -89,3 +89,32 @@ function shiftRangeRows(range: string, threshold: number, delta: number): string
 function shiftReferenceRows(reference: string, threshold: number, delta: number): string {
   return reference.replace(/(\$?[A-Z]{1,3}\$?\d+(?::\$?[A-Z]{1,3}\$?\d+)?)/g, (match) => shiftRangeRows(match, threshold, delta));
 }
+
+
+export function setWorksheetCommentText(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    const comment = sheet.comments.find((entry) => entry.reference === reference);
+    if (comment) {
+      comment.text = text;
+    }
+  });
+}
+
+export function setWorksheetTableRange(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, tableName: string, range: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    const table = sheet.tables.find((entry) => entry.name === tableName);
+    if (table) {
+      table.range = range;
+    }
+  });
+}
