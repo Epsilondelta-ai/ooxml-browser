@@ -281,6 +281,24 @@ export function setWorkbookSheetName(editor: OfficeEditor<XlsxWorkbook>, current
   });
 }
 
+export function setWorksheetPrintArea(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, range: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheetIndex = draft.sheets.findIndex((entry) => entry.name === sheetName);
+    if (sheetIndex < 0) {
+      return;
+    }
+
+    const reference = `${sheetName}!${range}`;
+    const definedName = draft.definedNames.find((entry) => entry.name === '_xlnm.Print_Area' && entry.scopeSheetId === sheetIndex);
+    if (definedName) {
+      definedName.reference = reference;
+      return;
+    }
+
+    draft.definedNames.push({ name: '_xlnm.Print_Area', reference, scopeSheetId: sheetIndex });
+  });
+}
+
 function createSheetReferenceRewriter(currentName: string, nextName: string): (value: string) => string {
   const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const quotedPattern = new RegExp(`'${escapedCurrent}'!`, 'g');
