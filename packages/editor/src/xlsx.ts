@@ -310,6 +310,25 @@ export function setWorksheetPrintArea(editor: OfficeEditor<XlsxWorkbook>, sheetN
   });
 }
 
+export function setWorksheetPrintTitles(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, options: { rows?: string; columns?: string }): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheetIndex = draft.sheets.findIndex((entry) => entry.name === sheetName);
+    if (sheetIndex < 0) {
+      return;
+    }
+
+    const segments = [options.rows, options.columns].filter((value): value is string => Boolean(value));
+    const reference = segments.map((segment) => `${sheetName}!${segment}`).join(',');
+    const definedName = draft.definedNames.find((entry) => entry.name === '_xlnm.Print_Titles' && entry.scopeSheetId === sheetIndex);
+    if (definedName) {
+      definedName.reference = reference;
+      return;
+    }
+
+    draft.definedNames.push({ name: '_xlnm.Print_Titles', reference, scopeSheetId: sheetIndex });
+  });
+}
+
 function createSheetReferenceRewriter(currentName: string, nextName: string): (value: string) => string {
   const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const quotedPattern = new RegExp(`'${escapedCurrent}'!`, 'g');

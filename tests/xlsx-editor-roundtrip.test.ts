@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPrintArea, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -195,6 +195,22 @@ describe('xlsx editor round-trips', () => {
       scopeSheetId: 0
     });
     expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('name="_xlnm.Print_Area"');
+  });
+
+  it('persists worksheet print title metadata through defined names', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
+    setWorksheetPrintTitles(editor, 'Sheet1', { rows: '$1:$2', columns: '$A:$B' });
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.definedNames.find((entry) => entry.name === '_xlnm.Print_Titles')).toEqual({
+      name: '_xlnm.Print_Titles',
+      reference: 'Sheet1!$1:$2,Sheet1!$A:$B',
+      scopeSheetId: 0
+    });
+    expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('name="_xlnm.Print_Titles"');
   });
 
   it('persists edited worksheet selection metadata', async () => {
