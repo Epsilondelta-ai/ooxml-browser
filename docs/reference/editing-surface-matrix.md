@@ -85,7 +85,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment author | `setPresentationCommentAuthor` | Persisted | Occurrence-aware attribute patch path. |
 | Comment create/update | `addPresentationComment` | Persisted | Creates a comments part and slide relationship on demand when missing. |
 | Comment delete | `removePresentationComment` | Persisted | Deletes comments from the slide model and persists an empty comments part when needed. |
-| Transition | `setPresentationTransition` | Persisted | Slide metadata rebuild path. |
+| Transition | `setPresentationTransition` | Persisted | Slide metadata rebuild path including speed and auto-advance policy. |
 | Timing nodes | `setPresentationTimingNodes` | Persisted | Parser/editor/serializer preserve core `p:cTn` metadata plus repeat duration/auto-reverse, restart/fill policy, accel/decel timing curves, start/end-condition trigger event/delay fields, and target shape IDs. |
 | Presentation size | `setPresentationSize` | Persisted | Serializer patches `p:sldSz` in `presentation.xml`. |
 

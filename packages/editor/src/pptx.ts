@@ -153,7 +153,7 @@ export function setPresentationSlideTheme(editor: OfficeEditor<PresentationDocum
   });
 }
 
-export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
+export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string; advanceOnClick?: boolean; advanceAfterMs?: number } | undefined): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];
     if (slide) {

@@ -183,7 +183,9 @@ function parseTransition(slide: Record<string, unknown>): PresentationTransition
   const transitionType = Object.keys(transitionNode).find((key) => !key.startsWith('@_') && key !== '#text');
   return {
     type: transitionType?.split(':').pop(),
-    speed: xmlAttr(transitionNode, 'spd')
+    speed: xmlAttr(transitionNode, 'spd'),
+    advanceOnClick: xmlAttr(transitionNode, 'advClick') === '1' ? true : xmlAttr(transitionNode, 'advClick') === '0' ? false : undefined,
+    advanceAfterMs: (() => { const value = xmlAttr(transitionNode, 'advTm'); return value ? Number(value) : undefined; })()
   };
 }
 

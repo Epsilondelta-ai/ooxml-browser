@@ -11,7 +11,7 @@ describe('pptx timing and transitions', () => {
     const presentation = parsePptx(await openPackage(createTimedPptxFixture()));
     const slide = presentation.slides[0];
 
-    expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast' });
+    expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast', advanceOnClick: true, advanceAfterMs: 7000 });
     expect(slide?.timing?.nodeCount).toBe(2);
     expect(slide?.timing?.nodes).toEqual([
       { nodeType: 'par', presetClass: 'entr', presetId: '1', id: '10', duration: '500', repeatDuration: '1500', repeatCount: '1', restart: 'always', fill: 'hold', autoReverse: true, acceleration: '10000', deceleration: '20000', triggerEvent: 'onBegin', triggerDelay: '0', endTriggerEvent: 'onEnd', endTriggerDelay: '50', targetShapeId: '2' },
@@ -23,7 +23,7 @@ describe('pptx timing and transitions', () => {
     const presentation = parsePptx(await openPackage(createTimedPptxFixture()));
     const html = renderOfficeDocumentToHtml(presentation);
 
-    expect(html).toContain('fade (fast)');
+    expect(html).toContain('fade (fast) click:true after:7000');
     expect(html).toContain('data-timing-count="2"');
     expect(html).toContain('par:entr#10@500 repeatDur:1500×1 restart:always fill:hold autoRev:true accel:10000 decel:20000!onBegin+0 ~onEnd=50->2, seq:exit#20@750 repeatDur:2000×indefinite restart:whenNotActive fill:freeze autoRev:false accel:0 decel:5000!onClick+250 ~afterEffect=400->2');
   });

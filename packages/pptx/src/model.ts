@@ -38,6 +38,8 @@ export interface PresentationComment {
 export interface PresentationTransition {
   type?: string;
   speed?: string;
+  advanceOnClick?: boolean;
+  advanceAfterMs?: number;
 }
 
 export interface PresentationTimingNode {

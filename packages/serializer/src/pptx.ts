@@ -220,7 +220,7 @@ function canPatchSlideTextOnly(originalSlide: PresentationSlide, slide: Presenta
 
 function buildSlideXml(slide: PresentationSlide, slideRelationships: ReturnType<typeof relationshipsFor>): string {
   const shapes = slide.shapes.map((shape) => buildShapeXml(shape, slideRelationships)).join('');
-  const transitionXml = slide.transition ? buildTransitionXml(slide.transition.type, slide.transition.speed) : '';
+  const transitionXml = slide.transition ? buildTransitionXml(slide.transition) : '';
   const timingXml = slide.timing ? buildTimingXml(slide.timing.nodes) : '';
   return `<?xml version="1.0" encoding="UTF-8"?>
 <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree>${shapes}</p:spTree></p:cSld>${transitionXml}${timingXml}</p:sld>`;
@@ -245,12 +245,12 @@ function buildTransformXml(transform: SlideShape['transform']): string {
   return `<a:xfrm><a:off x="${transform.x ?? 0}" y="${transform.y ?? 0}"/><a:ext cx="${transform.cx ?? 0}" cy="${transform.cy ?? 0}"/></a:xfrm>`;
 }
 
-function buildTransitionXml(type: string | undefined, speed: string | undefined): string {
-  if (!type) {
+function buildTransitionXml(transition: PresentationSlide['transition']): string {
+  if (!transition?.type) {
     return '';
   }
 
-  return `<p:transition${speed ? ` spd="${escapeXml(speed)}"` : ''}><p:${escapeXml(type)}/></p:transition>`;
+  return `<p:transition${transition.speed ? ` spd="${escapeXml(transition.speed)}"` : ''}${transition.advanceOnClick !== undefined ? ` advClick="${transition.advanceOnClick ? '1' : '0'}"` : ''}${transition.advanceAfterMs !== undefined ? ` advTm="${transition.advanceAfterMs}"` : ''}><p:${escapeXml(transition.type)}/></p:transition>`;
 }
 
 function buildTimingXml(nodes: PresentationTimingNode[]): string {

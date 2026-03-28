@@ -146,10 +146,10 @@ describe('pptx editor round-trips', () => {
 
   it('persists edited slide transition metadata', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createTimedPptxFixture())));
-    setPresentationTransition(editor, 0, { type: 'push', speed: 'slow' });
+    setPresentationTransition(editor, 0, { type: 'push', speed: 'slow', advanceOnClick: false, advanceAfterMs: 4500 });
 
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
-    expect(reopened.slides[0]?.transition).toEqual({ type: 'push', speed: 'slow' });
+    expect(reopened.slides[0]?.transition).toEqual({ type: 'push', speed: 'slow', advanceOnClick: false, advanceAfterMs: 4500 });
   });
 
 
