@@ -4,6 +4,8 @@ import {
   setDocxParagraphStyle,
   setPresentationNotesText,
   setPresentationShapeText,
+  setPresentationSize,
+  setPresentationSlideLayout,
   setPresentationTransition,
   setWorkbookCellFormula,
   setWorkbookCellValue,
@@ -215,6 +217,9 @@ function renderEditorControls(): void {
       const shapeText = officeDocument.slides[0]?.shapes[0]?.text ?? '';
       const notesText = officeDocument.slides[0]?.notesText ?? '';
       const transitionType = officeDocument.slides[0]?.transition?.type ?? '';
+      const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
+      const sizeCx = officeDocument.size.cx;
+      const sizeCy = officeDocument.size.cy;
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First shape text</div>
@@ -228,10 +233,27 @@ function renderEditorControls(): void {
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Transition type</div>
           <input id="pptx-transition-input" value="${escapeHtml(transitionType)}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Layout URI</div>
+          <input id="pptx-layout-input" value="${escapeHtml(layoutUri)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <label>
+            <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Deck width (cx)</div>
+            <input id="pptx-size-cx-input" value="${sizeCx}" style="width: 100%; padding: 8px;" />
+          </label>
+          <label>
+            <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Deck height (cy)</div>
+            <input id="pptx-size-cy-input" value="${sizeCy}" style="width: 100%; padding: 8px;" />
+          </label>
+        </div>
       `;
       const shapeInput = window.document.getElementById('pptx-shape-input') as HTMLInputElement;
       const notesInput = window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement;
       const transitionInput = window.document.getElementById('pptx-transition-input') as HTMLInputElement;
+      const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
+      const sizeCxInput = window.document.getElementById('pptx-size-cx-input') as HTMLInputElement;
+      const sizeCyInput = window.document.getElementById('pptx-size-cy-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'pptx') {
           return;
@@ -240,11 +262,22 @@ function renderEditorControls(): void {
         setPresentationShapeText(presentationEditor, 0, 0, shapeInput.value);
         setPresentationNotesText(presentationEditor, 0, notesInput.value);
         setPresentationTransition(presentationEditor, 0, transitionInput.value ? { type: transitionInput.value } : undefined);
+        if (layoutInput.value) {
+          setPresentationSlideLayout(presentationEditor, 0, layoutInput.value);
+        }
+        const cx = Number(sizeCxInput.value);
+        const cy = Number(sizeCyInput.value);
+        if (!Number.isNaN(cx) && !Number.isNaN(cy)) {
+          setPresentationSize(presentationEditor, { cx, cy });
+        }
         renderPreview();
       };
       shapeInput.addEventListener('input', update);
       notesInput.addEventListener('input', update);
       transitionInput.addEventListener('input', update);
+      layoutInput.addEventListener('input', update);
+      sizeCxInput.addEventListener('input', update);
+      sizeCyInput.addEventListener('input', update);
       break;
     }
   }
