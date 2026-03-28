@@ -69,13 +69,13 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment create/update | `addPresentationComment` | Persisted | Creates a comments part and slide relationship on demand when missing. |
 | Comment delete | `removePresentationComment` | Persisted | Deletes comments from the slide model and persists an empty comments part when needed. |
 | Transition | `setPresentationTransition` | Persisted | Slide metadata rebuild path. |
-| Timing nodes | `setPresentationTimingNodes` | Persisted | Parser reads `p:cTn` preset metadata. |
+| Timing nodes | `setPresentationTimingNodes` | Persisted | Parser/editor/serializer preserve core `p:cTn` metadata including IDs, durations, repeat counts, and preset markers. |
 | Presentation size | `setPresentationSize` | Persisted | Serializer patches `p:sldSz` in `presentation.xml`. |
 
 ## Gaps that remain outside the public editing surface
 
 - XLSX chart/comment-threaded extensions
-- PPTX richer animation graph editing beyond flat timing nodes
+- PPTX richer animation graph editing beyond core `p:cTn` metadata
 - Relationship-safe embedded-object retargeting across all formats
 
 ## Maintenance rule

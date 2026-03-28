@@ -164,16 +164,20 @@ describe('pptx editor round-trips', () => {
   it('persists edited slide timing metadata', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createTimedPptxFixture())));
     setPresentationTimingNodes(editor, 0, [
-      { nodeType: 'par', presetClass: 'entr', presetId: '11' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '22' },
-      { nodeType: 'anim', presetClass: 'emph', presetId: '33' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatCount: '2' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatCount: 'indefinite' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatCount: '1' }
     ]);
 
-    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.timing?.nodes).toEqual([
-      { nodeType: 'par', presetClass: 'entr', presetId: '11' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '22' },
-      { nodeType: 'anim', presetClass: 'emph', presetId: '33' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatCount: '2' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatCount: 'indefinite' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatCount: '1' }
     ]);
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('dur="900"');
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('repeatCount="indefinite"');
   });
 });

@@ -44,6 +44,9 @@ export interface PresentationTimingNode {
   nodeType: string;
   presetClass?: string;
   presetId?: string;
+  id?: string;
+  duration?: string;
+  repeatCount?: string;
 }
 
 export interface PresentationTiming {
