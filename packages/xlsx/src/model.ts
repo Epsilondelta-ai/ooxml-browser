@@ -97,6 +97,10 @@ export interface XlsxChart {
   overlap?: number;
   varyColors?: boolean;
   gapWidth?: number;
+  dropLines?: boolean;
+  hiLowLines?: boolean;
+  seriesLines?: boolean;
+  upDownBars?: boolean;
   title?: string;
   firstSliceAngle?: number;
   holeSize?: number;

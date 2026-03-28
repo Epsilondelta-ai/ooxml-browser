@@ -566,6 +566,46 @@ export function setWorksheetChartSmooth(editor: OfficeEditor<XlsxWorkbook>, shee
   });
 }
 
+export function setWorksheetChartDropLines(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.dropLines = enabled;
+    }
+  });
+}
+
+export function setWorksheetChartHiLowLines(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.hiLowLines = enabled;
+    }
+  });
+}
+
+export function setWorksheetChartSeriesLines(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.seriesLines = enabled;
+    }
+  });
+}
+
+export function setWorksheetChartUpDownBars(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.upDownBars = enabled;
+    }
+  });
+}
+
 export function setWorksheetChartGrouping(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, grouping: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

@@ -395,6 +395,10 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const overlapNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'overlap')[0] : undefined;
     const varyColorsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'varyColors')[0] : undefined;
     const gapWidthNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'gapWidth')[0] : undefined;
+    const dropLinesNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'dropLines')[0] : undefined;
+    const hiLowLinesNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'hiLowLines')[0] : undefined;
+    const seriesLinesNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'serLines')[0] : undefined;
+    const upDownBarsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'upDownBars')[0] : undefined;
     const dataLabelsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'dLbls')[0] : undefined;
     const dataLabelPositionNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'dLblPos')[0] : undefined;
     const dataLabelSeparatorNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'separator')[0] : undefined;
@@ -437,6 +441,10 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       overlap: (() => { const value = xmlAttr(overlapNode, 'val'); return value ? Number(value) : undefined; })(),
       varyColors: xmlAttr(varyColorsNode, 'val') === '1' ? true : xmlAttr(varyColorsNode, 'val') === '0' ? false : undefined,
       gapWidth: (() => { const value = xmlAttr(gapWidthNode, 'val'); return value ? Number(value) : undefined; })(),
+      dropLines: dropLinesNode ? (xmlAttr(dropLinesNode, 'val') === '0' ? false : true) : undefined,
+      hiLowLines: hiLowLinesNode ? (xmlAttr(hiLowLinesNode, 'val') === '0' ? false : true) : undefined,
+      seriesLines: seriesLinesNode ? (xmlAttr(seriesLinesNode, 'val') === '0' ? false : true) : undefined,
+      upDownBars: upDownBarsNode ? (xmlAttr(upDownBarsNode, 'val') === '0' ? false : true) : undefined,
       title: chartTitle || undefined,
       firstSliceAngle: (() => { const value = xmlAttr(firstSliceAngleNode, 'val'); return value ? Number(value) : undefined; })(),
       holeSize: (() => { const value = xmlAttr(holeSizeNode, 'val'); return value ? Number(value) : undefined; })(),

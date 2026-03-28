@@ -101,6 +101,17 @@ describe('xlsx chart relationships', () => {
     expect(html).toContain('Charts: Revenue Doughnut <doughnutChart> [Doughnut Share] firstSlice:120 holeSize:60 varyColors:true legend:r {Share explosion:25} (/xl/charts/chart1.xml)');
   });
 
+  it('renders line-family decoration metadata', async () => {
+    const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
+    const html = renderOfficeDocumentToHtml(workbook);
+
+    expect(html).toContain('Alternate Chart <lineChart> [Alternate Chart] smooth:true dropLines:true hiLowLines:false serLines:true upDownBars:false plotVisibleOnly:false blanks:span grouping:standard overlap:-20 varyColors:false gapWidth:90 legend:b cat:Month catPos:l val:Bookings valPos:r dLblPos:bestFit dLblSep:/ showVal:false showCat:true showSeries:false showLegendKey:true showLeaderLines:false showPercent:false showBubble:true {Forecast invert:false marker:diamond size:6} (/xl/charts/chart2.xml)');
+    expect(html).toContain('dropLines:true');
+    expect(html).toContain('hiLowLines:false');
+    expect(html).toContain('serLines:true');
+    expect(html).toContain('upDownBars:false');
+  });
+
   it('parses bubble-chart-specific metadata', async () => {
     const workbook = parseXlsx(await openPackage(createBubbleXlsxFixture()));
     const chart = workbook.sheets[0]?.charts[0];

@@ -50,6 +50,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Chart vary-colors / gap width | `setWorksheetChartVaryColors`, `setWorksheetChartGapWidth` | Persisted | Preserves chart-part series-color and bar/line spacing metadata. |
 | Chart per-series invert-if-negative | `setWorksheetChartSeriesInvertIfNegative` | Persisted | Preserves per-series negative-value display metadata inside chart parts. |
 | Chart per-series markers | `setWorksheetChartSeriesMarker` | Persisted | Preserves per-series marker symbol/size metadata inside chart parts. |
+| Line-family decorations | `setWorksheetChartDropLines`, `setWorksheetChartHiLowLines`, `setWorksheetChartSeriesLines`, `setWorksheetChartUpDownBars` | Persisted | Preserves line-family decoration toggles inside chart parts. |
 | Chart grouping / overlap | `setWorksheetChartGrouping`, `setWorksheetChartOverlap` | Persisted | Preserves chart-family grouping and overlap metadata inside chart parts. |
 | Chart plot-visible / blanks-as | `setWorksheetChartPlotVisibleOnly`, `setWorksheetChartDisplayBlanksAs`, `setWorksheetChartShowDataLabelsOverMax` | Persisted | Preserves chart-level visibility, label-over-max, and blank-cell display policy inside chart parts. |
 | Scatter / bubble policy | `setWorksheetChartScatterStyle`, `setWorksheetChartBubbleScale`, `setWorksheetChartShowNegativeBubbles`, `setWorksheetChartSizeRepresents` | Persisted | Preserves scatter/bubble chart family metadata inside chart parts. |
