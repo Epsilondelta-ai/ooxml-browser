@@ -1,6 +1,7 @@
 export type {
   DocxComment,
   DocxDocument,
+  DocxStyle,
   DocxParagraph,
   DocxRun,
   DocxStory,
@@ -8,4 +9,4 @@ export type {
   DocxTableCell,
   DocxTableRow
 } from './model';
-export { parseDocx } from './parser';
+export { parseDocx, resolveDocxStyle } from './parser';

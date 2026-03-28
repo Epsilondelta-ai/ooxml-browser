@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { DocxComment, DocxDocument, DocxParagraph, DocxRun, DocxStory, DocxTable } from './model';
+import type { DocxComment, DocxDocument, DocxParagraph, DocxRun, DocxStory, DocxStyle, DocxTable } from './model';
 
 export function parseDocx(graph: PackageGraph): DocxDocument {
   const mainDocumentUri = graph.rootDocumentUri ?? '/word/document.xml';
@@ -35,7 +35,8 @@ export function parseDocx(graph: PackageGraph): DocxDocument {
     kind: 'docx',
     packageGraph: graph,
     stories,
-    comments: parseComments(graph, mainDocumentUri)
+    comments: parseComments(graph, mainDocumentUri),
+    styles: parseStyles(graph, mainDocumentUri)
   };
 }
 
@@ -110,4 +111,58 @@ function parseComments(graph: PackageGraph, mainDocumentUri: string): DocxCommen
     author: xmlAttr(comment, 'w:author') ?? xmlAttr(comment, 'author'),
     text: xmlChildren<Record<string, unknown>>(comment, 'w:p').map((paragraph) => parseParagraph(paragraph).text).join('\n')
   }));
+}
+
+function parseStyles(graph: PackageGraph, mainDocumentUri: string): Record<string, DocxStyle> {
+  const stylesRelationship = relationshipsFor(graph, mainDocumentUri).find((relationship) => relationship.type.includes('/styles'));
+  const stylesUri = stylesRelationship?.resolvedTarget ?? '/word/styles.xml';
+  const xml = getParsedXmlPart(graph, stylesUri);
+  if (!xml) {
+    return {};
+  }
+
+  const root = xml.document['w:styles'];
+  return Object.fromEntries(
+    xmlChildren<Record<string, unknown>>(root, 'w:style').map((styleNode) => {
+      const styleId = xmlAttr(styleNode, 'w:styleId') ?? xmlAttr(styleNode, 'styleId') ?? '';
+      const typeValue = xmlAttr(styleNode, 'w:type') ?? xmlAttr(styleNode, 'type') ?? 'unknown';
+      const nameNode = xmlChild<Record<string, unknown>>(styleNode, 'w:name');
+      const basedOnNode = xmlChild<Record<string, unknown>>(styleNode, 'w:basedOn');
+      const runProperties = xmlChild<Record<string, unknown>>(styleNode, 'w:rPr');
+      const style: DocxStyle = {
+        id: styleId,
+        type: (typeValue === 'paragraph' || typeValue === 'character' || typeValue === 'table' || typeValue === 'numbering' ? typeValue : 'unknown'),
+        name: xmlAttr(nameNode, 'w:val') ?? xmlAttr(nameNode, 'val'),
+        basedOn: xmlAttr(basedOnNode, 'w:val') ?? xmlAttr(basedOnNode, 'val'),
+        isDefault: (xmlAttr(styleNode, 'w:default') ?? xmlAttr(styleNode, 'default')) === '1',
+        bold: xmlChild<Record<string, unknown>>(runProperties, 'w:b') !== undefined ? true : undefined,
+        italic: xmlChild<Record<string, unknown>>(runProperties, 'w:i') !== undefined ? true : undefined
+      };
+
+      return [styleId, style] satisfies [string, DocxStyle];
+    })
+  );
+}
+
+export function resolveDocxStyle(document: DocxDocument, styleId?: string): DocxStyle | undefined {
+  if (!styleId) {
+    return undefined;
+  }
+
+  const style = document.styles[styleId];
+  if (!style) {
+    return undefined;
+  }
+
+  if (!style.basedOn || !document.styles[style.basedOn]) {
+    return style;
+  }
+
+  const parent = resolveDocxStyle(document, style.basedOn);
+  return {
+    ...parent,
+    ...style,
+    bold: style.bold ?? parent?.bold,
+    italic: style.italic ?? parent?.italic
+  };
 }

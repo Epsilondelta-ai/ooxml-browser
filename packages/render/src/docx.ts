@@ -1,11 +1,19 @@
-import type { DocxDocument } from '@ooxml/docx';
+import { resolveDocxStyle, type DocxDocument } from '@ooxml/docx';
 
 import type { RenderOptions } from './types';
 
 export function renderDocx(document: DocxDocument, options: RenderOptions): string {
   const storyMarkup = document.stories.map((story) => {
     const paragraphs = story.paragraphs
-      .map((paragraph) => `<p class="ooxml-docx-paragraph">${escapeHtml(paragraph.text)}</p>`)
+      .map((paragraph) => {
+        const style = resolveDocxStyle(document, paragraph.styleId);
+        const styleAttr = [
+          style?.bold ? 'font-weight: 700' : '',
+          style?.italic ? 'font-style: italic' : ''
+        ].filter(Boolean).join('; ');
+
+        return `<p class="ooxml-docx-paragraph"${paragraph.styleId ? ` data-style-id="${escapeHtml(paragraph.styleId)}"` : ''}${styleAttr ? ` style="${styleAttr}"` : ''}>${escapeHtml(paragraph.text)}</p>`;
+      })
       .join('');
     const tables = story.tables.map((table) => {
       const rows = table.rows.map((row) => {

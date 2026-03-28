@@ -37,9 +37,20 @@ export interface DocxStory {
   tables: DocxTable[];
 }
 
+export interface DocxStyle {
+  id: string;
+  type: 'paragraph' | 'character' | 'table' | 'numbering' | 'unknown';
+  name?: string;
+  basedOn?: string;
+  isDefault: boolean;
+  bold?: boolean;
+  italic?: boolean;
+}
+
 export interface DocxDocument {
   kind: 'docx';
   packageGraph: PackageGraph;
   stories: DocxStory[];
   comments: DocxComment[];
+  styles: Record<string, DocxStyle>;
 }

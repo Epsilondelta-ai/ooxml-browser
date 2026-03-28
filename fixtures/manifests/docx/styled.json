@@ -1,0 +1,12 @@
+{
+  "id": "docx-styled",
+  "sourceApplication": "repo-generated",
+  "format": "docx",
+  "featureTags": ["styles", "style-inheritance"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "styled paragraph render"],
+  "reopenExpectations": {"parser": true, "office": "stage-2-attestation-pending", "libreoffice": "stage-2-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}
