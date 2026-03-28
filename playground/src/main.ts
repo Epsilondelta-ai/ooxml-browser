@@ -18,6 +18,7 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetChartBubbleScale,
   setWorksheetChartCategoryAxisPosition,
   setWorksheetChartCategoryAxisTitle,
   setWorksheetChartDataLabels,
@@ -31,10 +32,13 @@ import {
   setWorksheetChartName,
   setWorksheetChartOverlap,
   setWorksheetChartPlotVisibleOnly,
+  setWorksheetChartScatterStyle,
   setWorksheetChartSeriesExplosion,
   setWorksheetChartSeriesInvertIfNegative,
   setWorksheetChartSeriesMarker,
   setWorksheetChartSeriesName,
+  setWorksheetChartShowNegativeBubbles,
+  setWorksheetChartSizeRepresents,
   setWorksheetChartSmooth,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
@@ -236,6 +240,10 @@ function renderEditorControls(): void {
       const topMargin = firstSheet?.pageMargins?.top ?? '';
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
+      const firstChartScatterStyle = firstSheet?.charts[0]?.scatterStyle ?? '';
+      const firstChartBubbleScale = firstSheet?.charts[0]?.bubbleScale ?? '';
+      const firstChartShowNegativeBubbles = firstSheet?.charts[0]?.showNegativeBubbles;
+      const firstChartSizeRepresents = firstSheet?.charts[0]?.sizeRepresents ?? '';
       const firstChartSmooth = firstSheet?.charts[0]?.smooth;
       const firstChartPlotVisibleOnly = firstSheet?.charts[0]?.plotVisibleOnly;
       const firstChartDisplayBlanksAs = firstSheet?.charts[0]?.displayBlanksAs ?? '';
@@ -311,6 +319,22 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart type</div>
           <input id="xlsx-chart-type-input" value="${escapeHtml(firstChartType)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Scatter style</div>
+          <input id="xlsx-chart-scatter-style-input" value="${escapeHtml(firstChartScatterStyle)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Bubble scale</div>
+          <input id="xlsx-chart-bubble-scale-input" value="${escapeHtml(String(firstChartBubbleScale))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show negative bubbles</div>
+          <input id="xlsx-chart-show-negative-bubbles-input" value="${escapeHtml(firstChartShowNegativeBubbles === undefined ? '' : String(firstChartShowNegativeBubbles))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Size represents</div>
+          <input id="xlsx-chart-size-represents-input" value="${escapeHtml(firstChartSizeRepresents)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Smooth line</div>
@@ -448,6 +472,10 @@ function renderEditorControls(): void {
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
+      const chartScatterStyleInput = window.document.getElementById('xlsx-chart-scatter-style-input') as HTMLInputElement;
+      const chartBubbleScaleInput = window.document.getElementById('xlsx-chart-bubble-scale-input') as HTMLInputElement;
+      const chartShowNegativeBubblesInput = window.document.getElementById('xlsx-chart-show-negative-bubbles-input') as HTMLInputElement;
+      const chartSizeRepresentsInput = window.document.getElementById('xlsx-chart-size-represents-input') as HTMLInputElement;
       const chartSmoothInput = window.document.getElementById('xlsx-chart-smooth-input') as HTMLInputElement;
       const chartPlotVisibleInput = window.document.getElementById('xlsx-chart-plot-visible-input') as HTMLInputElement;
       const chartDisplayBlanksInput = window.document.getElementById('xlsx-chart-display-blanks-input') as HTMLInputElement;
@@ -567,6 +595,41 @@ function renderEditorControls(): void {
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
             0,
             chartTypeInput.value
+          );
+        }
+        if (chartScatterStyleInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartScatterStyle(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartScatterStyleInput.value
+          );
+        }
+        if (chartBubbleScaleInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          const bubbleScale = Number(chartBubbleScaleInput.value);
+          if (!Number.isNaN(bubbleScale)) {
+            setWorksheetChartBubbleScale(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              bubbleScale
+            );
+          }
+        }
+        if (chartShowNegativeBubblesInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartShowNegativeBubbles(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartShowNegativeBubblesInput.value === 'true'
+          );
+        }
+        if (chartSizeRepresentsInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartSizeRepresents(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartSizeRepresentsInput.value
           );
         }
         if (chartSmoothInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
@@ -829,6 +892,10 @@ function renderEditorControls(): void {
       topMarginInput.addEventListener('input', update);
       chartNameInput.addEventListener('input', update);
       chartTypeInput.addEventListener('input', update);
+      chartScatterStyleInput.addEventListener('input', update);
+      chartBubbleScaleInput.addEventListener('input', update);
+      chartShowNegativeBubblesInput.addEventListener('input', update);
+      chartSizeRepresentsInput.addEventListener('input', update);
       chartSmoothInput.addEventListener('input', update);
       chartPlotVisibleInput.addEventListener('input', update);
       chartDisplayBlanksInput.addEventListener('input', update);
