@@ -368,6 +368,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const valueAxisMaxNode = valueAxisScalingNode ? findElementsByLocalName(valueAxisScalingNode, 'max')[0] : undefined;
     const valueAxisMajorUnitNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorUnit')[0] : undefined;
     const valueAxisMinorUnitNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorUnit')[0] : undefined;
+    const valueAxisMajorGridlinesNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorGridlines')[0] : undefined;
+    const valueAxisMinorGridlinesNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorGridlines')[0] : undefined;
     const valueAxisMajorTickMarkNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorTickMark')[0] : undefined;
     const valueAxisMinorTickMarkNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorTickMark')[0] : undefined;
     const valueAxisTickLabelPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'tickLblPos')[0] : undefined;
@@ -453,6 +455,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       valueAxisMaximum: (() => { const value = xmlAttr(valueAxisMaxNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisMajorUnit: (() => { const value = xmlAttr(valueAxisMajorUnitNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisMinorUnit: (() => { const value = xmlAttr(valueAxisMinorUnitNode, 'val'); return value ? Number(value) : undefined; })(),
+      valueAxisMajorGridlines: valueAxisMajorGridlinesNode ? (xmlAttr(valueAxisMajorGridlinesNode, 'val') === '0' ? false : true) : undefined,
+      valueAxisMinorGridlines: valueAxisMinorGridlinesNode ? (xmlAttr(valueAxisMinorGridlinesNode, 'val') === '0' ? false : true) : undefined,
       valueAxisMajorTickMark: xmlAttr(valueAxisMajorTickMarkNode, 'val') ?? undefined,
       valueAxisMinorTickMark: xmlAttr(valueAxisMinorTickMarkNode, 'val') ?? undefined,
       valueAxisTickLabelPosition: xmlAttr(valueAxisTickLabelPositionNode, 'val') ?? undefined,

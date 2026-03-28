@@ -846,6 +846,26 @@ export function setWorksheetChartValueAxisDisplayUnits(editor: OfficeEditor<Xlsx
   });
 }
 
+export function setWorksheetChartValueAxisMajorGridlines(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMajorGridlines = enabled;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisMinorGridlines(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, enabled: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMinorGridlines = enabled;
+    }
+  });
+}
+
 export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, dataLabels: XlsxWorkbook['sheets'][number]['charts'][number]['dataLabels'] | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
