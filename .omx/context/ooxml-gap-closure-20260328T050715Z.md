@@ -1,0 +1,22 @@
+# Context Snapshot: OOXML Gap Closure Phase
+
+- **Task statement:** Create a deliberate ralplan consensus plan for the next execution wave that closes the current OOXML frontend library fidelity gaps across docx/xlsx/pptx, then prepare the handoff into Ralph execution.
+- **Desired outcome:** Updated PRD, test spec, and consensus plan artifacts that extend the existing browser-first architecture toward substantially stronger Microsoft Office-compatible parse/render/edit/round-trip behavior.
+- **Known facts / evidence:**
+  - The repo already contains durable research/design docs under `docs/` and prior consensus planning artifacts under `.omx/plans/`.
+  - The current implementation supports representative parse/render/edit/save flows with passing verification (`npm test`, `npm run typecheck`, `npm run lint`, `npm run build`, `npm run bench`).
+  - Architect and verifier sign-off were reached for the current implemented baseline, but documented gaps remain in fidelity breadth and source-preserving depth.
+  - A durable next-phase prompt exists at `docs/operations/next-phase-ralplan-gap-closure-prompt.md`.
+- **Constraints:**
+  - Preserve and extend the existing architecture; do not restart from scratch.
+  - No scope reduction.
+  - Planning must be deliberate, concrete, and directly executable by Ralph.
+  - Planning artifacts must be stored under `.omx/plans/` and committed with Lore protocol.
+- **Unknowns / open questions:**
+  - Exact staging and boundaries for deepening source-preserving models without destabilizing current typed projections.
+  - Which fidelity upgrades should be tackled first to maximize Office-meaningful gains per stage.
+  - The right corpus expansion shape for realistic interop validation while keeping stage gates testable.
+- **Likely codebase touchpoints:**
+  - `.omx/plans/**`
+  - `docs/**`
+  - future work across `packages/**`, `tests/**`, `fixtures/**`, `examples/**`, `playground/**`, and `benchmarks/**`
