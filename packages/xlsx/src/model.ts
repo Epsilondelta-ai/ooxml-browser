@@ -50,6 +50,7 @@ export interface XlsxComment {
 export interface XlsxChart {
   relationshipId: string;
   drawingUri: string;
+  drawingNameOccurrence: number;
   targetUri: string;
   name?: string;
   title?: string;

@@ -94,17 +94,34 @@ function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sh
 function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSheet: WorkbookSheet | undefined, sheet: WorkbookSheet): void {
   for (const chart of sheet.charts) {
     const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
-    if (chart.title === originalChart?.title) {
-      continue;
+    if (chart.title !== originalChart?.title) {
+      const existingSource = graph.parts[chart.targetUri]?.text;
+      updatePackagePartText(
+        graph,
+        chart.targetUri,
+        buildChartXml(chart, existingSource),
+        'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
+      );
     }
-
-    const existingSource = graph.parts[chart.targetUri]?.text;
-    updatePackagePartText(
-      graph,
-      chart.targetUri,
-      buildChartXml(chart, existingSource),
-      'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
-    );
+    if (chart.name !== originalChart?.name) {
+      const drawingSource = graph.parts[chart.drawingUri]?.text;
+      if (drawingSource) {
+        updatePackagePartText(
+          graph,
+          chart.drawingUri,
+          applyXmlPatchPlan(drawingSource, [
+            {
+              op: 'replaceAttribute',
+              tagName: 'xdr:cNvPr',
+              targetAttr: 'name',
+              newValue: chart.name ?? '',
+              occurrence: chart.drawingNameOccurrence
+            }
+          ]),
+          'application/vnd.openxmlformats-officedocument.drawing+xml'
+        );
+      }
+    }
   }
 }
 

@@ -18,6 +18,7 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetChartName,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
   setWorksheetMediaTarget,
@@ -208,6 +209,7 @@ function renderEditorControls(): void {
       const selection = firstSheet?.selection;
       const pageOrientation = firstSheet?.pageSetup?.orientation ?? '';
       const topMargin = firstSheet?.pageMargins?.top ?? '';
+      const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       const firstChartTitle = firstSheet?.charts[0]?.title ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
@@ -249,6 +251,10 @@ function renderEditorControls(): void {
           <input id="xlsx-top-margin-input" value="${escapeHtml(String(topMargin))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart name</div>
+          <input id="xlsx-chart-name-input" value="${escapeHtml(firstChartName)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart target</div>
           <input id="xlsx-chart-target-input" value="${escapeHtml(firstChartTarget)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -274,6 +280,7 @@ function renderEditorControls(): void {
       const selectionInput = window.document.getElementById('xlsx-selection-input') as HTMLInputElement;
       const orientationInput = window.document.getElementById('xlsx-orientation-input') as HTMLInputElement;
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
+      const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const chartTitleInput = window.document.getElementById('xlsx-chart-title-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
@@ -352,6 +359,14 @@ function renderEditorControls(): void {
             );
           }
         }
+        if (chartNameInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartName(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartNameInput.value
+          );
+        }
         if (chartTargetInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartTarget(
             workbookEditor,
@@ -396,6 +411,7 @@ function renderEditorControls(): void {
       selectionInput.addEventListener('input', update);
       orientationInput.addEventListener('input', update);
       topMarginInput.addEventListener('input', update);
+      chartNameInput.addEventListener('input', update);
       chartTargetInput.addEventListener('input', update);
       chartTitleInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);

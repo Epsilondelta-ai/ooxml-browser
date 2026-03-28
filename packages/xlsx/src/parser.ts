@@ -307,7 +307,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
 
   const drawingRelationships = relationshipsFor(graph, drawingUri);
   const frames = findElementsByLocalName(xml.document, 'graphicFrame');
-  return frames.flatMap((frame) => {
+  return frames.flatMap((frame, drawingNameOccurrence) => {
     const graphicData = findElementsByLocalName(frame, 'graphicData')[0];
     const chartNode = graphicData ? findElementsByLocalName(graphicData, 'chart')[0] : undefined;
     const relationshipId = xmlAttr(chartNode, 'r:id');
@@ -322,6 +322,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     return [{
       relationshipId,
       drawingUri,
+      drawingNameOccurrence,
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
       title: chartTitle || undefined

@@ -367,6 +367,16 @@ export function setWorksheetChartTitle(editor: OfficeEditor<XlsxWorkbook>, sheet
   });
 }
 
+export function setWorksheetChartName(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, name: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.name = name;
+    }
+  });
+}
+
 export function setWorksheetMediaTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mediaIndex: number, targetUri: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

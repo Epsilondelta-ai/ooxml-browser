@@ -14,6 +14,7 @@ describe('xlsx chart relationships', () => {
     expect(chart).toEqual({
       relationshipId: 'rIdChart1',
       drawingUri: '/xl/drawings/drawing1.xml',
+      drawingNameOccurrence: 0,
       targetUri: '/xl/charts/chart1.xml',
       name: 'Sales Chart',
       title: 'Primary Chart'
