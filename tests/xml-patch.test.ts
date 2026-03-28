@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { replaceAttributeValue, replaceInnerTextByAttribute } from '@ooxml/core';
+import { replaceAttributeValue, replaceContainerTextByAttribute, replaceInnerTextByAttribute } from '@ooxml/core';
 
 describe('shared xml patch helpers', () => {
   it('updates matching attributes while preserving unrelated ones', () => {
@@ -17,5 +17,13 @@ describe('shared xml patch helpers', () => {
 
     expect(patched).toContain('<meta keep="1"/>');
     expect(patched).toContain('<t>Updated</t>');
+  });
+
+  it('updates direct container text while preserving outer attributes', () => {
+    const source = '<definedNames><definedName name="SalesRange" localSheetId="0">Sheet1!$A$1:$B$2</definedName></definedNames>';
+    const patched = replaceContainerTextByAttribute(source, { tagName: 'definedName', keyAttr: 'name', keyValue: 'SalesRange', newText: 'Sheet1!$A$1:$B$3' });
+
+    expect(patched).toContain('localSheetId="0"');
+    expect(patched).toContain('>Sheet1!$A$1:$B$3</definedName>');
   });
 });

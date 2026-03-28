@@ -12,7 +12,9 @@ describe('xlsx serializer persistence', () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
     insertWorkbookRow(editor, 'Sheet1', 2);
 
-    const reopened = parseXlsx(await openPackage(serializeOfficeDocument(editor.document)));
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
     const sheet = reopened.sheets[0];
 
     expect(reopened.definedNames[0]?.reference).toBe('Sheet1!$A$1:$B$3');
@@ -20,6 +22,7 @@ describe('xlsx serializer persistence', () => {
     expect(sheet?.frozenPane?.topLeftCell).toBe('A3');
     expect(sheet?.rows[0]?.cells[1]?.formula).toBe('SUM(A1:A3)');
     expect(sheet?.rows[2]?.cells[0]?.reference).toBe('A3');
+    expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('customWorkbookAttr="keep"');
   });
 
   it('preserves worksheet comments and table ranges across serialize/reopen', async () => {

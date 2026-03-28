@@ -1,4 +1,4 @@
-import { replaceAttributeValue, replaceInnerTextByAttribute } from './xml-patch';
+import { replaceAttributeValue, replaceContainerTextByAttribute, replaceInnerTextByAttribute } from './xml-patch';
 
 export type XmlPatchOperation =
   | {
@@ -17,12 +17,24 @@ export type XmlPatchOperation =
       keyAttr?: string;
       keyValue?: string;
       occurrence?: number;
+    }
+  | {
+      op: 'replaceContainerText';
+      tagName: string;
+      newText: string;
+      keyAttr?: string;
+      keyValue?: string;
+      occurrence?: number;
     };
 
 export function applyXmlPatchPlan(source: string, operations: XmlPatchOperation[]): string {
   return operations.reduce((current, operation) => {
     if (operation.op === 'replaceAttribute') {
       return replaceAttributeValue(current, operation);
+    }
+
+    if (operation.op === 'replaceContainerText') {
+      return replaceContainerTextByAttribute(current, operation);
     }
 
     return replaceInnerTextByAttribute(current, operation);

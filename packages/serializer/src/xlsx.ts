@@ -1,8 +1,9 @@
 import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart } from '@ooxml/core';
-import type { WorkbookSheet, WorksheetCell, XlsxComment, XlsxDefinedName, XlsxTable, XlsxWorkbook } from '@ooxml/xlsx';
+import { parseXlsx, type WorkbookSheet, type WorksheetCell, type XlsxComment, type XlsxDefinedName, type XlsxTable, type XlsxWorkbook } from '@ooxml/xlsx';
 
 export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   const graph = clonePackageGraph(workbook.packageGraph);
+  const originalWorkbook = parseXlsx(workbook.packageGraph);
   const sharedStringPool = createSharedStringPool(workbook);
   const sharedStringsUri = '/xl/sharedStrings.xml';
   const hasSharedStringsPart = Boolean(graph.parts[sharedStringsUri]);
@@ -10,7 +11,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   updatePackagePartText(
     graph,
     '/xl/workbook.xml',
-    buildWorkbookXml(workbook),
+    patchWorkbookXml(graph.parts['/xl/workbook.xml']?.text, originalWorkbook, workbook) ?? buildWorkbookXml(workbook),
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
   );
 
@@ -61,6 +62,53 @@ function buildWorkbookXml(workbook: XlsxWorkbook): string {
   const sheetsXml = workbook.sheets.map((sheet) => `<sheet name="${escapeXml(sheet.name)}" sheetId="${sheet.sheetId}" r:id="${escapeXml(sheet.relationshipId)}"/>`).join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${definedNamesXml}<sheets>${sheetsXml}</sheets></workbook>`;
+}
+
+function patchWorkbookXml(existingSource: string | undefined, originalWorkbook: XlsxWorkbook, workbook: XlsxWorkbook): string | undefined {
+  if (!existingSource || !canPatchWorkbookDefinedNamesOnly(originalWorkbook, workbook)) {
+    return undefined;
+  }
+
+  const operations = workbook.definedNames.flatMap((definedName, index) => {
+    const originalDefinedName = originalWorkbook.definedNames[index];
+    if (!originalDefinedName || definedName.reference === originalDefinedName.reference) {
+      return [];
+    }
+
+    return [{
+      op: 'replaceContainerText' as const,
+      tagName: 'definedName',
+      occurrence: index,
+      newText: definedName.reference
+    }];
+  });
+
+  return operations.length > 0 ? applyXmlPatchPlan(existingSource, operations) : existingSource;
+}
+
+function canPatchWorkbookDefinedNamesOnly(originalWorkbook: XlsxWorkbook, workbook: XlsxWorkbook): boolean {
+  if (workbook.sheets.length !== originalWorkbook.sheets.length || workbook.definedNames.length !== originalWorkbook.definedNames.length) {
+    return false;
+  }
+
+  const sheetsStable = workbook.sheets.every((sheet, index) => {
+    const originalSheet = originalWorkbook.sheets[index];
+    return Boolean(originalSheet)
+      && sheet.name === originalSheet.name
+      && sheet.sheetId === originalSheet.sheetId
+      && sheet.relationshipId === originalSheet.relationshipId;
+  });
+
+  if (!sheetsStable) {
+    return false;
+  }
+
+  return workbook.definedNames.every((definedName, index) => {
+    const originalDefinedName = originalWorkbook.definedNames[index];
+    return Boolean(originalDefinedName)
+      && definedName.name === originalDefinedName.name
+      && definedName.scopeSheetId === originalDefinedName.scopeSheetId;
+  });
 }
 
 function buildDefinedNameXml(definedName: XlsxDefinedName): string {
