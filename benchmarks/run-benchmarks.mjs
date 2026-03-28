@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 import { zipSync } from 'fflate';
@@ -70,10 +72,17 @@ async function benchmark(label, fixture, parse) {
   };
 }
 
-const results = await Promise.all([
-  benchmark('docx-micro', createDocxFixture, parseDocx),
-  benchmark('xlsx-micro', createXlsxFixture, parseXlsx),
-  benchmark('pptx-micro', createPptxFixture, parsePptx)
-]);
+const report = {
+  suite: 'ooxml-micro',
+  generatedAt: new Date().toISOString(),
+  results: await Promise.all([
+    benchmark('docx-micro', createDocxFixture, parseDocx),
+    benchmark('xlsx-micro', createXlsxFixture, parseXlsx),
+    benchmark('pptx-micro', createPptxFixture, parsePptx)
+  ])
+};
 
-console.log(JSON.stringify({ suite: 'ooxml-micro', results }, null, 2));
+const reportsDir = path.join(process.cwd(), 'benchmarks', 'reports');
+await mkdir(reportsDir, { recursive: true });
+await writeFile(path.join(reportsDir, 'latest-benchmark-results.json'), JSON.stringify(report, null, 2));
+console.log(JSON.stringify(report, null, 2));
