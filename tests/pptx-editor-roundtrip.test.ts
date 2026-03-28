@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -65,6 +65,15 @@ describe('pptx editor round-trips', () => {
 
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.slides[0]?.shapes[0]?.placeholderType).toBe('subtitle');
+  });
+
+
+  it('persists edited shape names', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createTransformedPptxFixture())));
+    setPresentationShapeName(editor, 0, 0, 'Renamed Body');
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.slides[0]?.shapes.find((entry) => entry.name === 'Renamed Body')?.text).toBe('Transformed text');
   });
 
   it('persists edited slide transition metadata', async () => {
