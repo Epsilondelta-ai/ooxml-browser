@@ -1,281 +1,290 @@
-# Consensus Plan: Frontend OOXML Library
-
-## Planning metadata
-- Mode: `$ralplan --deliberate`
-- Grounding snapshot: `.omx/context/frontend-ooxml-library-20260328T034425Z.md`
-- Supporting docs: `docs/index.md`
-- Status: APPROVED
+# Consensus Execution Plan: Frontend OOXML Library
 
 ## RALPLAN-DR summary
 
 ### Principles
-1. **Package-first truth**: treat OOXML as an OPC relationship graph before format-specific semantics.
-2. **Round-trip preservation over lossy simplification**: preserve unknown markup, compatibility branches, and untouched binary parts.
-3. **Browser-first execution**: public APIs and examples must run in frontend environments with worker-safe offloading.
-4. **Shared model, specialized views**: parser, renderer, editor, and serializer share a coherent IR while view/layout layers remain format-specialized.
-5. **Verification is product work**: fixtures, benchmarks, examples, and diagnostics ship alongside features.
+1. Browser-first runtime and API design.
+2. Shared round-trip-friendly IR across parse/render/edit/save flows.
+3. Relationship-driven package traversal and preservation-first serialization.
+4. Corpus-backed fidelity, compatibility, and performance verification.
+5. Extensible architecture for advanced subsystems without fragmenting the core model.
 
 ### Decision drivers
-1. High-fidelity parse/edit/save across docx/xlsx/pptx without Node-only assumptions.
-2. Maintainable modular architecture that can scale to advanced OOXML features.
-3. Continuous verification against corpus, interop, performance, and round-trip regressions.
+1. **Round-trip fidelity** must survive unsupported and extension markup.
+2. **Cross-format coherence** is required to keep docx/xlsx/pptx from becoming three disconnected products.
+3. **Frontend performance and safety** must be designed in from the start.
 
 ### Viable options
 
-#### Option A — Package graph + source-preserving XML + shared OOXML IR + format-specialized render/edit modules (**chosen**)
-Pros:
-- best fit for round-trip preservation and extension markup handling
-- shared services reduce duplication across docx/xlsx/pptx
-- supports layered verification and future collaboration/worker features
-Cons:
-- larger upfront architecture investment
-- requires careful IR boundaries to avoid leaky abstractions
+#### Option A — Shared core with format adapters (**chosen**)
+- **Pros:** maximizes reuse; enables one package graph, XML, IR, serializer, worker, and verification stack; makes multi-format editor/devtools practical.
+- **Cons:** requires upfront architecture discipline and careful abstraction to avoid lowest-common-denominator design.
 
-#### Option B — Independent per-format pipelines with minimal shared abstraction
-Pros:
-- faster local optimization for each format
-- simpler mental model in earliest stages
-Cons:
-- duplicates OPC/XML logic
-- hurts consistency for shared subsystems and public APIs
-- makes cross-format tooling/examples/devtools harder
+#### Option B — Independent per-format stacks with later convergence
+- **Pros:** faster local iteration per format; fewer early abstractions.
+- **Cons:** duplicated parsers/serializers/subsystems; expensive later convergence; inconsistent public APIs and verification story.
 
-#### Option C — Render-first lossy normalization into HTML/Canvas-native models
-Pros:
-- can accelerate viewer scenarios
-- browser rendering integration seems direct initially
-Cons:
-- breaks round-trip preservation goals
-- weak editor/serializer coherence
-- poor support for unsupported/unknown OOXML structures
+#### Option C — Viewer-first pipeline with editing added later
+- **Pros:** simpler early layout/render focus.
+- **Cons:** violates project requirement to deliver a complete parse/render/edit/save library and usually leads to lossy IR that blocks round-trip-safe editing.
 
-Choice rationale:
-- Option A is the only option that satisfies full-scope parse/render/edit/serialize requirements while keeping interoperability and verification credible.
+### Decision
+Choose **Option A**: shared core with format adapters.
 
-### Pre-mortem
-1. **Word layout drift**: browser pagination/floating-layout fidelity diverges from Office; mitigation is a dedicated layout abstraction, fixture corpus, and explicit fidelity tiers.
-2. **Spreadsheet complexity explosion**: formulas/styles/virtualization interact unpredictably; mitigation is storage-vs-display model separation, pluggable recalc, and mandatory virtualization.
-3. **Serializer regressions**: edits break untouched OOXML content; mitigation is source-preserving XML/token tape, patch-based writes, and no-op/minimal-edit round-trip tests from early stages.
+### Pre-mortem (deliberate mode)
+1. **Layout-fidelity stall:** docx/pptx text metrics and pagination diverge too far from Office.
+   - Mitigation: build corpus-driven calibration loops, separate semantic fidelity from visual fidelity, and isolate layout engine contracts early.
+2. **IR brittleness:** source-preserving requirements are compromised by overly normalized ASTs.
+   - Mitigation: source token tape + semantic AST dual model, serializer patch pipeline, unknown-markup regression fixtures.
+3. **Performance collapse on large files:** worksheet/document parsing and render indexing exceed browser budgets.
+   - Mitigation: lazy part loading, worker offload, virtualization, and perf corpus gates from the first scaffolding stage.
 
-### Expanded test plan
-- **Unit**: OPC/XML/IR/helpers/transactions
-- **Integration**: package -> parse -> serialize -> reopen across formats
-- **E2E**: browser examples and playground edit/save workflows
-- **Observability**: diagnostics snapshots, serializer diff summaries, benchmark JSON, worker timing traces
-- **Performance**: parse/render/edit/save latency and memory budgets on representative corpus
-
-## Planner draft
-
-### Product goals
-- deliver a production-meaningful frontend OOXML library with browser-first parse/render/edit/serialize support
-- establish composable packages, shared IR, worker protocols, examples, playground, benchmarks, and docs
-- ensure core round-trip fidelity and verification infrastructure are present before claiming completion
-
-### Quality targets
-- package fidelity, semantic fidelity, visual fidelity, behavioral fidelity, and round-trip preservation tracked separately
-- security-first ingestion for untrusted documents
-- compatibility tracking across Office and LibreOffice corpora
-- stable APIs with diagnostics and devtools surfaces
-
-### Architecture
-
-#### Monorepo layout
-- `packages/core`
-- `packages/opc`
-- `packages/xml`
-- `packages/ir`
-- `packages/serializer`
-- `packages/docx`
-- `packages/xlsx`
-- `packages/pptx`
-- `packages/render-core`
-- `packages/render-docx`
-- `packages/render-xlsx`
-- `packages/render-pptx`
-- `packages/editor-core`
-- `packages/editor-docx`
-- `packages/editor-xlsx`
-- `packages/editor-pptx`
-- `packages/react`
-- `packages/devtools`
-- `packages/worker`
-- `examples/`
-- `playground/`
-- `fixtures/`
-- `benchmarks/`
-- `tests/`
-
-#### Internal model stack
-1. `PackageGraph`
-2. source-preserving XML/token tape
-3. normalized `OfficeDocumentModel`
-4. derived render/layout projections
-5. transaction/invalidation/serialization patch layer
-
-### Parser design
-- shared ingest pipeline: blob/file -> zip security gate -> package graph -> XML tokenizer -> format normalizers -> IR
-- lazy parse heavy parts; worker support for large documents
-- expose diagnostics and degraded-mode handling
-
-### Renderer design
-- docx: HTML/CSS paginated + SVG overlays
-- xlsx: virtualized HTML grid + Canvas/SVG overlays
-- pptx: SVG/HTML hybrid scene graph
-- shared asset/style/theme/layout helpers
-
-### Editor design
-- semantic transaction API with undo/redo
-- format-specific selection models on top of shared transaction/invalidation system
-- patch-based serialization with dependency updates
-- collaboration hooks at transaction layer
-
-### Serializer design
-- patch touched parts where possible
-- preserve untouched unknown content
-- deterministic relationship/content-type/shared-string/style rewrites
-- no-op and minimal-edit round-trip tests mandatory
-
-### Format-specific strategy
-
-#### DOCX
-- prioritize stories, paragraphs/runs, styles, numbering, sections, tables, comments, headers/footers, tracked changes, drawings
-- derive page and continuous views
-- expose story-aware editor APIs
-
-#### XLSX
-- prioritize workbook/sheets/shared strings/styles/formulas/defined names/merges/frozen panes/drawings/tables
-- build virtualized grid and formula-preserving editor path
-- keep calculation engine pluggable
-
-#### PPTX
-- prioritize presentation/slides/masters/layouts/themes/notes/comments/shapes/media/timing preservation
-- build slide scene graph with placeholder-aware editing
-- preserve timing/animation metadata even where playback is partial
-
-### Corpus / fixture / benchmark strategy
-- create micro fixtures per feature and real-world mixed corpora
-- add interop and security corpora early
-- maintain benchmark harness for parse/render/edit/save/memory
-
-### Docs / examples / playground strategy
-- docs stay synchronized with implementation
-- examples for open/render/edit/save per format plus package inspector
-- playground supports drag/drop, diagnostics, package explorer, and save-back flow
-
-### Staged implementation order
-1. monorepo/tooling scaffolding + package boundaries + docs links
-2. shared core (`core`, `opc`, `xml`, `ir`, `serializer`) + fixture harness
-3. docx parser + serializer + smoke render path + tests
-4. xlsx parser + serializer + virtual grid path + tests
-5. pptx parser + serializer + slide render path + tests
-6. shared editor core + per-format editing adapters
-7. examples + playground + devtools + benchmark harness
-8. compatibility hardening, regression fixes, and final verification
-
-### Parallelizable task decomposition
-- lane A: monorepo/core/OPC/XML/IR scaffolding
-- lane B: fixture corpus + test harness + benchmark harness
-- lane C: format-specific adapters (docx/xlsx/pptx) once core contracts exist
-- lane D: render packages once parse IR contracts stabilize
-- lane E: editor/devtools/examples/playground after first parse/render loops land
-
-### Verification criteria
-- build/typecheck/lint clean
-- unit/integration/browser tests pass
-- affected-file diagnostics clean
-- round-trip tests pass for representative corpus
-- examples/playground validated
-- docs match implementation
-
-### Definition of done
-- parse/render/edit/serialize flows exist for docx/xlsx/pptx
-- fixtures/tests/examples/benchmarks/docs are present and coherent
-- no unresolved TODOs or known broken states remain
-- final architect/verifier review approves evidence
-
-## Architect review
-
-### Strongest steelman antithesis
-A single shared IR could become too generic, leading to awkward abstractions that hide critical format differences and slow delivery. In particular, docx pagination, xlsx formula/grid semantics, and pptx scene-graph behavior may deserve deeper format-native models than a shared abstraction can comfortably support.
-
-### Tradeoff tensions
-1. **Shared IR vs format-native precision**: too much generalization hurts fidelity; too little sharing hurts maintainability.
-2. **Patch-based serialization vs deterministic regeneration**: patching preserves fidelity, but some tables/indexes are easier to regenerate.
-3. **Browser-first ergonomics vs full Office compatibility**: frontend safety/performance constraints will sometimes cap exact parity.
-
-### Synthesis
-- keep shared IR limited to genuinely shared primitives and package services
-- retain format-native subtrees and adapters for areas with high semantic divergence
-- use hybrid serialization: patch untouched/opaque content, regenerate known dependent index structures deterministically
-
-Architect verdict: APPROVE WITH SYNTHESIS
-
-## Critic evaluation
-
-Checks:
-- principle/option consistency: pass
-- alternatives fairly considered: pass
-- risk mitigation clarity: pass
-- acceptance criteria and verification steps testable: pass
-- deliberate-mode pre-mortem and expanded test plan present: pass
-
-Critic verdict: APPROVE
+### Expanded testing strategy
+- **Unit:** OPC/XML/IR/style/theme/parser/serializer/transaction primitives.
+- **Integration:** parse-render-edit-serialize loops by format and subsystem.
+- **E2E:** browser open/edit/save flows for representative fixtures.
+- **Observability:** diagnostics, perf traces, cache invalidation signals, worker progress/cancellation.
+- **Performance:** corpus-based latency and memory thresholds in CI/local benchmarks.
 
 ## ADR
 
 ### Decision
-Adopt a browser-first monorepo architecture centered on OPC package parsing, source-preserving XML, shared OOXML IR, and format-specialized render/edit modules.
+Use a monorepo with shared core packages (`core`, `opc`, `xml`, `ir`, `serializer`, `render-core`, `editor-core`, `worker`) and format adapters (`docx`, `xlsx`, `pptx`, renderer/editor companions), plus product surfaces (`react`, `devtools`, `examples`, `playground`, `bench`).
 
 ### Drivers
-- required full-scope docx/xlsx/pptx support
-- round-trip preservation
-- need for reusable shared subsystems and verification tooling
+- Shared OOXML/OPC mechanics across all formats.
+- Need for one coherent round-trip-safe editor model.
+- Requirement to deliver docs/examples/playground/benchmarks together with code.
 
 ### Alternatives considered
 - independent per-format stacks
-- render-first lossy normalization
+- viewer-first delivery
+- server-centric architecture with browser wrappers
 
 ### Why chosen
-It best satisfies fidelity, maintainability, extensibility, and verification requirements simultaneously.
+It best satisfies browser-first, multi-format, fidelity, and extensibility requirements with manageable long-term complexity.
 
 ### Consequences
-- more up-front architectural work
-- stronger long-term coherence across packages and APIs
-- requires disciplined IR boundary design and fixture-first verification
+- More upfront scaffolding and IR work.
+- Better long-term reuse, testing consistency, and API clarity.
+- Easier worker, devtools, and verification integration.
 
 ### Follow-ups
-- scaffold monorepo and core contracts first
-- implement fixture harness before deep format work
-- gate later edits with round-trip and render evidence
+- validate abstraction boundaries during initial scaffolding
+- keep format-specific escape hatches where semantics genuinely diverge
+- measure package size/runtime costs continuously
+
+## Architecture and module boundaries
+
+### Layered stack
+1. **`@ooxml/core`** — diagnostics, errors, ids, utility types.
+2. **`@ooxml/opc`** — ZIP/OPC package reader, content types, relationships, package graph.
+3. **`@ooxml/xml`** — tokenizer, namespace registry, source-preserving token tape, writer.
+4. **`@ooxml/ir`** — normalized shared IR + format container types.
+5. **`@ooxml/{docx,xlsx,pptx}`** — format parsers, resolvers, edit adapters.
+6. **`@ooxml/render-*`** — view model/layout/render backends.
+7. **`@ooxml/editor-*`** — selection, transactions, mutation commands.
+8. **`@ooxml/serializer`** — patch planner, deterministic writers, package rebuilder.
+9. **`@ooxml/worker`** — worker protocol + task runners.
+10. **product surfaces** — React adapter, devtools, examples, playground, benchmarks.
+
+### Internal IR / AST strategy
+- **Source layer:** part-scoped XML token tape preserving unknown markup, prefixes, `mc:*`, and writer-relevant trivia.
+- **Semantic AST:** typed OOXML node trees per part.
+- **Document IR:** shared cross-format primitives (story/sheet/slide containers, text/table/drawing/style/annotation/asset nodes).
+- **Derived indexes:** layout caches, dependency graphs, selection maps, relationship reverse index.
+
+### Parser design
+- central-directory ZIP inspection and safety budgets
+- relationship-driven traversal
+- lazy part parse by access pattern
+- SAX/token streaming for large parts
+- structured diagnostics and degraded open modes
+
+### Renderer design
+- docx: HTML/CSS text flow + SVG overlays + page/continuous projections
+- xlsx: virtualized HTML grid + Canvas/SVG overlays + print projection
+- pptx: SVG/HTML hybrid slide scene graph + notes/sorter projections
+
+### Editor design
+- semantic transactions with reversible operations
+- format-specific selection models atop shared transaction core
+- undo/redo at transaction granularity
+- clipboard bridges and structural edits
+- collaboration extension hooks at transaction layer
+
+### Serializer design
+- part patching when possible, deterministic package rewrite when required
+- preserve untouched parts/relationships/content types as much as possible
+- stable ids/relationship ids where feasible
+
+## Format-specific execution strategy
+
+### DOCX lane
+- story registry, styles, numbering, sections, comments, notes, revisions, headers/footers, drawings, equations
+- paginated + continuous layout
+- revision-aware editor actions and serializer
+
+### XLSX lane
+- workbook/sheet/shared strings/styles/formulas/tables/comments/drawings/charts
+- virtualized grid, frozen panes, sheet management
+- formula parser and reference rewrite support; recalculation engine pluggable
+
+### PPTX lane
+- presentation/slide/master/layout/theme/notes/comments/media/timing metadata
+- slide scene graph and text editing
+- master/layout-preserving edits and serializer
+
+## Staged implementation order
+
+### Stage A — Workspace and core scaffolding
+- monorepo tooling
+- shared TS config, build, lint, test harness
+- core/opc/xml/ir package skeletons
+- docs site/examples/playground/bench placeholders
+
+### Stage B — OPC + XML + IR foundation
+- package graph
+- XML tokenizer/writer
+- namespace + markup compatibility handling
+- shared diagnostics
+- initial fixtures and unit tests
+
+### Stage C — Format parsers
+- docx/xlsx/pptx package parsing and normalized IR projection
+- corpus fixtures and round-trip-open integration tests
+
+### Stage D — Renderers
+- docx page/continuous renderer
+- xlsx grid renderer
+- pptx slide renderer
+- browser examples and visual tests
+
+### Stage E — Editor core and format editing
+- transactions, selection, undo/redo
+- docx editing commands
+- xlsx cell/sheet editing commands
+- pptx text/shape/slide editing commands
+
+### Stage F — Serializer + round-trip hardening
+- patch planner and package writer
+- no-op/minimal-edit round-trip tests
+- interop corpus reopen validation harness
+
+### Stage G — Product surfaces + hardening
+- React adapter
+- playground and devtools
+- benchmark harness
+- docs expansion and compatibility matrices
+
+## Milestone gates
+
+### Stage A gate
+- workspace builds
+- test runner executes
+- examples/playground shells boot
+- package boundaries documented
+
+### Stage B gate
+- OPC/XML/IR unit tests green
+- representative OPC/XML fixtures parse successfully
+- diagnostics emitted for malformed/security fixtures
+
+### Stage C gate
+- representative docx/xlsx/pptx fixtures parse into IR
+- no-op serializer smoke tests reopen through parser
+- unsupported content preserved with diagnostics
+
+### Stage D gate
+- representative document/page, worksheet region, and slide render in browser examples
+- visual baselines exist for core fixtures
+- render-layer diagnostics/devtools inspectors usable
+
+### Stage E gate
+- text/cell/shape editing works in examples
+- undo/redo passes integration tests
+- selection and clipboard smoke coverage exists per format
+
+### Stage F gate
+- no-op and minimal-edit round-trip suites pass for core fixtures
+- serializer updates dependent tables/relationships deterministically
+- interoperability reopen checks recorded
+
+### Stage G gate
+- docs site, playground, examples, and benchmark harness are wired into CI/release workflow
+- public API docs and compatibility matrix are published in-repo
+
+## Parallelizable task decomposition
+
+### Lane 1 — Core/package/XML
+- scaffold workspace
+- implement opc/xml/token/diagnostic foundation
+- own shared fixtures for packaging and XML
+
+### Lane 2 — Format parsing
+- docx parser lane
+- xlsx parser lane
+- pptx parser lane
+- shared IR alignment checkpoints
+
+### Lane 3 — Rendering/product surfaces
+- render-core contracts
+- format renderers
+- examples/playground shell/devtools inspectors
+
+### Lane 4 — Editing/serialization/verification
+- transaction core
+- serializer pipeline
+- corpus tooling, golden tests, benchmarks, CI
 
 ## Available-agent-types roster for execution
-- `planner`: stage sequencing and recovery planning
-- `architect`: design guardrails and stage review
-- `critic`: quality challenge and approval gate
-- `executor`: primary implementation lane
-- `test-engineer`: fixtures, test harness, e2e, benchmarks
-- `debugger`: regression triage and failure isolation
-- `verifier`: final evidence collection and completion checks
-- `researcher`: targeted standards/interop follow-up as needed
-- `code-reviewer` / `security-reviewer`: optional hardening reviews
 
-## Suggested staffing lanes for later `$ralph`
-- **Implementation lane:** `executor` for scaffolding/core/format modules
-- **Evidence/regression lane:** `test-engineer` + `debugger` for fixtures, failing cases, perf traces
-- **Sign-off lane:** `architect` then `verifier` for stage-end approval
+- `architect` — high-level reviews, boundary validation, tradeoff analysis
+- `executor` — implementation lanes (default)
+- `debugger` — failure diagnosis and regression isolation
+- `test-engineer` — fixture strategy, browser E2E, perf harness
+- `verifier` — completion evidence and claim validation
+- `code-reviewer` / `critic` — milestone review and simplification pressure
+- `researcher` / `dependency-expert` — targeted external package/doc evaluation when necessary
 
-Suggested reasoning levels by lane:
-- implementation lane: high
-- evidence lane: medium/high
-- sign-off lane: high
+## Suggested staffing guidance
 
-## Team launch hints
-- `$team` or `omx team` should split work into core, fixtures/tests, and format-specific lanes only after core contracts are defined.
-- For initial execution, `$ralph` is preferred so the early architecture, scaffolding, and verification loops remain tightly sequenced.
-- If team mode is later used, route final integration/fidelity verification back through `$ralph` before declaring completion.
+### Ralph execution lanes
+- **Implementation lane:** `executor` agents for core/package/XML, format modules, renderers, editor/serializer slices.
+- **Evidence/regression lane:** `test-engineer` plus `debugger` for fixtures, CI, and failures.
+- **Final sign-off lane:** `architect` then `verifier`, with optional `code-reviewer` for large diffs.
 
-## Team -> Ralph verification path
-1. Team lanes land bounded working increments with local verification.
-2. Ralph re-integrates the combined branch, reruns full build/test/typecheck/diagnostics.
-3. Ralph collects fresh round-trip, example/playground, and benchmark evidence.
-4. Architect/verifier sign off the integrated result.
+### Team execution hints
+- `omx team` / `$team` can split along Core, DOCX, XLSX, PPTX, and Verification surfaces once workspace scaffolding is stable.
+- Use shared ownership boundaries by package directory to avoid merge conflicts.
+- Team -> Ralph verification path: team builds isolated lanes, then Ralph consolidates, runs end-to-end verification, closes gaps, and performs final architect/verifier sign-off.
+
+## Verification criteria
+
+- build/lint/typecheck clean
+- unit + integration tests pass
+- browser E2E passes for representative fixtures
+- parse/render/edit/serialize flows validated for docx/xlsx/pptx
+- no-op + minimal-edit round-trip diffs acceptable for supported fixtures
+- examples/playground operational
+- benchmark suite produces baseline numbers
+- docs and feature matrix updated
+
+## Definition of done
+
+The plan is complete when the repo contains a working browser-first OOXML library with package/XML/IR foundations, format parsers, renderers, editors, serializer, tests, fixtures, examples, playground, benchmark harness, and verification evidence showing representative docx/xlsx/pptx round-trip capability.
+
+## Reasoning levels by lane
+
+- **Core/package/XML lane:** high reasoning (`executor` / `architect`)
+- **Format parser lanes:** high reasoning (`executor`), medium-high for targeted follow-up fixes (`debugger`)
+- **Rendering/product surfaces lane:** medium-high reasoning (`executor`, `designer`/`style-reviewer` as needed)
+- **Verification/perf lane:** medium-high reasoning (`test-engineer`, `verifier`)
+- **Final sign-off lane:** high reasoning (`architect`, `verifier`, optional `critic`)
+
+## Launch hints
+
+- Sequential Ralph path: `omx ralph` after the plan artifacts are committed, with execution sliced by the stage order above.
+- Parallel team path once scaffolding is stable: `omx team` or `$team` with lanes mapped to Core, DOCX, XLSX, PPTX, and Verification.
+- Team staffing hint: start with 4-5 workers only after Stage A foundations exist and shared package boundaries are fixed.
+- Verification consolidation path: after team delivery, hand back to Ralph for end-to-end lint/typecheck/test/e2e/round-trip/architect-verifier review and final cleanup.

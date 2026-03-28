@@ -1,130 +1,121 @@
 # PRD: Frontend OOXML Library
 
-## Document status
-- Status: Approved for execution
-- Planning mode: ralplan consensus (`--deliberate` depth)
-- Grounding snapshot: `.omx/context/frontend-ooxml-library-20260328T034425Z.md`
-- Documentation baseline: `docs/index.md`
+## Document metadata
+
+- **Project:** OOXML frontend library
+- **Slug:** frontend-ooxml-library
+- **Planning mode:** ralplan consensus, deliberate depth
+- **Grounding snapshot:** `.omx/context/frontend-ooxml-library-20260328T034425Z.md`
+- **Baseline docs:** `docs/index.md` and linked reference/design docs
 
 ## Product vision
-Build a browser-first library that can open, parse, render, edit, and serialize OOXML-based Microsoft Office documents (`.docx`, `.xlsx`, `.pptx`) with production-meaningful fidelity and round-trip preservation. The library must expose stable frontend APIs, worker-friendly runtime boundaries, examples, playground tooling, and verification infrastructure that can keep compatibility quality improving over time.
+
+Deliver a browser-first library that can open, inspect, render, edit, and serialize OOXML-based Office documents (`.docx`, `.xlsx`, `.pptx`) with production-meaningful fidelity, strong round-trip preservation, safe untrusted-document handling, and extensible package boundaries for advanced subsystems.
 
 ## Primary users
-- frontend product teams building document viewers/editors
-- internal tools teams that need browser-native Office document inspection or transformation
-- collaboration products requiring structured OOXML editing in web environments
-- QA/performance teams needing package-graph, fidelity, and benchmark tooling
 
-## Goals
-1. Parse `.docx`, `.xlsx`, and `.pptx` through a shared OPC/OOXML stack.
-2. Render Word pages, spreadsheet grids, and presentation slides in browser environments.
-3. Support semantic editing flows for text, structure, formatting, sheets/slides, and assets.
-4. Serialize edited documents back to OOXML with high round-trip preservation.
-5. Provide verification, fixtures, examples, benchmarks, and devtools as first-class product surfaces.
+1. **Application developers** embedding Office-like viewing/editing in web apps.
+2. **Workflow/product teams** needing browser-side document import/export and light-to-deep editing.
+3. **Platform teams** needing package inspection, document transformation, verification, or interoperability tooling.
+4. **Power users / internal tooling authors** building document playgrounds, automation, or migration tools.
+
+## Overall product goals
+
+1. Parse OOXML packages into a shared, round-trip-friendly internal representation.
+2. Render `.docx`, `.xlsx`, and `.pptx` in browser-first viewports with meaningful fidelity.
+3. Support semantic editing with undo/redo and deterministic serialization back to OOXML.
+4. Preserve unsupported or unknown-but-safe markup, relationships, and parts wherever possible.
+5. Ship examples, devtools, verification corpus tooling, and benchmark surfaces alongside the core packages.
 
 ## Non-goals
-- No scope reduction to an MVP.
-- No server-only assumptions in public APIs.
-- No destructive flattening of OOXML structure merely to simplify rendering.
+
+The project is not limited to a viewer-only surface, server-only runtime, or one-format prototype. Optional future acceleration work may deepen fidelity, but the delivered baseline must already be production-meaningful across parse/render/edit/save flows.
 
 ## Quality targets
-- Browser-first runtime with optional workers.
-- Round-trip-safe preservation of unknown parts, relationships, markup compatibility branches, and extensibility content.
-- Fidelity tracked across package, semantic, visual, and behavioral dimensions.
-- Untrusted-document-safe parse posture.
-- Stable monorepo package boundaries with framework-agnostic core.
 
-## User stories
+### Fidelity targets
+- **Package fidelity:** preserve untouched package graph structures and unknown safe parts.
+- **Semantic fidelity:** preserve document content, structural anchors, styles, and references.
+- **Visual fidelity:** render representative fixtures close to Office baselines for supported feature sets.
+- **Interaction fidelity:** expose Office-like editing affordances for core operations.
+- **Round-trip fidelity:** no-op and small-edit round trips retain unchanged constructs as much as feasible.
 
-### US-001 Package ingestion and inspection
-As an application developer, I want to open OOXML blobs/files and inspect package parts, relationships, and content types so that I can build workflows on a trustworthy package graph.
+### Compatibility targets
+- Open representative Office-produced files across all three formats.
+- Serialize outputs that reopen in Microsoft Office and LibreOffice for supported feature sets.
+- Preserve unsupported features with explicit degraded diagnostics rather than destructive drops.
 
-Acceptance criteria:
-- `openPackage` accepts `Blob | File | ArrayBuffer | Uint8Array`.
-- Package graph contains parts, relationships, and content-type metadata.
-- Unsupported parts are preserved as opaque nodes.
-- Security limits detect malformed ZIP/path traversal conditions.
+### Safety targets
+- Default threat model is untrusted documents.
+- No automatic external resource execution/loading.
+- No executable macro/ActiveX/OLE behavior; preserve as opaque attachments.
 
-### US-002 Word processing support
-As a product team, I want to parse, render, edit, and save `.docx` files so that users can work with rich paginated documents in-browser.
+## Functional requirements
 
-Acceptance criteria:
-- Stories, styles, numbering, sections, headers/footers, comments, tracked changes, tables, drawings, and equations are parsed into IR.
-- Word page/continuous views render main content and common layout structures.
-- Editor supports text/style/table/image/comment/revision-aware document mutations.
-- Serializer writes back valid OOXML and preserves unknown content where untouched.
+### OPC / package layer
+- Read ZIP central directory and enforce safety budgets.
+- Parse content types and relationship parts.
+- Resolve root office document and traverse package graph.
+- Preserve unknown parts and orphan parts with diagnostics.
 
-### US-003 Spreadsheet support
-As a product team, I want to parse, render, edit, and save `.xlsx` workbooks so that users can inspect and edit sheets in a web grid UI.
+### Shared XML + IR layer
+- Source-preserving XML token tape + semantic AST.
+- Namespace registry with strict/transitional handling.
+- Markup compatibility preservation and active-branch projection.
+- Shared OOXML IR for text/table/drawing/style/theme/annotation/asset primitives.
 
-Acceptance criteria:
-- Workbook/sheet/sharedStrings/styles/theme/formula metadata are parsed.
-- Virtualized sheet renderer supports cells, merged regions, formatting, frozen panes, and drawings/charts overlays.
-- Editor supports cell/range/sheet mutations, style changes, formulas, and sheet management.
-- Serializer updates shared strings, worksheets, workbook relationships, and styles deterministically.
+### Format-specific requirements
 
-### US-004 Presentation support
-As a product team, I want to parse, render, edit, and save `.pptx` decks so that users can work with slides, notes, and assets in-browser.
+#### DOCX
+- Parse stories, styles, numbering, sections, headers/footers, comments, footnotes/endnotes, equations, tracked changes, and drawings.
+- Render paginated or continuous document view.
+- Support text/style/list/table/comment/revision-aware editing.
+- Serialize while preserving story boundaries and revisions.
 
-Acceptance criteria:
-- Presentation/slide/master/layout/theme/notes/comments/timing metadata are parsed.
-- Slide renderer preserves master/layout inheritance and basic layered scene composition.
-- Editor supports text and shape mutations, slide operations, notes/comments, and asset replacement.
-- Serializer retains unsupported timing/media metadata when unchanged.
+#### XLSX
+- Parse workbook, worksheets, shared strings, styles, names, formulas, merges, validations, tables, comments, drawings, and charts.
+- Render virtualized grid with frozen panes and overlays.
+- Support cell, row/column, sheet, style, formula, and table edits.
+- Serialize shared strings/styles/relationships incrementally.
 
-### US-005 Tooling and verification
-As a maintainer, I want fixtures, examples, playground, benchmarks, and diagnostics so that the library remains verifiable and shippable.
+#### PPTX
+- Parse presentations, slides, masters, layouts, themes, notes, comments, text shapes, graphic frames, media, and timing metadata.
+- Render slide, notes, and thumbnail/sorter projections.
+- Support text, shape, ordering, slide, notes, and asset edits.
+- Serialize while preserving master/layout relationships and timing metadata.
 
-Acceptance criteria:
-- Fixture corpus exists for package, docx, xlsx, pptx, interop, security, and perf scenarios.
-- Examples and a playground demonstrate open/render/edit/save flows.
-- Benchmark harness captures parse/render/edit/save timing.
-- Tests and diagnostics gate releases.
+## Shared subsystem requirements
 
-## Product requirements
+- Theme, color, and font resolution.
+- Style resolution across document families.
+- Table abstractions.
+- Drawing/scene graph and asset registry.
+- Metadata, hyperlink, embedded object preservation.
+- Annotation/comment/note systems.
+- Equation preservation + editable projection.
 
-### Functional requirements
-- Shared OPC package parser and writer
-- Source-preserving XML layer
-- Normalized OOXML IR
-- Format-specific parse/render/edit/serialize packages
-- Worker offloading protocol
-- Devtools inspection surfaces
-- Browser examples/playground
+## Public product surfaces
 
-### Compatibility requirements
-- Read strict and transitional OOXML.
-- Preserve unsupported parts and unknown markup.
-- Reopen generated files via this library parser.
-- Track interoperability across Office and LibreOffice corpora.
+- Package open/inspect APIs.
+- Parse/render/edit/serialize APIs.
+- Worker APIs.
+- React adapter.
+- Playground with package inspector and render/edit panes.
+- Bench harness and fixture tooling.
+- Docs site and examples.
 
-### Performance requirements
-- Lazy part parsing
-- Worker-ready heavy operations
-- Virtualized spreadsheet and long-document rendering
-- Configurable memory/security limits
+## Constraints
 
-### Security requirements
-- Zip bomb and malformed XML protection
-- No automatic external resource loading
-- Safe policy for macros, OLE, ActiveX, and unsupported binary payloads
-
-## Product architecture summary
-- monorepo packages under `packages/`
-- fixtures under `fixtures/`
-- tests under `tests/`
-- examples under `examples/`
-- interactive playground under `playground/`
-- benchmark harness under `benchmarks/`
+- Browser-first architecture.
+- Round-trip-friendly model shared across parser/renderer/editor/serializer.
+- Add new dependencies only when necessary and documented.
+- Commit after every meaningful implementation stage with Lore protocol.
+- Verification must include tests, build, diagnostics, and format flow evidence.
 
 ## Release criteria
-- Build, tests, typecheck, lint, diagnostics pass
-- Corpus-backed parse/render/edit/serialize flows validated
-- Examples/playground verified
-- Documentation updated to match delivered APIs
 
-## Definition of done
-- Shared ingestion, IR, render, edit, and serialize flows exist for docx/xlsx/pptx
-- Example applications and playground demonstrate complete flows
-- Benchmarks and fixture matrix exist and run
-- Verification evidence is fresh and recorded before final completion
+A release-ready 1.0 baseline requires:
+- working monorepo build/test/docs/examples/playground/bench infra
+- core parse/render/edit/save support for representative docx/xlsx/pptx fixtures
+- corpus-backed round-trip tests and diagnostics
+- public package APIs with examples and compatibility notes

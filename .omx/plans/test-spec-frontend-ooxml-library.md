@@ -1,131 +1,134 @@
 # Test Specification: Frontend OOXML Library
 
-## Strategy summary
-The test plan covers unit, integration, browser e2e, golden, round-trip, interoperability, security, and performance verification. Every implemented subsystem must map to at least one fixture-backed assertion path.
+## Verification principles
+
+1. Every format capability lands with fixture-backed tests.
+2. Round-trip and interoperability evidence matters as much as unit coverage.
+3. Browser behavior is verified through automated UI tests for representative flows.
+4. Performance budgets are tracked continuously for representative corpora.
+5. Diagnostics and degraded-mode behavior are testable outputs.
 
 ## Test layers
 
 ### 1. Unit tests
-Scope:
-- `@ooxml/core`: ids, diagnostics, errors, range helpers
-- `@ooxml/opc`: content types, relationships, path resolution, security guards
-- `@ooxml/xml`: tokenizer, namespace registry, source-preserving writeback, markup compatibility retention
-- `@ooxml/ir`: node creation, normalization helpers, id mapping
-- per-format parse/serialize helpers
-- transaction primitives, undo/redo reducers, worker message codecs
 
-Pass criteria:
-- deterministic output for representative fixtures
-- 0 failed unit suites
+#### OPC / XML core
+- ZIP entry validation, safety budget enforcement, path normalization
+- content type and relationship resolution
+- XML tokenization, namespace resolution, writer round-trips
+- markup compatibility branch preservation
+
+#### Shared subsystem core
+- theme/color transforms
+- style inheritance
+- numbering resolution
+- asset registry operations
+- annotation indexing
+- serializer patch planner
+- transaction and undo/redo primitives
+
+#### Format units
+- DOCX paragraph/run/table/section/comment/revision parsers
+- XLSX workbook/sheet/cell/style/shared-string/formula/reference parsers
+- PPTX slide/master/layout/text/shape/comment/notes parsers
 
 ### 2. Integration tests
-Scope:
-- open package -> parse document -> serialize -> reopen
-- docx story/style/numbering/section/comment/header-footer/tracked-change flows
-- xlsx workbook/worksheet/sharedString/style/formula/sheet-op flows
-- pptx slide/master/layout/notes/comment/shape flows
-- shared subsystems: theme, styles, assets, charts, annotations
 
-Pass criteria:
-- parse/serialize loops reopen without fatal diagnostics
-- invariant assertions on content, relationships, and preserved unknown nodes pass
+#### Parse -> IR -> Serialize
+- no-op round trips for docx/xlsx/pptx fixtures
+- minimal edits on representative documents
+- unknown markup and dormant `mc:AlternateContent` branch preservation
+- strict/transitional document retention
 
-### 3. Browser e2e tests
-Scope:
-- paginated document viewer/editor example
-- spreadsheet grid example
-- slide viewer/editor example
-- playground upload/inspect/edit/save workflow
+#### Render model integration
+- DOCX layout model creation for sections, lists, tables, comments, drawings
+- XLSX grid view model with merges/frozen panes/styles/formulas
+- PPTX slide scene graph with master/layout/theme inheritance
 
-Pass criteria:
-- user-visible open/edit/save flows complete in browser automation
-- core keyboard navigation and accessibility smoke tests pass
+#### Editor integration
+- transaction application invalidates only affected regions
+- undo/redo restores prior document state and serializer output
+- copy/paste maintains semantic structure where format supports it
 
-### 4. Golden and visual fidelity tests
-Scope:
-- document page screenshots
-- spreadsheet grid screenshots
-- slide screenshots
+### 3. Browser E2E tests
+
+#### DOCX
+- open fixture in page view
+- edit text and paragraph style
+- insert table/comment
+- save and reopen
+
+#### XLSX
+- open sheet
+- edit cells/formulas/styles
+- merge/unmerge and reorder sheets
+- save and reopen
+
+#### PPTX
+- open slide deck
+- edit text, move shape, duplicate slide
+- edit notes
+- save and reopen
+
+### 4. Golden / fidelity tests
+
 - package graph snapshots
-- semantic IR snapshots
-- serializer part snapshots and diff reports
+- IR snapshots
+- serialized part snapshots (normalized)
+- visual snapshots for selected docx pages, worksheet regions, and slides
+- diff tolerances documented per fixture
 
-Pass criteria:
-- diffs within approved thresholds
-- intentional diffs reviewed and updated with fixture manifests
+### 5. Performance / observability tests
 
-### 5. Round-trip preservation tests
-Scope:
-- no-op save
-- targeted edit save
-- unknown markup preservation
-- unknown relationship preservation
-- alternate content preservation
-- strict/transitional preservation
-
-Pass criteria:
-- unchanged constructs remain byte-equivalent where feasible or semantically equivalent with stable diffs
-- reopened documents preserve intended structure and content
-
-### 6. Interoperability tests
-Scope:
-- Office-authored corpus
-- LibreOffice-authored corpus
-- mixed-export corpus where applicable
-
-Pass criteria:
-- open success rate and allowed warning budget tracked per format
-- serializer outputs remain reopenable by this library and fixture validators
-
-### 7. Security tests
-Scope:
-- path traversal ZIP entries
-- oversized/zip bomb packages
-- malformed `.rels`
-- malformed XML / namespace abuse / depth abuse
-- macros/unsupported embedded objects preserved but never executed
-
-Pass criteria:
-- unsafe files fail closed with structured diagnostics
-- safe degraded mode behavior remains deterministic
-
-### 8. Performance tests
-Scope:
-- open package time
-- parse time per format and per part size bucket
-- render first meaningful paint
+- parse/open latency by corpus fixture
+- first view model paint latency
 - edit latency for representative operations
-- serialize latency
-- memory ceiling under stress fixtures
+- memory high-water marks
+- serialization time and output size
+- worker task timing and cancellation behavior
 
-Pass criteria:
-- baseline budgets recorded and enforced in benchmark runs
-- regressions reported with budget deltas
+## Corpus strategy
 
-## Fixture layout
-- `fixtures/opc/`
-- `fixtures/docx/`
-- `fixtures/xlsx/`
-- `fixtures/pptx/`
-- `fixtures/interop/`
-- `fixtures/security/`
-- `fixtures/perf/`
+### Corpus families
+- `fixtures/opc`: packaging edge cases
+- `fixtures/docx`: text, styles, numbering, sections, headers, comments, revisions, drawings, equations
+- `fixtures/xlsx`: shared strings, styles, formulas, merges, tables, comments, drawings, charts
+- `fixtures/pptx`: masters, layouts, notes, comments, media, charts, timing metadata
+- `fixtures/interop`: Office + LibreOffice + alternate producer samples
+- `fixtures/security`: malformed zips/XML/relationships/external targets
+- `fixtures/perf`: large docs/sheets/decks
 
-Each fixture must contain:
-- source document or generated package assets
-- `manifest.json` with expectations, supported warnings, provenance, and tags
-- optional golden images or serialized diff files
+### Fixture manifest fields
+- id
+- source application/version
+- feature tags
+- expected diagnostics
+- supported operations
+- reopen expectations
+- visual baseline references
 
-## Observability requirements
-- parser diagnostics snapshots
-- serializer diff summaries
-- benchmark JSON output
-- optional render trace artifacts
-- worker timing instrumentation
+## Interoperability matrix
 
-## Exit gates per implementation stage
-1. Scaffolding/core: lint + typecheck + unit tests + diagnostics clean
-2. Parser stage: parser units + integration open/reopen + fixture manifests
-3. Renderer stage: browser tests + golden baselines + basic perf metrics
-4. Editor stage: mutation/undo-redo/serialize/reopen tests
-5. Finalization: full matrix including examples/playground + perf + docs parity check
+Track each representative fixture against:
+- parse status
+- render status
+- edit status
+- serialize status
+- reopen in Office
+- reopen in LibreOffice
+- tolerated differences
+
+## Definition of done for a feature slice
+
+- unit coverage for new parser/editor/serializer logic
+- at least one integration round-trip test
+- relevant browser E2E coverage or justified temporary gap with follow-up ticketed in plan
+- docs/example updated
+- perf impact checked against representative fixture
+
+## Tooling expectations
+
+- Vitest for unit/integration
+- Playwright for browser E2E and visual capture
+- benchmark harness for perf corpus
+- lint/typecheck/build as mandatory gates
