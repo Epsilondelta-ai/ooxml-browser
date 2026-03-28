@@ -1,0 +1,12 @@
+{
+  "id": "xlsx-structured",
+  "sourceApplication": "repo-generated",
+  "format": "xlsx",
+  "featureTags": ["defined-names", "merged-cells", "frozen-panes", "formula-references"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "worksheet structure render"],
+  "reopenExpectations": {"parser": true, "office": "stage-3-attestation-pending", "libreoffice": "stage-3-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

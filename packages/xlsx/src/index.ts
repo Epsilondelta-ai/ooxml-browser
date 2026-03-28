@@ -1,10 +1,12 @@
 export type {
   WorkbookSheet,
   WorksheetCell,
+  WorksheetRow,
   XlsxCellFormat,
+  XlsxDefinedName,
+  XlsxFrozenPane,
   XlsxNumberFormat,
   XlsxStyleTable,
-  WorksheetRow,
   XlsxWorkbook
 } from './model';
-export { formatXlsxCellValue, parseXlsx, resolveXlsxCellFormat } from './parser';
+export { extractFormulaReferences, formatXlsxCellValue, parseXlsx, resolveDefinedName, resolveXlsxCellFormat } from './parser';

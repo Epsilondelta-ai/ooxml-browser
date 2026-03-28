@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxNumberFormat, XlsxStyleTable, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxStyleTable, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -28,7 +28,8 @@ export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
     packageGraph: graph,
     sheets,
     sharedStrings,
-    styles: parseStyles(graph, workbookUri)
+    styles: parseStyles(graph, workbookUri),
+    definedNames: parseDefinedNames(workbook as Record<string, unknown>)
   };
 }
 
@@ -67,10 +68,17 @@ function parseSheet(graph: PackageGraph, uri: string, name: string): WorkbookShe
     cells: xmlChildren<Record<string, unknown>>(row, 'c').map((cell) => parseCell(cell, graph))
   }));
 
+  const mergeCells = xmlChild<Record<string, unknown>>(worksheet, 'mergeCells');
+  const mergedRanges = xmlChildren<Record<string, unknown>>(mergeCells, 'mergeCell').map((mergeCell) => xmlAttr(mergeCell, 'ref') ?? '').filter(Boolean);
+
+  const frozenPane = parseFrozenPane(xmlChild<Record<string, unknown>>(worksheet, 'sheetViews'));
+
   return {
     name,
     uri,
-    rows
+    rows,
+    mergedRanges,
+    frozenPane
   };
 }
 
@@ -168,4 +176,40 @@ export function formatXlsxCellValue(workbook: XlsxWorkbook, cell: WorksheetCell)
   }
 
   return cell.value;
+}
+
+function parseDefinedNames(workbook: Record<string, unknown>): XlsxDefinedName[] {
+  const definedNamesRoot = xmlChild<Record<string, unknown>>(workbook, 'definedNames');
+  return xmlChildren<Record<string, unknown>>(definedNamesRoot, 'definedName').map((definedName) => ({
+    name: xmlAttr(definedName, 'name') ?? '',
+    reference: xmlText(definedName),
+    scopeSheetId: (() => {
+      const localSheetId = xmlAttr(definedName, 'localSheetId');
+      return localSheetId ? Number(localSheetId) : undefined;
+    })()
+  }));
+}
+
+function parseFrozenPane(sheetViews: Record<string, unknown> | undefined): XlsxFrozenPane | undefined {
+  const sheetView = xmlChild<Record<string, unknown>>(sheetViews, 'sheetView');
+  const pane = xmlChild<Record<string, unknown>>(sheetView, 'pane');
+  if (!pane) {
+    return undefined;
+  }
+
+  return {
+    xSplit: (() => { const value = xmlAttr(pane, 'xSplit'); return value ? Number(value) : undefined; })(),
+    ySplit: (() => { const value = xmlAttr(pane, 'ySplit'); return value ? Number(value) : undefined; })(),
+    topLeftCell: xmlAttr(pane, 'topLeftCell'),
+    state: xmlAttr(pane, 'state')
+  };
+}
+
+export function extractFormulaReferences(formula: string): string[] {
+  const matches = formula.match(/\$?[A-Z]{1,3}\$?\d+(?::\$?[A-Z]{1,3}\$?\d+)?/g) ?? [];
+  return Array.from(new Set(matches));
+}
+
+export function resolveDefinedName(workbook: XlsxWorkbook, name: string): XlsxDefinedName | undefined {
+  return workbook.definedNames.find((definedName) => definedName.name === name);
 }

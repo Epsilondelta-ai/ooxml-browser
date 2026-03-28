@@ -1,9 +1,24 @@
 import type { PackageGraph } from '@ooxml/core';
 
+export interface XlsxFrozenPane {
+  xSplit?: number;
+  ySplit?: number;
+  topLeftCell?: string;
+  state?: string;
+}
+
+export interface XlsxDefinedName {
+  name: string;
+  reference: string;
+  scopeSheetId?: number;
+}
+
 export interface WorkbookSheet {
   name: string;
   uri: string;
   rows: WorksheetRow[];
+  mergedRanges: string[];
+  frozenPane?: XlsxFrozenPane;
 }
 
 export interface WorksheetRow {
@@ -41,4 +56,5 @@ export interface XlsxWorkbook {
   sheets: WorkbookSheet[];
   sharedStrings: string[];
   styles: XlsxStyleTable;
+  definedNames: XlsxDefinedName[];
 }
