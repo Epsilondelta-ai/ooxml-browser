@@ -360,11 +360,15 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const dataLabelPositionNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'dLblPos')[0] : undefined;
     const showValueNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showVal')[0] : undefined;
     const showCategoryNameNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showCatName')[0] : undefined;
-    const seriesNames = chartRoot
+    const series = chartRoot
       ? findElementsByLocalName(chartRoot, 'ser').map((seriesNode) => {
         const textNode = findElementsByLocalName(seriesNode, 'tx')[0];
-        return textNode ? findElementsByLocalName(textNode, 't').map((node) => xmlText(node)).join('') : '';
-      }).filter(Boolean)
+        const invertIfNegativeNode = findElementsByLocalName(seriesNode, 'invertIfNegative')[0];
+        return {
+          name: textNode ? findElementsByLocalName(textNode, 't').map((node) => xmlText(node)).join('') : '',
+          invertIfNegative: xmlAttr(invertIfNegativeNode, 'val') === '1' ? true : xmlAttr(invertIfNegativeNode, 'val') === '0' ? false : undefined
+        };
+      }).filter((seriesEntry) => Boolean(seriesEntry.name))
       : [];
     return [{
       relationshipId,
@@ -386,7 +390,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
         showValue: xmlAttr(showValueNode, 'val') === '1' ? true : xmlAttr(showValueNode, 'val') === '0' ? false : undefined,
         showCategoryName: xmlAttr(showCategoryNameNode, 'val') === '1' ? true : xmlAttr(showCategoryNameNode, 'val') === '0' ? false : undefined
       } : undefined,
-      seriesNames
+      series,
+      seriesNames: series.map((seriesEntry) => seriesEntry.name)
     }];
   });
 }

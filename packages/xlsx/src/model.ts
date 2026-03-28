@@ -67,6 +67,11 @@ export interface XlsxChartDataLabels {
   showCategoryName?: boolean;
 }
 
+export interface XlsxChartSeries {
+  name: string;
+  invertIfNegative?: boolean;
+}
+
 export interface XlsxChart {
   relationshipId: string;
   drawingUri: string;
@@ -83,6 +88,7 @@ export interface XlsxChart {
   valueAxisTitle?: string;
   valueAxisPosition?: string;
   dataLabels?: XlsxChartDataLabels;
+  series: XlsxChartSeries[];
   seriesNames: string[];
 }
 

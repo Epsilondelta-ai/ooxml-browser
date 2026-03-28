@@ -46,6 +46,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Chart axis positions | `setWorksheetChartCategoryAxisPosition`, `setWorksheetChartValueAxisPosition` | Persisted | Preserves axis-position metadata inside the chart part while keeping chart relationships stable. |
 | Chart data labels | `setWorksheetChartDataLabels` | Persisted | Preserves chart-part data-label metadata such as label position and visibility flags. |
 | Chart vary-colors / gap width | `setWorksheetChartVaryColors`, `setWorksheetChartGapWidth` | Persisted | Preserves chart-part series-color and bar/line spacing metadata. |
+| Chart per-series invert-if-negative | `setWorksheetChartSeriesInvertIfNegative` | Persisted | Preserves per-series negative-value display metadata inside chart parts. |
 | Image target URI | `setWorksheetMediaTarget` | Persisted | Retargets drawing image relationships without rewriting worksheet markup. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |

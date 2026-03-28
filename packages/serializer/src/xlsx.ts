@@ -150,7 +150,7 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.valueAxisTitle !== originalChart?.valueAxisTitle
       || chart.valueAxisPosition !== originalChart?.valueAxisPosition
       || JSON.stringify(chart.dataLabels ?? null) !== JSON.stringify(originalChart?.dataLabels ?? null)
-      || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])
+      || JSON.stringify(chart.series) !== JSON.stringify(originalChart?.series ?? [])
     ) {
       const existingSource = chart.chartType === originalChart?.chartType ? graph.parts[chart.targetUri]?.text : undefined;
       updatePackagePartText(
@@ -578,22 +578,31 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newValue: chart.dataLabels.showCategoryName ? '1' : '0'
         });
       }
-      for (const [seriesIndex, seriesName] of chart.seriesNames.entries()) {
+      for (const [seriesIndex, series] of chart.series.entries()) {
         operations.push({
           op: 'replaceText',
-        containerTag: 'c:ser',
-        occurrence: seriesIndex,
-        textTag: 'a:t',
-        newText: seriesName
-      });
-    }
+          containerTag: 'c:ser',
+          occurrence: seriesIndex,
+          textTag: 'a:t',
+          newText: series.name
+        });
+        if (series.invertIfNegative !== undefined) {
+          operations.push({
+            op: 'replaceAttribute',
+            tagName: 'c:invertIfNegative',
+            targetAttr: 'val',
+            newValue: series.invertIfNegative ? '1' : '0',
+            occurrence: seriesIndex
+          });
+        }
+      }
     if (operations.length > 0) {
       return applyXmlPatchPlan(existingSource, operations);
     }
   }
 
   const chartType = chart.chartType ?? 'barChart';
-  const seriesXml = chart.seriesNames.map((seriesName, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesName)}</a:t></c:rich></c:tx></c:ser>`).join('');
+  const seriesXml = chart.series.map((seriesEntry, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesEntry.name)}</a:t></c:rich></c:tx>${seriesEntry.invertIfNegative !== undefined ? `<c:invertIfNegative val="${seriesEntry.invertIfNegative ? '1' : '0'}"/>` : ''}</c:ser>`).join('');
   const varyColorsXml = chart.varyColors !== undefined ? `<c:varyColors val="${chart.varyColors ? '1' : '0'}"/>` : '';
   const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
   const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';

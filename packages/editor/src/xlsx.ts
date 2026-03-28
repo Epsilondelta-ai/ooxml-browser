@@ -499,8 +499,9 @@ export function setWorksheetChartSeriesName(editor: OfficeEditor<XlsxWorkbook>, 
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
     const chart = sheet?.charts[chartIndex];
-    if (chart?.seriesNames[seriesIndex] !== undefined) {
-      chart.seriesNames[seriesIndex] = name;
+    if (chart?.series[seriesIndex]) {
+      chart.series[seriesIndex].name = name;
+      chart.seriesNames = chart.series.map((seriesEntry) => seriesEntry.name);
     }
   });
 }
@@ -591,6 +592,17 @@ export function setWorksheetChartGapWidth(editor: OfficeEditor<XlsxWorkbook>, sh
     const chart = sheet?.charts[chartIndex];
     if (chart) {
       chart.gapWidth = gapWidth;
+    }
+  });
+}
+
+export function setWorksheetChartSeriesInvertIfNegative(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, seriesIndex: number, invertIfNegative: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    const series = chart?.series[seriesIndex];
+    if (series) {
+      series.invertIfNegative = invertIfNegative;
     }
   });
 }
