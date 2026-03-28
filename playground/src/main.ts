@@ -30,6 +30,7 @@ import {
   setWorksheetChartGapWidth,
   setWorksheetChartGrouping,
   setWorksheetChartHoleSize,
+  setWorksheetChartLegendOverlay,
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartOverlap,
@@ -44,6 +45,7 @@ import {
   setWorksheetChartSmooth,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
+  setWorksheetChartBarDirection,
   setWorksheetChartType,
   setWorksheetChartValueAxisPosition,
   setWorksheetChartValueAxisTitle,
@@ -252,6 +254,7 @@ function renderEditorControls(): void {
       const topMargin = firstSheet?.pageMargins?.top ?? '';
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
+      const firstChartBarDirection = firstSheet?.charts[0]?.barDirection ?? '';
       const firstChartScatterStyle = firstSheet?.charts[0]?.scatterStyle ?? '';
       const firstChartBubbleScale = firstSheet?.charts[0]?.bubbleScale ?? '';
       const firstChartShowNegativeBubbles = firstSheet?.charts[0]?.showNegativeBubbles;
@@ -268,6 +271,7 @@ function renderEditorControls(): void {
       const firstChartFirstSlice = firstSheet?.charts[0]?.firstSliceAngle ?? '';
       const firstChartHoleSize = firstSheet?.charts[0]?.holeSize ?? '';
       const firstChartLegend = firstSheet?.charts[0]?.legendPosition ?? '';
+      const firstChartLegendOverlay = firstSheet?.charts[0]?.legendOverlay;
       const firstChartCategoryAxisTitle = firstSheet?.charts[0]?.categoryAxisTitle ?? '';
       const firstChartCategoryAxisPosition = firstSheet?.charts[0]?.categoryAxisPosition ?? '';
       const firstChartValueAxisTitle = firstSheet?.charts[0]?.valueAxisTitle ?? '';
@@ -333,6 +337,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-type-input" value="${escapeHtml(firstChartType)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Bar direction</div>
+          <input id="xlsx-chart-bar-direction-input" value="${escapeHtml(firstChartBarDirection)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Scatter style</div>
           <input id="xlsx-chart-scatter-style-input" value="${escapeHtml(firstChartScatterStyle)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -395,6 +403,10 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart legend</div>
           <input id="xlsx-chart-legend-input" value="${escapeHtml(firstChartLegend)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Legend overlay</div>
+          <input id="xlsx-chart-legend-overlay-input" value="${escapeHtml(firstChartLegendOverlay === undefined ? '' : String(firstChartLegendOverlay))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Category axis title</div>
@@ -484,6 +496,7 @@ function renderEditorControls(): void {
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
+      const chartBarDirectionInput = window.document.getElementById('xlsx-chart-bar-direction-input') as HTMLInputElement;
       const chartScatterStyleInput = window.document.getElementById('xlsx-chart-scatter-style-input') as HTMLInputElement;
       const chartBubbleScaleInput = window.document.getElementById('xlsx-chart-bubble-scale-input') as HTMLInputElement;
       const chartShowNegativeBubblesInput = window.document.getElementById('xlsx-chart-show-negative-bubbles-input') as HTMLInputElement;
@@ -500,6 +513,7 @@ function renderEditorControls(): void {
       const chartFirstSliceInput = window.document.getElementById('xlsx-chart-first-slice-input') as HTMLInputElement;
       const chartHoleSizeInput = window.document.getElementById('xlsx-chart-hole-size-input') as HTMLInputElement;
       const chartLegendInput = window.document.getElementById('xlsx-chart-legend-input') as HTMLInputElement;
+      const chartLegendOverlayInput = window.document.getElementById('xlsx-chart-legend-overlay-input') as HTMLInputElement;
       const chartCategoryAxisInput = window.document.getElementById('xlsx-chart-cat-axis-input') as HTMLInputElement;
       const chartCategoryAxisPositionInput = window.document.getElementById('xlsx-chart-cat-axis-pos-input') as HTMLInputElement;
       const chartValueAxisInput = window.document.getElementById('xlsx-chart-val-axis-input') as HTMLInputElement;
@@ -607,6 +621,14 @@ function renderEditorControls(): void {
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
             0,
             chartTypeInput.value
+          );
+        }
+        if (chartBarDirectionInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartBarDirection(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartBarDirectionInput.value
           );
         }
         if (chartScatterStyleInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
@@ -750,6 +772,14 @@ function renderEditorControls(): void {
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
             0,
             chartLegendInput.value
+          );
+        }
+        if (chartLegendOverlayInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartLegendOverlay(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartLegendOverlayInput.value === 'true'
           );
         }
         if (chartCategoryAxisInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
@@ -904,6 +934,7 @@ function renderEditorControls(): void {
       topMarginInput.addEventListener('input', update);
       chartNameInput.addEventListener('input', update);
       chartTypeInput.addEventListener('input', update);
+      chartBarDirectionInput.addEventListener('input', update);
       chartScatterStyleInput.addEventListener('input', update);
       chartBubbleScaleInput.addEventListener('input', update);
       chartShowNegativeBubblesInput.addEventListener('input', update);
@@ -920,6 +951,7 @@ function renderEditorControls(): void {
       chartFirstSliceInput.addEventListener('input', update);
       chartHoleSizeInput.addEventListener('input', update);
       chartLegendInput.addEventListener('input', update);
+      chartLegendOverlayInput.addEventListener('input', update);
       chartCategoryAxisInput.addEventListener('input', update);
       chartCategoryAxisPositionInput.addEventListener('input', update);
       chartValueAxisInput.addEventListener('input', update);
