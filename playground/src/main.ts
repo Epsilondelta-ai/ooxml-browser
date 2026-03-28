@@ -8,8 +8,10 @@ import {
   setPresentationSlideLayout,
   setPresentationTransition,
   setWorkbookCellFormula,
+  setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  upsertWorksheetComment,
   type EditableOfficeDocument,
   type OfficeEditor
 } from '@ooxml/editor';
@@ -168,11 +170,17 @@ function renderEditorControls(): void {
     case 'xlsx': {
       const firstSheet = officeDocument.sheets[0];
       const firstCell = firstSheet?.rows[0]?.cells[0]?.value ?? '';
+      const firstCellStyle = firstSheet?.rows[0]?.cells[0]?.styleIndex ?? '';
       const firstFormulaCell = firstSheet?.rows.flatMap((row) => row.cells).find((cell) => cell.formula);
+      const commentB2 = firstSheet?.comments.find((comment) => comment.reference === 'B2');
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1</div>
           <input id="xlsx-input" value="${escapeHtml(firstCell)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1 style index</div>
+          <input id="xlsx-style-input" value="${escapeHtml(String(firstCellStyle))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First sheet name</div>
@@ -182,10 +190,16 @@ function renderEditorControls(): void {
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">${escapeHtml(firstFormulaCell.reference)} formula</div>
           <input id="xlsx-formula-input" value="${escapeHtml(firstFormulaCell.formula ?? '')}" style="width: 100%; padding: 8px;" />
         </label>` : ''}
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!B2 comment</div>
+          <input id="xlsx-comment-input" value="${escapeHtml(commentB2?.text ?? '')}" style="width: 100%; padding: 8px;" />
+        </label>
       `;
       const input = window.document.getElementById('xlsx-input') as HTMLInputElement;
+      const styleInput = window.document.getElementById('xlsx-style-input') as HTMLInputElement;
       const sheetInput = window.document.getElementById('xlsx-sheet-input') as HTMLInputElement;
       const formulaInput = firstFormulaCell ? window.document.getElementById('xlsx-formula-input') as HTMLInputElement : null;
+      const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'xlsx') {
           return;
@@ -193,6 +207,12 @@ function renderEditorControls(): void {
         const workbookEditor = currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'xlsx' }>>;
         const currentSheetName = workbookEditor.document.sheets[0]?.name ?? 'Sheet1';
         setWorkbookCellValue(workbookEditor, currentSheetName, 'A1', input.value);
+        if (styleInput.value !== '') {
+          const styleIndex = Number(styleInput.value);
+          if (!Number.isNaN(styleIndex)) {
+            setWorkbookCellStyle(workbookEditor, currentSheetName, 'A1', styleIndex);
+          }
+        }
         if (sheetInput.value && sheetInput.value !== currentSheetName) {
           setWorkbookSheetName(workbookEditor, currentSheetName, sheetInput.value);
         }
@@ -206,11 +226,22 @@ function renderEditorControls(): void {
             firstFormulaCell.value
           );
         }
+        if (commentInput.value) {
+          upsertWorksheetComment(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            'B2',
+            commentInput.value,
+            'Playground'
+          );
+        }
         renderPreview();
       };
       input.addEventListener('input', update);
+      styleInput.addEventListener('input', update);
       sheetInput.addEventListener('input', update);
       formulaInput?.addEventListener('input', update);
+      commentInput.addEventListener('input', update);
       break;
     }
     case 'pptx': {

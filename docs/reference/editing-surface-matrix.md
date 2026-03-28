@@ -31,6 +31,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
+| Comment create/update | `upsertWorksheetComment` | Persisted | Creates a comments part and worksheet relationship on demand when missing. |
 | Table name | `setWorksheetTableName` | Persisted | Table-part serializer keeps `name`/`displayName` aligned. |
 | Table range | `setWorksheetTableRange` | Persisted | Table-part patch updates `ref`. |
 | Frozen pane | `setWorksheetFrozenPane` | Persisted | Worksheet patch path updates pane attributes. |
@@ -49,6 +50,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Notes text | `setPresentationNotesText` | Persisted | Creates a notes part on demand when missing, otherwise patches the existing notes part. |
 | Comment text | `setPresentationCommentText` | Persisted | Comment-part patch path. |
 | Comment author | `setPresentationCommentAuthor` | Persisted | Occurrence-aware attribute patch path. |
+| Comment create/update | `addPresentationComment` | Persisted | Creates a comments part and slide relationship on demand when missing. |
 | Transition | `setPresentationTransition` | Persisted | Slide metadata rebuild path. |
 | Timing nodes | `setPresentationTimingNodes` | Persisted | Parser reads `p:cTn` preset metadata. |
 | Presentation size | `setPresentationSize` | Persisted | Serializer patches `p:sldSz` in `presentation.xml`. |
