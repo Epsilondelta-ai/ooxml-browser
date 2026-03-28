@@ -222,7 +222,7 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
   }
 
   const nodes: PresentationTimingNode[] = [];
-  for (const nodeType of ['p:par', 'p:seq', 'p:anim']) {
+  for (const nodeType of ['p:par', 'p:seq', 'p:anim', 'p:animClr', 'p:animMotion']) {
     for (const node of findElementsByLocalName(timingNode, nodeType.split(':')[1])) {
       const commonTiming = xmlChild<Record<string, unknown>>(node, 'p:cTn');
       const startConditionList = xmlChild<Record<string, unknown>>(node, 'p:stCondLst');
