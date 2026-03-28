@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
@@ -55,6 +55,15 @@ describe('editor transactions', () => {
 
     expect(editor.document.sections[0]?.pageSize).toEqual({ width: 12240, height: 15840 });
     expect(editor.document.sections[0]?.pageMargins).toEqual({ top: 720, right: 960, bottom: 720, left: 960 });
+  });
+
+  it('updates docx header/footer reference types through editor helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    setDocxSectionReferenceType(editor, 0, 'header', 0, 'first');
+    setDocxSectionReferenceType(editor, 0, 'footer', 0, 'even');
+
+    expect(editor.document.sections[0]?.headerReferences[0]?.type).toBe('first');
+    expect(editor.document.sections[0]?.footerReferences[0]?.type).toBe('even');
   });
 
   it('updates docx paragraph style and numbering through editor helpers', async () => {
@@ -111,6 +120,16 @@ describe('serializer round-trips', () => {
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.sections[0]?.pageSize).toEqual({ width: 12240, height: 15840 });
     expect(reopened.sections[0]?.pageMargins).toEqual({ top: 720, right: 960, bottom: 720, left: 960 });
+  });
+
+  it('round-trips edited docx header/footer reference types', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    setDocxSectionReferenceType(editor, 0, 'header', 0, 'first');
+    setDocxSectionReferenceType(editor, 0, 'footer', 0, 'even');
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.sections[0]?.headerReferences[0]?.type).toBe('first');
+    expect(reopened.sections[0]?.footerReferences[0]?.type).toBe('even');
   });
 
   it('round-trips edited docx paragraph style and numbering metadata', async () => {

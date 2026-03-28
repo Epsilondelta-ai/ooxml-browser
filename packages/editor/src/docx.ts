@@ -136,3 +136,19 @@ export function setDocxSectionLayout(editor: OfficeEditor<DocxDocument>, section
     }
   });
 }
+
+export function setDocxSectionReferenceType(
+  editor: OfficeEditor<DocxDocument>,
+  sectionIndex: number,
+  referenceKind: 'header' | 'footer',
+  referenceIndex: number,
+  type: 'default' | 'first' | 'even'
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const section = draft.sections[sectionIndex];
+    const reference = (referenceKind === 'header' ? section?.headerReferences : section?.footerReferences)?.[referenceIndex];
+    if (reference) {
+      reference.type = type;
+    }
+  });
+}
