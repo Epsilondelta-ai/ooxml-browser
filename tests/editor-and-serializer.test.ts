@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceTarget, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, setDocxRevisionMetadata, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceTarget, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
 
-import { createDocxFixture, createNumberedDocxFixture, createPptxFixture, createSectionedDocxFixture, createStyledDocxFixture, createXlsxFixture } from './fixture-builders';
+import { createDocxFixture, createNumberedDocxFixture, createPptxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('editor transactions', () => {
   it('updates docx paragraphs and supports undo/redo', async () => {
@@ -93,6 +93,22 @@ describe('editor transactions', () => {
     expect(editor.document.stories[0]?.paragraphs[0]?.runs[0]).toMatchObject({ text: 'Styled heading', bold: true, italic: false });
   });
 
+  it('updates docx revision metadata through editor helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createRevisionsDocxFixture())));
+    setDocxRevisionMetadata(editor, 'document', 0, 0, 0, {
+      author: 'Reviewer',
+      date: '2026-03-29T00:00:00Z',
+      text: 'Inserted revision'
+    });
+
+    expect(editor.document.stories[0]?.paragraphs[0]?.revisions[0]).toMatchObject({
+      kind: 'insertion',
+      author: 'Reviewer',
+      date: '2026-03-29T00:00:00Z',
+      text: 'Inserted revision'
+    });
+  });
+
   it('updates docx table cells through story-aware helpers', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
     setDocxTableCellText(editor, 'document', 0, 0, 0, 1, 'Edited cell');
@@ -170,6 +186,23 @@ describe('serializer round-trips', () => {
 
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.stories[0]?.paragraphs[0]?.runs[0]).toMatchObject({ text: 'Styled heading', bold: true, italic: false });
+  });
+
+  it('round-trips edited docx revision metadata', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createRevisionsDocxFixture())));
+    setDocxRevisionMetadata(editor, 'document', 0, 0, 0, {
+      author: 'Reviewer',
+      date: '2026-03-29T00:00:00Z',
+      text: 'Inserted revision'
+    });
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.stories[0]?.paragraphs[0]?.revisions[0]).toMatchObject({
+      kind: 'insertion',
+      author: 'Reviewer',
+      date: '2026-03-29T00:00:00Z',
+      text: 'Inserted revision'
+    });
   });
 
   it('round-trips edited docx table cell content', async () => {

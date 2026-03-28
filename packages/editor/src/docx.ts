@@ -85,6 +85,41 @@ export function setDocxParagraphRunStyle(
   });
 }
 
+export function setDocxRevisionMetadata(
+  editor: OfficeEditor<DocxDocument>,
+  storyKind: 'document' | 'header' | 'footer',
+  storyOccurrence: number,
+  paragraphIndex: number,
+  revisionIndex: number,
+  patch: { author?: string; date?: string; text?: string }
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
+    const paragraph = story?.paragraphs[paragraphIndex];
+    const revision = paragraph?.revisions[revisionIndex];
+    if (!paragraph || !revision) {
+      return;
+    }
+
+    if (patch.author !== undefined) {
+      revision.author = patch.author;
+    }
+    if (patch.date !== undefined) {
+      revision.date = patch.date;
+    }
+    if (patch.text !== undefined) {
+      revision.text = patch.text;
+    }
+
+    if (revision.kind === 'insertion') {
+      paragraph.text = [
+        ...paragraph.runs.map((run) => run.text),
+        ...paragraph.revisions.filter((entry) => entry.kind === 'insertion').map((entry) => entry.text)
+      ].join('');
+    }
+  });
+}
+
 export function setDocxTableCellText(
   editor: OfficeEditor<DocxDocument>,
   storyKind: 'document' | 'header' | 'footer',
