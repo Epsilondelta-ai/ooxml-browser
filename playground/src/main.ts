@@ -36,11 +36,13 @@ import {
   setWorksheetChartName,
   setWorksheetChartOverlap,
   setWorksheetChartPlotVisibleOnly,
+  setWorksheetChartRoundedCorners,
   setWorksheetChartScatterStyle,
   setWorksheetChartSeriesExplosion,
   setWorksheetChartSeriesInvertIfNegative,
   setWorksheetChartSeriesMarker,
   setWorksheetChartSeriesName,
+  setWorksheetChartShowDataLabelsOverMax,
   setWorksheetChartShowNegativeBubbles,
   setWorksheetChartSizeRepresents,
   setWorksheetChartSmooth,
@@ -268,6 +270,8 @@ function renderEditorControls(): void {
       const firstChartSmooth = firstSheet?.charts[0]?.smooth;
       const firstChartPlotVisibleOnly = firstSheet?.charts[0]?.plotVisibleOnly;
       const firstChartDisplayBlanksAs = firstSheet?.charts[0]?.displayBlanksAs ?? '';
+      const firstChartShowDataLabelsOverMax = firstSheet?.charts[0]?.showDataLabelsOverMax;
+      const firstChartRoundedCorners = firstSheet?.charts[0]?.roundedCorners;
       const firstChartGrouping = firstSheet?.charts[0]?.grouping ?? '';
       const firstChartOverlap = firstSheet?.charts[0]?.overlap ?? '';
       const firstChartVaryColors = firstSheet?.charts[0]?.varyColors;
@@ -385,6 +389,14 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Display blanks as</div>
           <input id="xlsx-chart-display-blanks-input" value="${escapeHtml(firstChartDisplayBlanksAs)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show labels over max</div>
+          <input id="xlsx-chart-dlbls-over-max-input" value="${escapeHtml(firstChartShowDataLabelsOverMax === undefined ? '' : String(firstChartShowDataLabelsOverMax))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Rounded corners</div>
+          <input id="xlsx-chart-rounded-corners-input" value="${escapeHtml(firstChartRoundedCorners === undefined ? '' : String(firstChartRoundedCorners))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Chart grouping</div>
@@ -525,6 +537,8 @@ function renderEditorControls(): void {
       const chartSmoothInput = window.document.getElementById('xlsx-chart-smooth-input') as HTMLInputElement;
       const chartPlotVisibleInput = window.document.getElementById('xlsx-chart-plot-visible-input') as HTMLInputElement;
       const chartDisplayBlanksInput = window.document.getElementById('xlsx-chart-display-blanks-input') as HTMLInputElement;
+      const chartDataLabelsOverMaxInput = window.document.getElementById('xlsx-chart-dlbls-over-max-input') as HTMLInputElement;
+      const chartRoundedCornersInput = window.document.getElementById('xlsx-chart-rounded-corners-input') as HTMLInputElement;
       const chartGroupingInput = window.document.getElementById('xlsx-chart-grouping-input') as HTMLInputElement;
       const chartOverlapInput = window.document.getElementById('xlsx-chart-overlap-input') as HTMLInputElement;
       const chartVaryColorsInput = window.document.getElementById('xlsx-chart-vary-colors-input') as HTMLInputElement;
@@ -736,6 +750,22 @@ function renderEditorControls(): void {
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
             0,
             chartDisplayBlanksInput.value
+          );
+        }
+        if (chartDataLabelsOverMaxInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartShowDataLabelsOverMax(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartDataLabelsOverMaxInput.value === 'true'
+          );
+        }
+        if (chartRoundedCornersInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartRoundedCorners(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartRoundedCornersInput.value === 'true'
           );
         }
         if (chartGroupingInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
@@ -993,6 +1023,8 @@ function renderEditorControls(): void {
       chartSmoothInput.addEventListener('input', update);
       chartPlotVisibleInput.addEventListener('input', update);
       chartDisplayBlanksInput.addEventListener('input', update);
+      chartDataLabelsOverMaxInput.addEventListener('input', update);
+      chartRoundedCornersInput.addEventListener('input', update);
       chartGroupingInput.addEventListener('input', update);
       chartOverlapInput.addEventListener('input', update);
       chartVaryColorsInput.addEventListener('input', update);
