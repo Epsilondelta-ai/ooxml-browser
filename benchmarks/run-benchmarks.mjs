@@ -76,6 +76,7 @@ async function representativeBenchmarks() {
   const fixtures = [
     ['docx-representative-styled', 'fixtures/docx/representative/styled.docx', parseDocx],
     ['xlsx-representative-structured', 'fixtures/xlsx/representative/structured.xlsx', parseXlsx],
+    ['xlsx-representative-charted', 'fixtures/xlsx/representative/charted.xlsx', parseXlsx],
     ['pptx-representative-inherited', 'fixtures/pptx/representative/inherited.pptx', parsePptx]
   ];
 

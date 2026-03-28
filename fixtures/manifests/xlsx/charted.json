@@ -1,0 +1,12 @@
+{
+  "id": "xlsx-charted",
+  "sourceApplication": "repo-generated",
+  "format": "xlsx",
+  "featureTags": ["charts", "chart-style", "chart-title-policy", "chart-display-policy", "chart-axis-metadata"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "chart render", "chart title edit", "chart metadata edit"],
+  "reopenExpectations": {"parser": true, "office": "stage-5-attestation-pending", "libreoffice": "stage-5-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}
