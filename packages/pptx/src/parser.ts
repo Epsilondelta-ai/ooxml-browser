@@ -196,10 +196,11 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
   const nodes: PresentationTimingNode[] = [];
   for (const nodeType of ['p:par', 'p:seq', 'p:anim']) {
     for (const node of findElementsByLocalName(timingNode, nodeType.split(':')[1])) {
+      const commonTiming = xmlChild<Record<string, unknown>>(node, 'p:cTn');
       nodes.push({
         nodeType: nodeType.split(':')[1],
-        presetClass: xmlAttr(node, 'presetClass') ?? undefined,
-        presetId: xmlAttr(node, 'presetID') ?? undefined
+        presetClass: xmlAttr(commonTiming, 'presetClass') ?? xmlAttr(node, 'presetClass') ?? undefined,
+        presetId: xmlAttr(commonTiming, 'presetID') ?? xmlAttr(node, 'presetID') ?? undefined
       });
     }
   }

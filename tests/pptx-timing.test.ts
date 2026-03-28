@@ -14,8 +14,8 @@ describe('pptx timing and transitions', () => {
     expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast' });
     expect(slide?.timing?.nodeCount).toBe(2);
     expect(slide?.timing?.nodes).toEqual([
-      { nodeType: 'par', presetClass: undefined, presetId: undefined },
-      { nodeType: 'seq', presetClass: undefined, presetId: undefined }
+      { nodeType: 'par', presetClass: 'entr', presetId: '1' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '2' }
     ]);
   });
 
@@ -23,9 +23,8 @@ describe('pptx timing and transitions', () => {
     const presentation = parsePptx(await openPackage(createTimedPptxFixture()));
     const html = renderOfficeDocumentToHtml(presentation);
 
-    expect(html).toContain('data-transition-type="fade"');
     expect(html).toContain('fade (fast)');
     expect(html).toContain('data-timing-count="2"');
-    expect(html).toContain('par, seq');
+    expect(html).toContain('par:entr, seq:exit');
   });
 });

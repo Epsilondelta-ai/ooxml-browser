@@ -54,3 +54,12 @@ export function setPresentationTransition(editor: OfficeEditor<PresentationDocum
     }
   });
 }
+
+export function setPresentationTimingNodes(editor: OfficeEditor<PresentationDocument>, slideIndex: number, nodes: Array<{ nodeType: string; presetClass?: string; presetId?: string }>): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (slide) {
+      slide.timing = { nodeCount: nodes.length, nodes: [...nodes] };
+    }
+  });
+}

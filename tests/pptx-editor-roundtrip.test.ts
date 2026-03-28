@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -53,5 +53,21 @@ describe('pptx editor round-trips', () => {
 
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.slides[0]?.transition).toEqual({ type: 'push', speed: 'slow' });
+  });
+
+  it('persists edited slide timing metadata', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createTimedPptxFixture())));
+    setPresentationTimingNodes(editor, 0, [
+      { nodeType: 'par', presetClass: 'entr', presetId: '11' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33' }
+    ]);
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.slides[0]?.timing?.nodes).toEqual([
+      { nodeType: 'par', presetClass: 'entr', presetId: '11' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33' }
+    ]);
   });
 });
