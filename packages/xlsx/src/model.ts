@@ -105,8 +105,10 @@ export interface XlsxChart {
   legendPosition?: string;
   categoryAxisTitle?: string;
   categoryAxisPosition?: string;
+  categoryAxisCrosses?: string;
   valueAxisTitle?: string;
   valueAxisPosition?: string;
+  valueAxisCrosses?: string;
   dataLabels?: XlsxChartDataLabels;
   series: XlsxChartSeries[];
   seriesNames: string[];

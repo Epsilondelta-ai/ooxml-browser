@@ -646,12 +646,32 @@ export function setWorksheetChartCategoryAxisPosition(editor: OfficeEditor<XlsxW
   });
 }
 
+export function setWorksheetChartCategoryAxisCrosses(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, crosses: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisCrosses = crosses;
+    }
+  });
+}
+
 export function setWorksheetChartValueAxisPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, position: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
     const chart = sheet?.charts[chartIndex];
     if (chart) {
       chart.valueAxisPosition = position;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisCrosses(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, crosses: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisCrosses = crosses;
     }
   });
 }

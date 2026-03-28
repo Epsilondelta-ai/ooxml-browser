@@ -160,8 +160,10 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.legendPosition !== originalChart?.legendPosition
       || chart.categoryAxisTitle !== originalChart?.categoryAxisTitle
       || chart.categoryAxisPosition !== originalChart?.categoryAxisPosition
+      || chart.categoryAxisCrosses !== originalChart?.categoryAxisCrosses
       || chart.valueAxisTitle !== originalChart?.valueAxisTitle
       || chart.valueAxisPosition !== originalChart?.valueAxisPosition
+      || chart.valueAxisCrosses !== originalChart?.valueAxisCrosses
       || JSON.stringify(chart.dataLabels ?? null) !== JSON.stringify(originalChart?.dataLabels ?? null)
       || JSON.stringify(chart.series) !== JSON.stringify(originalChart?.series ?? [])
     ) {
@@ -642,6 +644,15 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           occurrence: 0
         });
       }
+      if (chart.categoryAxisCrosses !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:crosses',
+          targetAttr: 'val',
+          newValue: chart.categoryAxisCrosses,
+          occurrence: 0
+        });
+      }
       if (chart.valueAxisTitle !== undefined) {
         operations.push({
           op: 'replaceText',
@@ -657,6 +668,15 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           tagName: 'c:axPos',
           targetAttr: 'val',
           newValue: chart.valueAxisPosition,
+          occurrence: 1
+        });
+      }
+      if (chart.valueAxisCrosses !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:crosses',
+          targetAttr: 'val',
+          newValue: chart.valueAxisCrosses,
           occurrence: 1
         });
       }
@@ -796,8 +816,8 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
   const plotVisibleOnlyXml = chart.plotVisibleOnly !== undefined ? `<c:plotVisOnly val="${chart.plotVisibleOnly ? '1' : '0'}"/>` : '';
   const displayBlanksAsXml = chart.displayBlanksAs !== undefined ? `<c:dispBlanksAs val="${escapeXml(chart.displayBlanksAs)}"/>` : '';
-  const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';
-  const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
+  const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition || chart.categoryAxisCrosses ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}${chart.categoryAxisCrosses ? `<c:crosses val="${escapeXml(chart.categoryAxisCrosses)}"/>` : ''}</c:catAx>` : '';
+  const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition || chart.valueAxisCrosses ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}${chart.valueAxisCrosses ? `<c:crosses val="${escapeXml(chart.valueAxisCrosses)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.separator !== undefined ? `<c:separator>${escapeXml(chart.dataLabels.separator)}</c:separator>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showSeriesName !== undefined ? `<c:showSerName val="${chart.dataLabels.showSeriesName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLegendKey !== undefined ? `<c:showLegendKey val="${chart.dataLabels.showLegendKey ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLeaderLines !== undefined ? `<c:showLeaderLines val="${chart.dataLabels.showLeaderLines ? '1' : '0'}"/>` : ''}${chart.dataLabels.showPercent !== undefined ? `<c:showPercent val="${chart.dataLabels.showPercent ? '1' : '0'}"/>` : ''}${chart.dataLabels.showBubbleSize !== undefined ? `<c:showBubbleSize val="${chart.dataLabels.showBubbleSize ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${scatterStyleXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}${bubbleScaleXml}${showNegativeBubblesXml}${sizeRepresentsXml}${firstSliceAngleXml}${holeSizeXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;
