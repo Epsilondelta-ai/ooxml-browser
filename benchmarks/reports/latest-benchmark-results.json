@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T15:31:24.009Z",
+  "generatedAt": "2026-03-28T15:44:24.064Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.439,
-      "parseMs": 0.515,
-      "renderMs": 0.172,
-      "serializeMs": 6.088,
+      "openMs": 4.248,
+      "parseMs": 0.494,
+      "renderMs": 0.156,
+      "serializeMs": 6.19,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.143,
-      "parseMs": 0.606,
-      "renderMs": 0.185,
-      "serializeMs": 0.935,
+      "openMs": 10.148,
+      "parseMs": 0.563,
+      "renderMs": 0.176,
+      "serializeMs": 0.876,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 11.421,
-      "parseMs": 0.454,
-      "renderMs": 0.111,
-      "serializeMs": 0.546,
+      "openMs": 11.31,
+      "parseMs": 0.434,
+      "renderMs": 0.108,
+      "serializeMs": 0.553,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.382,
-      "parseMs": 0.265,
+      "openMs": 0.298,
+      "parseMs": 0.215,
       "renderMs": 0.012,
-      "serializeMs": 0.277,
+      "serializeMs": 0.241,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.236,
-      "parseMs": 0.314,
-      "renderMs": 0.017,
-      "serializeMs": 0.456,
+      "openMs": 0.247,
+      "parseMs": 0.272,
+      "renderMs": 0.014,
+      "serializeMs": 0.453,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.579,
-      "parseMs": 0.483,
-      "renderMs": 0.014,
-      "serializeMs": 0.646,
+      "openMs": 0.463,
+      "parseMs": 0.48,
+      "renderMs": 0.013,
+      "serializeMs": 0.585,
       "outputBytes": 3931,
       "htmlLength": 659
     }
