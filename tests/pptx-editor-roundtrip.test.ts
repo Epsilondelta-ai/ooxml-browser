@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { addPresentationComment, createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -30,6 +30,18 @@ describe('pptx editor round-trips', () => {
     const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.comments[0]?.author).toBe('Reviewer');
     expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('authorId="Reviewer"');
+  });
+
+  it('creates comment parts on demand for slides that start without comments', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture())));
+    addPresentationComment(editor, 0, { author: 'Reviewer', text: 'Created comment' });
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+    expect(reopened.slides[0]?.comments).toEqual([{ author: 'Reviewer', text: 'Created comment', index: 0 }]);
+    expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('<p:text>Created comment</p:text>');
+    expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../comments/comment1.xml');
   });
 
   it('patches simple slide and notes text edits without dropping root attributes', async () => {

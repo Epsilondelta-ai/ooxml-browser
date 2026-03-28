@@ -222,7 +222,8 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
 }
 
 function buildCommentsXml(comments: PresentationComment[], existingSource?: string): string {
-  if (existingSource) {
+  const existingCount = existingSource ? (existingSource.match(/<p:cm\b/g) ?? []).length : 0;
+  if (existingSource && existingCount === comments.length && comments.length > 0) {
     return applyXmlPatchPlan(existingSource, comments.flatMap((comment, index) => [
       {
         op: 'replaceAttribute' as const,

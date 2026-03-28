@@ -39,6 +39,26 @@ export function setPresentationCommentText(editor: OfficeEditor<PresentationDocu
   });
 }
 
+export function addPresentationComment(editor: OfficeEditor<PresentationDocument>, slideIndex: number, comment: { author?: string; text: string }): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (!slide) {
+      return;
+    }
+
+    const commentsUri = ensurePresentationCommentsPart(draft, slideIndex);
+    if (!commentsUri) {
+      return;
+    }
+
+    slide.comments.push({
+      author: comment.author,
+      text: comment.text,
+      index: slide.comments.length
+    });
+  });
+}
+
 export function setPresentationCommentAuthor(editor: OfficeEditor<PresentationDocument>, slideIndex: number, commentIndex: number, author: string): PresentationDocument {
   return editor.transaction((draft) => {
     const comment = draft.slides[slideIndex]?.comments[commentIndex];
@@ -156,12 +176,52 @@ function ensurePresentationNotesPart(document: PresentationDocument, slideIndex:
   return notesUri;
 }
 
+function ensurePresentationCommentsPart(document: PresentationDocument, slideIndex: number): string | undefined {
+  const slide = document.slides[slideIndex];
+  if (!slide) {
+    return undefined;
+  }
+
+  const slideRelationships = relationshipsFor(document.packageGraph, slide.uri);
+  const commentsRelationship = slideRelationships.find((relationship) => relationship.type.includes('/comments'));
+  if (commentsRelationship?.resolvedTarget && document.packageGraph.parts[commentsRelationship.resolvedTarget]) {
+    return commentsRelationship.resolvedTarget;
+  }
+
+  const commentsUri = nextCommentsUri(document.packageGraph.parts, slideIndex);
+  const relationshipId = commentsRelationship?.id ?? nextRelationshipId(slideRelationships);
+  updatePackagePartText(
+    document.packageGraph,
+    commentsUri,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<p:cmLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"></p:cmLst>`,
+    'application/vnd.openxmlformats-officedocument.presentationml.comment+xml'
+  );
+  upsertRelationship(document.packageGraph, slide.uri, {
+    id: relationshipId,
+    type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments',
+    target: relativeRelationshipTarget(slide.uri, commentsUri),
+    targetMode: 'Internal'
+  });
+
+  return commentsUri;
+}
+
 function nextNotesUri(parts: PresentationDocument['packageGraph']['parts'], slideIndex: number): string {
   let candidateIndex = slideIndex + 1;
   let candidate = `/ppt/notesSlides/notesSlide${candidateIndex}.xml`;
   while (parts[candidate]) {
     candidateIndex += 1;
     candidate = `/ppt/notesSlides/notesSlide${candidateIndex}.xml`;
+  }
+  return candidate;
+}
+
+function nextCommentsUri(parts: PresentationDocument['packageGraph']['parts'], slideIndex: number): string {
+  let candidateIndex = slideIndex + 1;
+  let candidate = `/ppt/comments/comment${candidateIndex}.xml`;
+  while (parts[candidate]) {
+    candidateIndex += 1;
+    candidate = `/ppt/comments/comment${candidateIndex}.xml`;
   }
   return candidate;
 }
