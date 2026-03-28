@@ -1,0 +1,33 @@
+{
+  "name": "ooxml-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "examples/*",
+    "playground"
+  ],
+  "scripts": {
+    "build": "tsc -b && npm run build --workspace @ooxml/playground && npm run build --workspace @ooxml/example-basic",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "dev": "npm run dev --workspace @ooxml/playground",
+    "bench": "node benchmarks/run-benchmarks.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "eslint": "^9.36.0",
+    "jsdom": "^27.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.7",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.5",
+    "fflate": "^0.8.2"
+  }
+}

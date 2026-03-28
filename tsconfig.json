@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/docx" },
+    { "path": "packages/xlsx" },
+    { "path": "packages/pptx" },
+    { "path": "packages/render" },
+    { "path": "packages/editor" },
+    { "path": "packages/browser" },
+    { "path": "packages/devtools" },
+    { "path": "examples/basic" },
+    { "path": "playground" }
+  ]
+}

@@ -10,43 +10,29 @@
 
 ## Proposed monorepo packages
 
-### Core packages
-- `@ooxml/core`: shared types, errors, diagnostics, namespace registry, ids, utilities
-- `@ooxml/opc`: ZIP/OPC reader, package graph, relationships, content types
-- `@ooxml/xml`: XML tokenizer, source-preserving AST, writers
-- `@ooxml/ir`: normalized OOXML IR and common primitives
-- `@ooxml/serializer`: shared serialization utilities and patch pipeline
+### Implemented workspace packages
+- `@ooxml/core`: shared types, diagnostics, OPC/XML/IR/serialization primitives
+- `@ooxml/docx`: WordprocessingML parsing, mutations, and serialization adapters
+- `@ooxml/xlsx`: SpreadsheetML parsing, mutations, and serialization adapters
+- `@ooxml/pptx`: PresentationML parsing, mutations, and serialization adapters
+- `@ooxml/render`: DOM-oriented renderers for pages, grids, and slides
+- `@ooxml/editor`: transaction-driven editor surfaces and per-format helpers
+- `@ooxml/browser`: browser-first facade, worker-facing entry points, and ergonomic top-level APIs
+- `@ooxml/devtools`: inspectors, summaries, and debugging helpers
 
-### Format packages
-- `@ooxml/docx`
-- `@ooxml/xlsx`
-- `@ooxml/pptx`
+### Application/workbench packages
+- `@ooxml/example-basic`: lightweight browser example workspace
+- `@ooxml/playground`: interactive playground for upload, inspect, render, edit, and save flows
 
-Each provides:
-- parse APIs
-- render model projection APIs
-- edit adapters
-- serializer hooks
-
-### Rendering packages
-- `@ooxml/render-core`
-- `@ooxml/render-docx`
-- `@ooxml/render-xlsx`
-- `@ooxml/render-pptx`
-
-### Editor/runtime packages
-- `@ooxml/editor-core`
-- `@ooxml/editor-docx`
-- `@ooxml/editor-xlsx`
-- `@ooxml/editor-pptx`
-- `@ooxml/worker`
-
-### Integration packages
-- `@ooxml/react`
-- `@ooxml/vue` (optional adapter later)
-- `@ooxml/devtools`
-- `@ooxml/bench`
-- `@ooxml/examples`
+### Internal module boundaries within packages
+Even where functionality ships inside one workspace package, the code should still preserve clear internal boundaries for:
+- OPC packaging
+- XML/token handling
+- normalized IR
+- serialization patches
+- render-model projection
+- editor transactions
+- worker protocols
 
 ## Public API design
 

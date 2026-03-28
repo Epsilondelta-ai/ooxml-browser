@@ -1,0 +1,13 @@
+{
+  "name": "@ooxml/example-basic",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@ooxml/browser": "0.1.0"
+  }
+}
