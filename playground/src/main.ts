@@ -257,6 +257,8 @@ function renderEditorControls(): void {
       const firstChartDataLabelSeries = firstSheet?.charts[0]?.dataLabels?.showSeriesName;
       const firstChartDataLabelLegend = firstSheet?.charts[0]?.dataLabels?.showLegendKey;
       const firstChartDataLabelLeader = firstSheet?.charts[0]?.dataLabels?.showLeaderLines;
+      const firstChartDataLabelPercent = firstSheet?.charts[0]?.dataLabels?.showPercent;
+      const firstChartDataLabelBubble = firstSheet?.charts[0]?.dataLabels?.showBubbleSize;
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstChartSeriesInvert = firstSheet?.charts[0]?.series[0]?.invertIfNegative;
       const firstChartSeriesMarker = firstSheet?.charts[0]?.series[0]?.markerSymbol ?? '';
@@ -395,6 +397,14 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-dlbl-leader-input" value="${escapeHtml(firstChartDataLabelLeader === undefined ? '' : String(firstChartDataLabelLeader))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show percent</div>
+          <input id="xlsx-chart-dlbl-percent-input" value="${escapeHtml(firstChartDataLabelPercent === undefined ? '' : String(firstChartDataLabelPercent))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show bubble size</div>
+          <input id="xlsx-chart-dlbl-bubble-input" value="${escapeHtml(firstChartDataLabelBubble === undefined ? '' : String(firstChartDataLabelBubble))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart series</div>
           <input id="xlsx-chart-series-input" value="${escapeHtml(firstChartSeriesName)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -459,6 +469,8 @@ function renderEditorControls(): void {
       const chartDataLabelSeriesInput = window.document.getElementById('xlsx-chart-dlbl-series-input') as HTMLInputElement;
       const chartDataLabelLegendInput = window.document.getElementById('xlsx-chart-dlbl-legend-input') as HTMLInputElement;
       const chartDataLabelLeaderInput = window.document.getElementById('xlsx-chart-dlbl-leader-input') as HTMLInputElement;
+      const chartDataLabelPercentInput = window.document.getElementById('xlsx-chart-dlbl-percent-input') as HTMLInputElement;
+      const chartDataLabelBubbleInput = window.document.getElementById('xlsx-chart-dlbl-bubble-input') as HTMLInputElement;
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const chartSeriesInvertInput = window.document.getElementById('xlsx-chart-series-invert-input') as HTMLInputElement;
       const chartSeriesMarkerInput = window.document.getElementById('xlsx-chart-series-marker-input') as HTMLInputElement;
@@ -719,7 +731,7 @@ function renderEditorControls(): void {
             }
           );
         }
-        if ((chartDataLabelSeriesInput.value || chartDataLabelLegendInput.value || chartDataLabelLeaderInput.value) && workbookEditor.document.sheets[0]?.charts[0]) {
+        if ((chartDataLabelSeriesInput.value || chartDataLabelLegendInput.value || chartDataLabelLeaderInput.value || chartDataLabelPercentInput.value || chartDataLabelBubbleInput.value) && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartDataLabelVisibility(
             workbookEditor,
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
@@ -727,7 +739,9 @@ function renderEditorControls(): void {
             {
               showSeriesName: chartDataLabelSeriesInput.value ? chartDataLabelSeriesInput.value === 'true' : undefined,
               showLegendKey: chartDataLabelLegendInput.value ? chartDataLabelLegendInput.value === 'true' : undefined,
-              showLeaderLines: chartDataLabelLeaderInput.value ? chartDataLabelLeaderInput.value === 'true' : undefined
+              showLeaderLines: chartDataLabelLeaderInput.value ? chartDataLabelLeaderInput.value === 'true' : undefined,
+              showPercent: chartDataLabelPercentInput.value ? chartDataLabelPercentInput.value === 'true' : undefined,
+              showBubbleSize: chartDataLabelBubbleInput.value ? chartDataLabelBubbleInput.value === 'true' : undefined
             }
           );
         }
@@ -836,6 +850,8 @@ function renderEditorControls(): void {
       chartDataLabelSeriesInput.addEventListener('input', update);
       chartDataLabelLegendInput.addEventListener('input', update);
       chartDataLabelLeaderInput.addEventListener('input', update);
+      chartDataLabelPercentInput.addEventListener('input', update);
+      chartDataLabelBubbleInput.addEventListener('input', update);
       chartSeriesInput.addEventListener('input', update);
       chartSeriesInvertInput.addEventListener('input', update);
       chartSeriesMarkerInput.addEventListener('input', update);

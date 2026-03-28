@@ -371,6 +371,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const showSeriesNameNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showSerName')[0] : undefined;
     const showLegendKeyNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showLegendKey')[0] : undefined;
     const showLeaderLinesNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showLeaderLines')[0] : undefined;
+    const showPercentNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showPercent')[0] : undefined;
+    const showBubbleSizeNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showBubbleSize')[0] : undefined;
     const series = chartRoot
       ? findElementsByLocalName(chartRoot, 'ser').map((seriesNode) => {
         const textNode = findElementsByLocalName(seriesNode, 'tx')[0];
@@ -416,7 +418,9 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
         showCategoryName: xmlAttr(showCategoryNameNode, 'val') === '1' ? true : xmlAttr(showCategoryNameNode, 'val') === '0' ? false : undefined,
         showSeriesName: xmlAttr(showSeriesNameNode, 'val') === '1' ? true : xmlAttr(showSeriesNameNode, 'val') === '0' ? false : undefined,
         showLegendKey: xmlAttr(showLegendKeyNode, 'val') === '1' ? true : xmlAttr(showLegendKeyNode, 'val') === '0' ? false : undefined,
-        showLeaderLines: xmlAttr(showLeaderLinesNode, 'val') === '1' ? true : xmlAttr(showLeaderLinesNode, 'val') === '0' ? false : undefined
+        showLeaderLines: xmlAttr(showLeaderLinesNode, 'val') === '1' ? true : xmlAttr(showLeaderLinesNode, 'val') === '0' ? false : undefined,
+        showPercent: xmlAttr(showPercentNode, 'val') === '1' ? true : xmlAttr(showPercentNode, 'val') === '0' ? false : undefined,
+        showBubbleSize: xmlAttr(showBubbleSizeNode, 'val') === '1' ? true : xmlAttr(showBubbleSizeNode, 'val') === '0' ? false : undefined
       } : undefined,
       series,
       seriesNames: series.map((seriesEntry) => seriesEntry.name)

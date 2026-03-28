@@ -45,7 +45,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Chart legend position | `setWorksheetChartLegendPosition` | Persisted | Preserves legend placement inside the chart part while keeping the worksheet/drawing graph stable. |
 | Chart axis titles | `setWorksheetChartCategoryAxisTitle`, `setWorksheetChartValueAxisTitle` | Persisted | Updates chart-part category/value axis title text while preserving worksheet and drawing metadata. |
 | Chart axis positions | `setWorksheetChartCategoryAxisPosition`, `setWorksheetChartValueAxisPosition` | Persisted | Preserves axis-position metadata inside the chart part while keeping chart relationships stable. |
-| Chart data labels | `setWorksheetChartDataLabels`, `setWorksheetChartDataLabelVisibility` | Persisted | Preserves chart-part data-label metadata such as label position, separator, and visibility flags, including leader lines. |
+| Chart data labels | `setWorksheetChartDataLabels`, `setWorksheetChartDataLabelVisibility` | Persisted | Preserves chart-part data-label metadata such as label position, separator, and visibility flags, including leader lines, percent, and bubble-size toggles. |
 | Chart vary-colors / gap width | `setWorksheetChartVaryColors`, `setWorksheetChartGapWidth` | Persisted | Preserves chart-part series-color and bar/line spacing metadata. |
 | Chart per-series invert-if-negative | `setWorksheetChartSeriesInvertIfNegative` | Persisted | Preserves per-series negative-value display metadata inside chart parts. |
 | Chart per-series markers | `setWorksheetChartSeriesMarker` | Persisted | Preserves per-series marker symbol/size metadata inside chart parts. |

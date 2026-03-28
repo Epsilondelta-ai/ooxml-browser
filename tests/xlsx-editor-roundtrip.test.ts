@@ -374,13 +374,13 @@ describe('xlsx editor round-trips', () => {
 
   it('persists worksheet chart data-label edits through save flows', async () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
-    setWorksheetChartDataLabels(editor, 'Sheet1', 0, { position: 'ctr', separator: '/', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true, showLeaderLines: false });
+    setWorksheetChartDataLabels(editor, 'Sheet1', 0, { position: 'ctr', separator: '/', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true, showLeaderLines: false, showPercent: true, showBubbleSize: true });
 
     const serialized = serializeOfficeDocument(editor.document);
     const reopened = parseXlsx(await openPackage(serialized));
     const reopenedGraph = await openPackage(serialized);
 
-    expect(reopened.sheets[0]?.charts[0]?.dataLabels).toEqual({ position: 'ctr', separator: '/', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true, showLeaderLines: false });
+    expect(reopened.sheets[0]?.charts[0]?.dataLabels).toEqual({ position: 'ctr', separator: '/', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true, showLeaderLines: false, showPercent: true, showBubbleSize: true });
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('dLblPos val="ctr"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('<c:separator>/</c:separator>');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showVal val="0"');
@@ -388,6 +388,8 @@ describe('xlsx editor round-trips', () => {
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showSerName val="1"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showLegendKey val="1"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showLeaderLines val="0"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showPercent val="1"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showBubbleSize val="1"');
   });
 
   it('persists worksheet chart vary-colors and gap-width edits through save flows', async () => {
