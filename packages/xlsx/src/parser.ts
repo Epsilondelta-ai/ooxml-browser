@@ -358,6 +358,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const categoryAxisMinorGridlinesNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'minorGridlines')[0] : undefined;
     const categoryAxisMajorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'majorTickMark')[0] : undefined;
     const categoryAxisMinorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'minorTickMark')[0] : undefined;
+    const categoryAxisTickMarkSkipNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'tickMarkSkip')[0] : undefined;
     const categoryAxisTickLabelPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'tickLblPos')[0] : undefined;
     const categoryAxisTickLabelSkipNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'tickLblSkip')[0] : undefined;
     const categoryAxisLabelOffsetNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'lblOffset')[0] : undefined;
@@ -460,6 +461,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       categoryAxisMinorGridlines: categoryAxisMinorGridlinesNode ? (xmlAttr(categoryAxisMinorGridlinesNode, 'val') === '0' ? false : true) : undefined,
       categoryAxisMajorTickMark: xmlAttr(categoryAxisMajorTickMarkNode, 'val') ?? undefined,
       categoryAxisMinorTickMark: xmlAttr(categoryAxisMinorTickMarkNode, 'val') ?? undefined,
+      categoryAxisTickMarkSkip: (() => { const value = xmlAttr(categoryAxisTickMarkSkipNode, 'val'); return value ? Number(value) : undefined; })(),
       categoryAxisTickLabelPosition: xmlAttr(categoryAxisTickLabelPositionNode, 'val') ?? undefined,
       categoryAxisTickLabelSkip: (() => { const value = xmlAttr(categoryAxisTickLabelSkipNode, 'val'); return value ? Number(value) : undefined; })(),
       categoryAxisLabelOffset: (() => { const value = xmlAttr(categoryAxisLabelOffsetNode, 'val'); return value ? Number(value) : undefined; })(),

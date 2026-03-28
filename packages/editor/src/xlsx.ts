@@ -756,6 +756,16 @@ export function setWorksheetChartCategoryAxisMinorTickMark(editor: OfficeEditor<
   });
 }
 
+export function setWorksheetChartCategoryAxisTickMarkSkip(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickMarkSkip: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisTickMarkSkip = tickMarkSkip;
+    }
+  });
+}
+
 export function setWorksheetChartCategoryAxisTickLabelPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickLabelPosition: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

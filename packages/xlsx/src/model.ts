@@ -116,6 +116,7 @@ export interface XlsxChart {
   categoryAxisMinorGridlines?: boolean;
   categoryAxisMajorTickMark?: string;
   categoryAxisMinorTickMark?: string;
+  categoryAxisTickMarkSkip?: number;
   categoryAxisTickLabelPosition?: string;
   categoryAxisTickLabelSkip?: number;
   categoryAxisLabelOffset?: number;
