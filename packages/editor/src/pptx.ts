@@ -55,6 +55,15 @@ export function setPresentationShapeTransform(editor: OfficeEditor<PresentationD
   });
 }
 
+export function setPresentationShapePlaceholderType(editor: OfficeEditor<PresentationDocument>, slideIndex: number, shapeIndex: number, placeholderType: string | undefined): PresentationDocument {
+  return editor.transaction((draft) => {
+    const shape = draft.slides[slideIndex]?.shapes[shapeIndex];
+    if (shape) {
+      shape.placeholderType = placeholderType;
+    }
+  });
+}
+
 export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];

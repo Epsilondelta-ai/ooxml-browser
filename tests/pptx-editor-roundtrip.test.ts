@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -57,6 +57,14 @@ describe('pptx editor round-trips', () => {
 
     expect(shape?.text).toBe('Moved shape');
     expect(shape?.transform).toEqual({ x: 150, y: 250, cx: 3500, cy: 4500 });
+  });
+
+  it('persists edited shape placeholder metadata', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture())));
+    setPresentationShapePlaceholderType(editor, 0, 0, 'subtitle');
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.slides[0]?.shapes[0]?.placeholderType).toBe('subtitle');
   });
 
   it('persists edited slide transition metadata', async () => {
