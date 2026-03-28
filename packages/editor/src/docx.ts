@@ -143,6 +143,22 @@ export function setDocxTableCellText(
   });
 }
 
+export function setDocxStoryMediaTarget(
+  editor: OfficeEditor<DocxDocument>,
+  storyKind: 'document' | 'header' | 'footer',
+  storyOccurrence: number,
+  mediaIndex: number,
+  targetUri: string
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
+    const media = story?.media[mediaIndex];
+    if (media) {
+      media.targetUri = targetUri;
+    }
+  });
+}
+
 export function setDocxCommentText(editor: OfficeEditor<DocxDocument>, commentId: string, text: string): DocxDocument {
   return editor.transaction((draft) => {
     const comment = draft.comments.find((entry) => entry.id === commentId);

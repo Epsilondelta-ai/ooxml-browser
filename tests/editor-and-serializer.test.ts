@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, setDocxRevisionMetadata, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceTarget, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, setDocxRevisionMetadata, setDocxStoryMediaTarget, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceTarget, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
 
-import { createDocxFixture, createNumberedDocxFixture, createPptxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture, createXlsxFixture } from './fixture-builders';
+import { createDocxFixture, createMediaDocxFixture, createNumberedDocxFixture, createPptxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('editor transactions', () => {
   it('updates docx paragraphs and supports undo/redo', async () => {
@@ -118,6 +118,15 @@ describe('editor transactions', () => {
     setDocxTableCellText(editor, 'document', 0, 0, 0, 1, 'Edited cell');
 
     expect(editor.document.stories[0]?.tables[0]?.rows[0]?.cells[1]?.text).toBe('Edited cell');
+  });
+
+  it('updates docx story media targets through editor helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createMediaDocxFixture())));
+    setDocxStoryMediaTarget(editor, 'document', 0, 0, '/word/media/image2.png');
+    setDocxStoryMediaTarget(editor, 'document', 0, 1, '/word/embeddings/oleObject2.bin');
+
+    expect(editor.document.stories[0]?.media[0]?.targetUri).toBe('/word/media/image2.png');
+    expect(editor.document.stories[0]?.media[1]?.targetUri).toBe('/word/embeddings/oleObject2.bin');
   });
 });
 

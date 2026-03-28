@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { addDocxComment, createOfficeEditor, removeDocxComment, setDocxCommentAuthor, setDocxCommentText } from '@ooxml/editor';
+import { addDocxComment, createOfficeEditor, removeDocxComment, setDocxCommentAuthor, setDocxCommentText, setDocxStoryMediaTarget } from '@ooxml/editor';
 import { parseDocx, resolveDocxNumbering, resolveDocxStyle } from '@ooxml/docx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createDocxFixture, createNumberedDocxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture } from './fixture-builders';
+import { createDocxFixture, createMediaDocxFixture, createNumberedDocxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture } from './fixture-builders';
 
 describe('docx serializer persistence', () => {
   it('preserves style inheritance metadata through serialize/reopen', async () => {
@@ -42,6 +42,14 @@ describe('docx serializer persistence', () => {
     expect(revisions).toEqual([
       { kind: 'insertion', id: '10', author: 'Codex', date: '2026-03-28T00:00:00Z', text: 'Inserted text' },
       { kind: 'deletion', id: '11', author: 'Codex', date: '2026-03-28T00:00:01Z', text: 'Deleted text' }
+    ]);
+  });
+
+  it('preserves media relationship metadata through serialize/reopen', async () => {
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(parseDocx(await openPackage(createMediaDocxFixture())))));
+    expect(reopened.stories[0]?.media).toEqual([
+      { relationshipId: 'rIdImage1', targetUri: '/word/media/image1.png', type: 'image', name: 'Hero Image' },
+      { relationshipId: 'rIdOle1', targetUri: '/word/embeddings/oleObject1.bin', type: 'embeddedObject', progId: 'Excel.Sheet.12' }
     ]);
   });
 });
@@ -135,5 +143,20 @@ describe('docx patch preservation', () => {
 
     expect(reopenedGraph.parts['/word/numbering.xml']?.text).toBe(originalGraph.parts['/word/numbering.xml']?.text);
     expect(reopenedGraph.parts['/word/numbering.xml']?.text).toContain('customNumberingAttr="keep"');
+  });
+
+  it('retargets story media relationships through save flows', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createMediaDocxFixture())));
+    setDocxStoryMediaTarget(editor, 'document', 0, 0, '/word/media/image2.png');
+    setDocxStoryMediaTarget(editor, 'document', 0, 1, '/word/embeddings/oleObject2.bin');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseDocx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.stories[0]?.media[0]?.targetUri).toBe('/word/media/image2.png');
+    expect(reopened.stories[0]?.media[1]?.targetUri).toBe('/word/embeddings/oleObject2.bin');
+    expect(reopenedGraph.parts['/word/_rels/document.xml.rels']?.text).toContain('media/image2.png');
+    expect(reopenedGraph.parts['/word/_rels/document.xml.rels']?.text).toContain('embeddings/oleObject2.bin');
   });
 });

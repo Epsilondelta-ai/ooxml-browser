@@ -9,6 +9,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   const originalStoriesByUri = new Map(originalDocument.stories.map((story) => [story.uri, story]));
 
   for (const story of document.stories) {
+    syncStoryMediaRelationships(graph, originalStoriesByUri.get(story.uri), story);
     const contentType = story.kind === 'header'
       ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml'
       : story.kind === 'footer'
@@ -69,6 +70,24 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   return serializePackageGraph(graph);
 }
 
+function syncStoryMediaRelationships(graph: DocxDocument['packageGraph'], originalStory: DocxDocument['stories'][number] | undefined, story: DocxDocument['stories'][number]): void {
+  for (const media of story.media) {
+    const originalMedia = originalStory?.media.find((entry) => entry.relationshipId === media.relationshipId);
+    if (!media.targetUri || media.targetUri === originalMedia?.targetUri) {
+      continue;
+    }
+
+    upsertRelationship(graph, story.uri, {
+      id: media.relationshipId,
+      type: media.type === 'embeddedObject'
+        ? 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject'
+        : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+      target: relativeRelationshipTarget(story.uri, media.targetUri),
+      targetMode: 'Internal'
+    });
+  }
+}
+
 function ensureDocxCommentsRelationship(graph: DocxDocument['packageGraph'], mainDocumentUri: string): void {
   const existing = graph.relationshipsBySource[mainDocumentUri]?.find((relationship) => relationship.type.includes('/comments'));
   upsertRelationship(graph, mainDocumentUri, {
@@ -110,6 +129,10 @@ function syncReferenceGroup(
 }
 
 function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string, originalStory?: DocxDocument['stories'][number], originalSection?: DocxSection): string {
+  if (existingSource && originalStory && JSON.stringify(originalStory.blocks) === JSON.stringify(blocks) && JSON.stringify(originalSection ?? null) === JSON.stringify(section ?? null)) {
+    return existingSource;
+  }
+
   if (existingSource && originalStory && canPatchDocxStory(kind, originalStory.blocks, blocks, originalSection, section)) {
     const operations = [];
     let paragraphOccurrence = 0;

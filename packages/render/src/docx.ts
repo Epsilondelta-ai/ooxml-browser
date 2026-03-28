@@ -31,7 +31,10 @@ export function renderDocx(document: DocxDocument, options: RenderOptions): stri
       return `<table class="ooxml-docx-table"><tbody>${rows}</tbody></table>`;
     }).join('');
 
-    return `<section class="ooxml-docx-story" data-story-kind="${story.kind}">${blocks}</section>`;
+    const mediaMarkup = story.media.length
+      ? `<p class="ooxml-docx-media">Media: ${story.media.map((asset) => `${escapeHtml(asset.type === 'embeddedObject' ? asset.progId ?? asset.relationshipId : asset.name ?? asset.relationshipId)}${asset.type === 'embeddedObject' ? ' [embedded-object]' : ''} (${escapeHtml(asset.targetUri)})`).join(', ')}</p>`
+      : '';
+    return `<section class="ooxml-docx-story" data-story-kind="${story.kind}">${blocks}${mediaMarkup}</section>`;
   }).join('');
 
   const commentsMarkup = options.showComments === false

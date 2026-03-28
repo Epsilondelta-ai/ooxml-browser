@@ -48,6 +48,60 @@ export function createDocxFixture(): Uint8Array {
   }));
 }
 
+export function createMediaDocxFixture(): Uint8Array {
+  return zipSync(encodedEntries({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="png" ContentType="image/png"/>
+  <Default Extension="bin" ContentType="application/vnd.ms-office.oleObject"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`,
+    'word/document.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+  <w:body>
+    <w:p>
+      <w:r><w:t>Media paragraph</w:t></w:r>
+      <w:r>
+        <w:drawing>
+          <wp:inline>
+            <wp:docPr id="1" name="Hero Image"/>
+            <a:graphic>
+              <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:pic>
+                  <pic:blipFill><a:blip r:embed="rIdImage1"/></pic:blipFill>
+                </pic:pic>
+              </a:graphicData>
+            </a:graphic>
+          </wp:inline>
+        </w:drawing>
+      </w:r>
+      <w:r>
+        <w:object>
+          <v:shape id="_x0000_i1025"/>
+          <o:OLEObject r:id="rIdOle1" ProgID="Excel.Sheet.12"/>
+        </w:object>
+      </w:r>
+    </w:p>
+  </w:body>
+</w:document>`,
+    'word/_rels/document.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rIdImage1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.png"/>
+  <Relationship Id="rIdOle1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject" Target="embeddings/oleObject1.bin"/>
+</Relationships>`,
+    'word/media/image1.png': 'PNGDATA1',
+    'word/media/image2.png': 'PNGDATA2',
+    'word/embeddings/oleObject1.bin': 'OLEBIN1',
+    'word/embeddings/oleObject2.bin': 'OLEBIN2'
+  }));
+}
+
 export function createXlsxFixture(): Uint8Array {
   return zipSync(encodedEntries({
     '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>

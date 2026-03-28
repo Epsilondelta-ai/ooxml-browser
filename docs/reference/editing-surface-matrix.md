@@ -17,6 +17,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment create/update | `addDocxComment` | Persisted | Creates a comments part and main-document relationship on demand when missing. |
 | Comment delete | `removeDocxComment` | Persisted | Clears the comment part entry when the last comment is removed. |
 | Revision metadata | `setDocxRevisionMetadata` | Persisted | Supports tracked-change id/kind/author/date/text edits through the revision-aware serializer path. |
+| Story media/object target | `setDocxStoryMediaTarget` | Persisted | Retargets story-scoped image and embedded-object relationships without rewriting preserved story XML. |
 | Section page size/margins | `setDocxSectionLayout` | Persisted | Section changes disable paragraph-only patch fast path. |
 | Header/footer reference type | `setDocxSectionReferenceType` | Persisted | Reuses the section rebuild path for `sectPr` reference metadata. |
 | Header/footer reference target | `setDocxSectionReferenceTarget` | Persisted | Updates document relationships to point at alternate existing header/footer parts. |

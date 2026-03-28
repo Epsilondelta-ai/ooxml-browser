@@ -5,6 +5,7 @@ import {
   replaceDocxParagraphText,
   setDocxCommentText,
   setDocxParagraphStyle,
+  setDocxStoryMediaTarget,
   setPresentationCommentText,
   setPresentationEmbeddedObjectTarget,
   setPresentationNotesText,
@@ -184,6 +185,7 @@ function renderEditorControls(): void {
       const firstParagraph = officeDocument.stories[0]?.paragraphs[0]?.text ?? '';
       const firstStyle = officeDocument.stories[0]?.paragraphs[0]?.styleId ?? '';
       const firstComment = officeDocument.comments[0]?.text ?? '';
+      const firstMediaTarget = officeDocument.stories[0]?.media[0]?.targetUri ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First paragraph</div>
@@ -197,10 +199,15 @@ function renderEditorControls(): void {
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First comment</div>
           <input id="docx-comment-input" value="${escapeHtml(firstComment)}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First media/object target</div>
+          <input id="docx-media-input" value="${escapeHtml(firstMediaTarget)}" style="width: 100%; padding: 8px;" />
+        </label>
       `;
       const input = window.document.getElementById('docx-input') as HTMLInputElement;
       const styleInput = window.document.getElementById('docx-style-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('docx-comment-input') as HTMLInputElement;
+      const mediaInput = window.document.getElementById('docx-media-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'docx') {
           return;
@@ -221,11 +228,15 @@ function renderEditorControls(): void {
             addDocxComment(docxEditor, { id: 'playground-comment', author: 'Playground', text: commentInput.value });
           }
         }
+        if (mediaInput.value && docxEditor.document.stories[0]?.media[0]) {
+          setDocxStoryMediaTarget(docxEditor, 'document', 0, 0, mediaInput.value);
+        }
         renderPreview();
       };
       input.addEventListener('input', update);
       styleInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
+      mediaInput.addEventListener('input', update);
       break;
     }
     case 'xlsx': {

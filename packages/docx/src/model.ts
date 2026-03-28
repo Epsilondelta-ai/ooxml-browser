@@ -45,6 +45,14 @@ export interface DocxComment {
   text: string;
 }
 
+export interface DocxMedia {
+  relationshipId: string;
+  targetUri: string;
+  type: 'image' | 'embeddedObject';
+  name?: string;
+  progId?: string;
+}
+
 export type DocxBlock =
   | { kind: 'paragraph'; paragraph: DocxParagraph }
   | { kind: 'table'; table: DocxTable };
@@ -55,6 +63,7 @@ export interface DocxStory {
   blocks: DocxBlock[];
   paragraphs: DocxParagraph[];
   tables: DocxTable[];
+  media: DocxMedia[];
 }
 
 export interface DocxSectionPageSize {

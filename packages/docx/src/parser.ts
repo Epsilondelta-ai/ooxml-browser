@@ -1,6 +1,5 @@
-import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
-
-import type { DocxAbstractNumbering, DocxBlock, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRevision, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
+import { findElementsByLocalName, getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
+import type { DocxAbstractNumbering, DocxBlock, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxMedia, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRevision, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
 
 export function parseDocx(graph: PackageGraph): DocxDocument {
   const mainDocumentUri = graph.rootDocumentUri ?? '/word/document.xml';
@@ -59,7 +58,8 @@ function parseStory(graph: PackageGraph, uri: string, kind: DocxStory['kind']): 
     uri,
     blocks,
     paragraphs,
-    tables
+    tables,
+    media: parseStoryMedia(xml.document, relationshipsFor(graph, uri))
   };
 }
 
@@ -175,6 +175,42 @@ function parseTable(node: Record<string, unknown>): DocxTable {
       }))
     }))
   };
+}
+
+function parseStoryMedia(documentRoot: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>): DocxMedia[] {
+  const images = findElementsByLocalName(documentRoot, 'drawing').flatMap((drawing) => {
+    const blip = findElementsByLocalName(drawing, 'blip')[0];
+    const relationshipId = xmlAttr(blip, 'r:embed');
+    const target = relationshipId ? relationships.find((entry) => entry.id === relationshipId)?.resolvedTarget : undefined;
+    if (!relationshipId || !target) {
+      return [];
+    }
+
+    const docPr = findElementsByLocalName(drawing, 'docPr')[0];
+    return [{
+      relationshipId,
+      targetUri: target,
+      type: 'image' as const,
+      name: xmlAttr(docPr, 'name') ?? undefined
+    }];
+  });
+
+  const embeddedObjects = findElementsByLocalName(documentRoot, 'OLEObject').flatMap((objectNode) => {
+    const relationshipId = xmlAttr(objectNode, 'r:id') ?? xmlAttr(objectNode, 'ObjectID');
+    const target = relationshipId ? relationships.find((entry) => entry.id === relationshipId)?.resolvedTarget : undefined;
+    if (!relationshipId || !target) {
+      return [];
+    }
+
+    return [{
+      relationshipId,
+      targetUri: target,
+      type: 'embeddedObject' as const,
+      progId: xmlAttr(objectNode, 'ProgID') ?? xmlAttr(objectNode, 'progId') ?? undefined
+    }];
+  });
+
+  return [...images, ...embeddedObjects];
 }
 
 function parseComments(graph: PackageGraph, mainDocumentUri: string): DocxComment[] {
