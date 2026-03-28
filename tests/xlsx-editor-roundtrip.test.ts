@@ -38,8 +38,9 @@ describe('xlsx editor round-trips', () => {
   });
 
 
-  it('persists renamed worksheets and updates defined-name references', async () => {
+  it('persists renamed worksheets and updates dependent formula/defined-name references', async () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
+    setWorkbookCellFormula(editor, 'Sheet1', 'B1', 'SUM(Sheet1!A1:A2)', '30');
     setWorkbookSheetName(editor, 'Sheet1', 'Summary');
 
     const serialized = serializeOfficeDocument(editor.document);
@@ -48,6 +49,7 @@ describe('xlsx editor round-trips', () => {
 
     expect(reopened.sheets[0]?.name).toBe('Summary');
     expect(reopened.definedNames[0]?.reference).toBe('Summary!$A$1:$B$2');
+    expect(reopened.sheets[0]?.rows[0]?.cells[1]?.formula).toBe('SUM(Summary!A1:A2)');
     expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('name="Summary"');
   });
 

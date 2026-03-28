@@ -185,13 +185,33 @@ export function setWorkbookSheetName(editor: OfficeEditor<XlsxWorkbook>, current
     }
 
     sheet.name = nextName;
-    const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const pattern = new RegExp(`(^|[^A-Za-z0-9_])${escapedCurrent}!`, 'g');
+    const renameSheetRef = createSheetReferenceRewriter(currentName, nextName);
+
+    for (const workbookSheet of draft.sheets) {
+      for (const row of workbookSheet.rows) {
+        for (const cell of row.cells) {
+          if (cell.formula) {
+            cell.formula = renameSheetRef(cell.formula);
+          }
+        }
+      }
+    }
+
     draft.definedNames = draft.definedNames.map((definedName) => ({
       ...definedName,
-      reference: definedName.reference.replace(pattern, (match, prefix) => `${prefix}${nextName}!`)
+      reference: renameSheetRef(definedName.reference)
     }));
   });
+}
+
+function createSheetReferenceRewriter(currentName: string, nextName: string): (value: string) => string {
+  const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const quotedPattern = new RegExp(`'${escapedCurrent}'!`, 'g');
+  const barePattern = new RegExp(`(^|[^A-Za-z0-9_])${escapedCurrent}!`, 'g');
+
+  return (value: string) => value
+    .replace(quotedPattern, `'${nextName}'!`)
+    .replace(barePattern, (_match, prefix) => `${prefix}${nextName}!`);
 }
 
 export function setWorksheetFrozenPane(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, frozenPane: { xSplit?: number; ySplit?: number; topLeftCell?: string; state?: string } | undefined): XlsxWorkbook {
