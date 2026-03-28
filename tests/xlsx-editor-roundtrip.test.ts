@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPrintArea, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPrintArea, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -23,6 +23,18 @@ describe('xlsx editor round-trips', () => {
     expect(sheet?.tables).toEqual([{ name: 'RenamedTable', range: 'A1:B3', partUri: '/xl/tables/table1.xml' }]);
     expect(reopenedGraph.parts['/xl/comments1.xml']?.text).toContain('authorId="0"');
     expect(reopenedGraph.parts['/xl/tables/table1.xml']?.text).toContain('displayName="RenamedTable"');
+  });
+
+  it('persists deleted worksheet tables', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createCommentedXlsxFixture())));
+    removeWorksheetTable(editor, 'Sheet1', 'SalesTable');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.tables).toEqual([]);
+    expect(reopenedGraph.parts['/xl/worksheets/_rels/sheet1.xml.rels']?.text).not.toContain('/relationships/table');
   });
 
   it('persists edited workbook defined-name references', async () => {

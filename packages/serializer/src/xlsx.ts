@@ -1,4 +1,4 @@
-import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart, upsertRelationship } from '@ooxml/core';
+import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, setRelationshipsForSource, updatePackagePartText, xmlAttr, getParsedXmlPart, upsertRelationship } from '@ooxml/core';
 import { parseXlsx, type WorkbookSheet, type WorksheetCell, type XlsxComment, type XlsxDefinedName, type XlsxTable, type XlsxWorkbook } from '@ooxml/xlsx';
 
 export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
@@ -26,6 +26,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
 
   for (const sheet of workbook.sheets) {
     const originalSheet = originalWorkbook.sheets.find((entry) => entry.uri === sheet.uri);
+    syncWorksheetTableRelationships(graph, originalSheet, sheet);
     updatePackagePartText(
       graph,
       sheet.uri,
@@ -66,6 +67,26 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function syncWorksheetTableRelationships(graph: XlsxWorkbook['packageGraph'], originalSheet: WorkbookSheet | undefined, sheet: WorkbookSheet): void {
+  if (!originalSheet) {
+    return;
+  }
+
+  const retainedPartUris = new Set(sheet.tables.map((table) => table.partUri));
+  const existingRelationships = graph.relationshipsBySource[sheet.uri] ?? [];
+  const nextRelationships = existingRelationships.filter((relationship) => {
+    if (!relationship.type.includes('/table') || !relationship.resolvedTarget) {
+      return true;
+    }
+
+    return retainedPartUris.has(relationship.resolvedTarget);
+  });
+
+  if (nextRelationships.length !== existingRelationships.length) {
+    setRelationshipsForSource(graph, sheet.uri, nextRelationships);
+  }
 }
 
 function buildWorkbookXml(workbook: XlsxWorkbook, existingSource?: string): string {

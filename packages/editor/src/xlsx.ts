@@ -218,6 +218,17 @@ export function setWorksheetTableName(editor: OfficeEditor<XlsxWorkbook>, sheetN
   });
 }
 
+export function removeWorksheetTable(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, tableName: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    sheet.tables = sheet.tables.filter((entry) => entry.name !== tableName);
+  });
+}
+
 export function setWorkbookDefinedNameReference(editor: OfficeEditor<XlsxWorkbook>, name: string, reference: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const definedName = draft.definedNames.find((entry) => entry.name === name);
