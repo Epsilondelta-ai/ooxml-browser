@@ -1,1 +1,4 @@
-export const packageName = '@ooxml/core';
+export * from './types';
+export * from './utils';
+export * from './xml';
+export * from './opc';
