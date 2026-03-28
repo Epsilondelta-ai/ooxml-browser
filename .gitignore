@@ -1,0 +1,17 @@
+# Node / pnpm / build outputs
+node_modules/
+dist/
+coverage/
+.vite/
+.playwright/
+*.tsbuildinfo
+
+# OS/editor
+.DS_Store
+
+# OMX runtime state (keep durable planning/context artifacts)
+.omx/*
+!.omx/plans/
+!.omx/plans/**
+!.omx/context/
+!.omx/context/**
