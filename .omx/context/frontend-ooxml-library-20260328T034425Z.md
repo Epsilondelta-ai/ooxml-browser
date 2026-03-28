@@ -1,0 +1,22 @@
+# Context Snapshot: Frontend OOXML Library
+
+- **Task statement:** Build a complete frontend library that can parse, render, edit, and serialize OOXML-based Microsoft Office documents (.docx, .xlsx, .pptx) using the required workflow: documentation -> ralplan -> ralph execution -> verification.
+- **Desired outcome:** Release-ready browser-first monorepo with durable docs, plan artifacts, parser/render/editor/serializer architecture, examples/playground/benchmarks, staged commits, and verification evidence.
+- **Known facts / evidence:**
+  - Repository started essentially empty aside from OMX runtime files and the persisted prompt brief.
+  - Stage-1 documentation artifacts now exist under `docs/` and cover OPC packaging, docx/xlsx/pptx structure, shared subsystems, parsing, rendering, editing, API architecture, quality, verification, and operations.
+  - `.gitignore` tracks `.omx/plans/**` and `.omx/context/**` while ignoring runtime OMX state/logs.
+  - The library must be browser-first, round-trip-friendly, and production-meaningful.
+- **Constraints:**
+  - Do not implement before planning.
+  - Commit after each meaningful stage using Lore commit protocol.
+  - No scope reduction, no MVP framing, no warnings about difficulty.
+  - Final implementation must cover docs, code, tests, examples, benchmarks, and verification.
+- **Unknowns / open questions:**
+  - Exact initial package/module graph and how much functionality can be grounded in a first full execution wave while preserving future extensibility.
+  - Which optional subsystems (formula engine, advanced layout, animation playback) should be core vs extension packages in the first architecture pass.
+  - How to order parser/render/editor work so each stage stays working and verifiable.
+- **Likely codebase touchpoints:**
+  - `docs/**`
+  - `.omx/plans/**`
+  - future `packages/**`, `examples/**`, `playground/**`, `fixtures/**`, `benchmarks/**`, `tests/**`
