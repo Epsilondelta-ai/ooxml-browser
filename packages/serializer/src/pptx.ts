@@ -262,10 +262,13 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
     const conditionXml = node.triggerEvent || node.triggerDelay
       ? `<p:stCondLst><p:cond${node.triggerEvent ? ` evt="${escapeXml(node.triggerEvent)}"` : ''}${node.triggerDelay ? ` delay="${escapeXml(node.triggerDelay)}"` : ''}/></p:stCondLst>`
       : '';
+    const endConditionXml = node.endTriggerEvent || node.endTriggerDelay
+      ? `<p:endCondLst><p:cond${node.endTriggerEvent ? ` evt="${escapeXml(node.endTriggerEvent)}"` : ''}${node.endTriggerDelay ? ` delay="${escapeXml(node.endTriggerDelay)}"` : ''}/></p:endCondLst>`
+      : '';
     const targetXml = node.targetShapeId
       ? `<p:tgtEl><p:spTgt spid="${escapeXml(node.targetShapeId)}"/></p:tgtEl>`
       : '';
-    return `<p:${node.nodeType}><p:cTn${node.id ? ` id="${escapeXml(node.id)}"` : ''}${node.presetClass ? ` presetClass="${escapeXml(node.presetClass)}"` : ''}${node.presetId ? ` presetID="${escapeXml(node.presetId)}"` : ''}${node.duration ? ` dur="${escapeXml(node.duration)}"` : ''}${node.repeatCount ? ` repeatCount="${escapeXml(node.repeatCount)}"` : ''}${node.restart ? ` restart="${escapeXml(node.restart)}"` : ''}${node.fill ? ` fill="${escapeXml(node.fill)}"` : ''}${node.acceleration ? ` accel="${escapeXml(node.acceleration)}"` : ''}${node.deceleration ? ` decel="${escapeXml(node.deceleration)}"` : ''}/>${conditionXml}${targetXml}</p:${node.nodeType}>`;
+    return `<p:${node.nodeType}><p:cTn${node.id ? ` id="${escapeXml(node.id)}"` : ''}${node.presetClass ? ` presetClass="${escapeXml(node.presetClass)}"` : ''}${node.presetId ? ` presetID="${escapeXml(node.presetId)}"` : ''}${node.duration ? ` dur="${escapeXml(node.duration)}"` : ''}${node.repeatCount ? ` repeatCount="${escapeXml(node.repeatCount)}"` : ''}${node.restart ? ` restart="${escapeXml(node.restart)}"` : ''}${node.fill ? ` fill="${escapeXml(node.fill)}"` : ''}${node.acceleration ? ` accel="${escapeXml(node.acceleration)}"` : ''}${node.deceleration ? ` decel="${escapeXml(node.deceleration)}"` : ''}/>${conditionXml}${endConditionXml}${targetXml}</p:${node.nodeType}>`;
   }).join('');
   return `<p:timing><p:tnLst>${body}</p:tnLst></p:timing>`;
 }

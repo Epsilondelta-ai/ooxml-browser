@@ -53,6 +53,8 @@ export interface PresentationTimingNode {
   deceleration?: string;
   triggerEvent?: string;
   triggerDelay?: string;
+  endTriggerEvent?: string;
+  endTriggerDelay?: string;
   targetShapeId?: string;
 }
 
