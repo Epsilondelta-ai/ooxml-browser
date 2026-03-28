@@ -69,3 +69,19 @@ export function setDocxCommentAuthor(editor: OfficeEditor<DocxDocument>, comment
     }
   });
 }
+
+export function setDocxSectionLayout(editor: OfficeEditor<DocxDocument>, sectionIndex: number, layout: { pageSize?: { width: number; height: number }; pageMargins?: { top: number; right: number; bottom: number; left: number } }): DocxDocument {
+  return editor.transaction((draft) => {
+    const section = draft.sections[sectionIndex];
+    if (!section) {
+      return;
+    }
+
+    if (layout.pageSize) {
+      section.pageSize = { ...layout.pageSize };
+    }
+    if (layout.pageMargins) {
+      section.pageMargins = { ...layout.pageMargins };
+    }
+  });
+}

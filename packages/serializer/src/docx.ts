@@ -17,7 +17,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
     updatePackagePartText(
       graph,
       story.uri,
-      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks, graph.parts[story.uri]?.text, originalStoriesByUri.get(story.uri)),
+      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks, graph.parts[story.uri]?.text, originalStoriesByUri.get(story.uri), story.kind === 'document' ? originalDocument.sections[0] : undefined),
       contentType
     );
   }
@@ -56,8 +56,8 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   return serializePackageGraph(graph);
 }
 
-function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string, originalStory?: DocxDocument['stories'][number]): string {
-  if (existingSource && originalStory && canPatchDocxStory(kind, originalStory.blocks, blocks)) {
+function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string, originalStory?: DocxDocument['stories'][number], originalSection?: DocxSection): string {
+  if (existingSource && originalStory && canPatchDocxStory(kind, originalStory.blocks, blocks, originalSection, section)) {
     const operations = [];
     let paragraphOccurrence = 0;
     let originalParagraphIndex = 0;
@@ -145,12 +145,16 @@ function patchDocxCommentsXml(source: string, comments: DocxComment[]): string {
 }
 
 
-function canPatchDocxStory(kind: 'document' | 'header' | 'footer', originalBlocks: DocxDocument['stories'][number]['blocks'], blocks: DocxDocument['stories'][number]['blocks']): boolean {
+function canPatchDocxStory(kind: 'document' | 'header' | 'footer', originalBlocks: DocxDocument['stories'][number]['blocks'], blocks: DocxDocument['stories'][number]['blocks'], originalSection?: DocxSection, section?: DocxSection): boolean {
   if (kind !== 'document' && kind !== 'header' && kind !== 'footer') {
     return false;
   }
 
   if (originalBlocks.length !== blocks.length) {
+    return false;
+  }
+
+  if (kind === 'document' && JSON.stringify(originalSection ?? null) !== JSON.stringify(section ?? null)) {
     return false;
   }
 

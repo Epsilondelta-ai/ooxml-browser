@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxSectionLayout, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
@@ -45,6 +45,18 @@ describe('editor transactions', () => {
     expect(editor.document.stories.find((story) => story.kind === 'footer')?.paragraphs[0]?.text).toBe('Edited footer');
   });
 
+
+  it('updates docx section layout metadata through editor helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    setDocxSectionLayout(editor, 0, {
+      pageSize: { width: 12240, height: 15840 },
+      pageMargins: { top: 720, right: 960, bottom: 720, left: 960 }
+    });
+
+    expect(editor.document.sections[0]?.pageSize).toEqual({ width: 12240, height: 15840 });
+    expect(editor.document.sections[0]?.pageMargins).toEqual({ top: 720, right: 960, bottom: 720, left: 960 });
+  });
+
   it('updates docx table cells through story-aware helpers', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
     setDocxTableCellText(editor, 'document', 0, 0, 0, 1, 'Edited cell');
@@ -68,6 +80,19 @@ describe('serializer round-trips', () => {
 
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.comments[0]).toEqual({ id: '0', author: 'Codex', text: 'Updated comment' });
+  });
+
+
+  it('round-trips edited docx section layout metadata', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    setDocxSectionLayout(editor, 0, {
+      pageSize: { width: 12240, height: 15840 },
+      pageMargins: { top: 720, right: 960, bottom: 720, left: 960 }
+    });
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.sections[0]?.pageSize).toEqual({ width: 12240, height: 15840 });
+    expect(reopened.sections[0]?.pageMargins).toEqual({ top: 720, right: 960, bottom: 720, left: 960 });
   });
 
   it('round-trips edited docx table cell content', async () => {
