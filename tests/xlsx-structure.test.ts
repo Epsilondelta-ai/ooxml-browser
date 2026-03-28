@@ -14,6 +14,7 @@ describe('xlsx workbook structure helpers', () => {
     expect(resolveDefinedName(workbook, 'SalesRange')?.reference).toBe('Sheet1!$A$1:$B$2');
     expect(sheet?.mergedRanges).toEqual(['A1:B1']);
     expect(sheet?.frozenPane).toEqual({ ySplit: 1, topLeftCell: 'A2', state: 'frozen', xSplit: undefined });
+    expect(sheet?.selection).toEqual({ activeCell: 'B2', sqref: 'B2' });
     expect(extractFormulaReferences(sheet?.rows[0]?.cells[1]?.formula ?? '')).toEqual(['A1:A2']);
   });
 
@@ -22,6 +23,7 @@ describe('xlsx workbook structure helpers', () => {
     const html = renderOfficeDocumentToHtml(workbook);
 
     expect(html).toContain('data-top-left-cell="A2"');
+    expect(html).toContain('data-active-cell="B2"');
     expect(html).toContain('Merged: A1:B1');
   });
 });

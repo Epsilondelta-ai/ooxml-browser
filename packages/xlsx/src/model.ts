@@ -7,6 +7,11 @@ export interface XlsxFrozenPane {
   state?: string;
 }
 
+export interface XlsxSelection {
+  activeCell?: string;
+  sqref?: string;
+}
+
 export interface XlsxDefinedName {
   name: string;
   reference: string;
@@ -33,6 +38,7 @@ export interface WorkbookSheet {
   rows: WorksheetRow[];
   mergedRanges: string[];
   frozenPane?: XlsxFrozenPane;
+  selection?: XlsxSelection;
   tables: XlsxTable[];
   comments: XlsxComment[];
 }

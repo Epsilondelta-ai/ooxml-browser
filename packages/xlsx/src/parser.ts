@@ -78,6 +78,7 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
   const mergedRanges = xmlChildren<Record<string, unknown>>(mergeCells, 'mergeCell').map((mergeCell) => xmlAttr(mergeCell, 'ref') ?? '').filter(Boolean);
 
   const frozenPane = parseFrozenPane(xmlChild<Record<string, unknown>>(worksheet, 'sheetViews'));
+  const selection = parseSelection(xmlChild<Record<string, unknown>>(worksheet, 'sheetViews'));
 
   return {
     name,
@@ -87,6 +88,7 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
     rows,
     mergedRanges,
     frozenPane,
+    selection,
     tables: parseSheetTables(graph, uri),
     comments: parseSheetComments(graph, uri)
   };
@@ -212,6 +214,19 @@ function parseFrozenPane(sheetViews: Record<string, unknown> | undefined): XlsxF
     ySplit: (() => { const value = xmlAttr(pane, 'ySplit'); return value ? Number(value) : undefined; })(),
     topLeftCell: xmlAttr(pane, 'topLeftCell'),
     state: xmlAttr(pane, 'state')
+  };
+}
+
+function parseSelection(sheetViews: Record<string, unknown> | undefined): { activeCell?: string; sqref?: string } | undefined {
+  const sheetView = xmlChild<Record<string, unknown>>(sheetViews, 'sheetView');
+  const selection = xmlChild<Record<string, unknown>>(sheetView, 'selection');
+  if (!selection) {
+    return undefined;
+  }
+
+  return {
+    activeCell: xmlAttr(selection, 'activeCell') ?? undefined,
+    sqref: xmlAttr(selection, 'sqref') ?? undefined
   };
 }
 

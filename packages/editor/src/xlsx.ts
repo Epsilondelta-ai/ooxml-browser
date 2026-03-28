@@ -300,6 +300,15 @@ export function setWorksheetFrozenPane(editor: OfficeEditor<XlsxWorkbook>, sheet
   });
 }
 
+export function setWorksheetSelection(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, selection: { activeCell?: string; sqref?: string } | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (sheet) {
+      sheet.selection = selection;
+    }
+  });
+}
+
 export function setWorksheetMergedRanges(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mergedRanges: string[]): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

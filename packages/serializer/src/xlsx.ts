@@ -222,11 +222,30 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
       }
     }
 
+    if (sheet.selection) {
+      const operations = [] as Array<Parameters<typeof applyXmlPatchPlan>[1][number]>;
+      if (sheet.selection.activeCell) {
+        operations.push({ op: 'replaceAttribute', tagName: 'selection', targetAttr: 'activeCell', newValue: sheet.selection.activeCell });
+      }
+      if (sheet.selection.sqref) {
+        operations.push({ op: 'replaceAttribute', tagName: 'selection', targetAttr: 'sqref', newValue: sheet.selection.sqref });
+      }
+      if (operations.length > 0) {
+        next = applyXmlPatchPlan(next, operations);
+      }
+    }
+
     return next;
   }
 
   const paneXml = sheet.frozenPane
-    ? `<sheetViews><sheetView workbookViewId="0"><pane${sheet.frozenPane.xSplit !== undefined ? ` xSplit="${sheet.frozenPane.xSplit}"` : ''}${sheet.frozenPane.ySplit !== undefined ? ` ySplit="${sheet.frozenPane.ySplit}"` : ''}${sheet.frozenPane.topLeftCell ? ` topLeftCell="${escapeXml(sheet.frozenPane.topLeftCell)}"` : ''}${sheet.frozenPane.state ? ` state="${escapeXml(sheet.frozenPane.state)}"` : ''}/></sheetView></sheetViews>`
+    ? `<pane${sheet.frozenPane.xSplit !== undefined ? ` xSplit="${sheet.frozenPane.xSplit}"` : ''}${sheet.frozenPane.ySplit !== undefined ? ` ySplit="${sheet.frozenPane.ySplit}"` : ''}${sheet.frozenPane.topLeftCell ? ` topLeftCell="${escapeXml(sheet.frozenPane.topLeftCell)}"` : ''}${sheet.frozenPane.state ? ` state="${escapeXml(sheet.frozenPane.state)}"` : ''}/>`
+    : '';
+  const selectionXml = sheet.selection
+    ? `<selection${sheet.selection.activeCell ? ` activeCell="${escapeXml(sheet.selection.activeCell)}"` : ''}${sheet.selection.sqref ? ` sqref="${escapeXml(sheet.selection.sqref)}"` : ''}/>`
+    : '';
+  const sheetViewsXml = paneXml || selectionXml
+    ? `<sheetViews><sheetView workbookViewId="0">${paneXml}${selectionXml}</sheetView></sheetViews>`
     : '';
   const rows = sheet.rows.map((row) => `<row r="${row.index}">${row.cells.map((cell) => buildCellXml(cell, sharedStringIndices, useSharedStrings)).join('')}</row>`).join('');
   const mergeCellsXml = sheet.mergedRanges.length
@@ -234,7 +253,7 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
     : '';
 
   const worksheetOpenTag = preserveWorksheetOpenTag(existingSource) ?? '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n${worksheetOpenTag}${paneXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${worksheetOpenTag}${sheetViewsXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
 }
 
 function preserveWorksheetOpenTag(existingSource?: string): string | undefined {
