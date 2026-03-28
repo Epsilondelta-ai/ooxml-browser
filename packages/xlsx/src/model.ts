@@ -63,6 +63,7 @@ export interface XlsxThreadedComment {
 
 export interface XlsxChartDataLabels {
   position?: string;
+  separator?: string;
   showValue?: boolean;
   showCategoryName?: boolean;
   showSeriesName?: boolean;

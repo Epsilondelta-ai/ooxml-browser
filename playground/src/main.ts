@@ -253,6 +253,7 @@ function renderEditorControls(): void {
       const firstChartValueAxisTitle = firstSheet?.charts[0]?.valueAxisTitle ?? '';
       const firstChartValueAxisPosition = firstSheet?.charts[0]?.valueAxisPosition ?? '';
       const firstChartDataLabelPosition = firstSheet?.charts[0]?.dataLabels?.position ?? '';
+      const firstChartDataLabelSeparator = firstSheet?.charts[0]?.dataLabels?.separator ?? '';
       const firstChartDataLabelSeries = firstSheet?.charts[0]?.dataLabels?.showSeriesName;
       const firstChartDataLabelLegend = firstSheet?.charts[0]?.dataLabels?.showLegendKey;
       const firstChartDataLabelLeader = firstSheet?.charts[0]?.dataLabels?.showLeaderLines;
@@ -378,6 +379,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-dlbl-pos-input" value="${escapeHtml(firstChartDataLabelPosition)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Data label separator</div>
+          <input id="xlsx-chart-dlbl-separator-input" value="${escapeHtml(firstChartDataLabelSeparator)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show series name</div>
           <input id="xlsx-chart-dlbl-series-input" value="${escapeHtml(firstChartDataLabelSeries === undefined ? '' : String(firstChartDataLabelSeries))}" style="width: 100%; padding: 8px;" />
         </label>
@@ -450,6 +455,7 @@ function renderEditorControls(): void {
       const chartValueAxisInput = window.document.getElementById('xlsx-chart-val-axis-input') as HTMLInputElement;
       const chartValueAxisPositionInput = window.document.getElementById('xlsx-chart-val-axis-pos-input') as HTMLInputElement;
       const chartDataLabelPositionInput = window.document.getElementById('xlsx-chart-dlbl-pos-input') as HTMLInputElement;
+      const chartDataLabelSeparatorInput = window.document.getElementById('xlsx-chart-dlbl-separator-input') as HTMLInputElement;
       const chartDataLabelSeriesInput = window.document.getElementById('xlsx-chart-dlbl-series-input') as HTMLInputElement;
       const chartDataLabelLegendInput = window.document.getElementById('xlsx-chart-dlbl-legend-input') as HTMLInputElement;
       const chartDataLabelLeaderInput = window.document.getElementById('xlsx-chart-dlbl-leader-input') as HTMLInputElement;
@@ -702,6 +708,17 @@ function renderEditorControls(): void {
             }
           );
         }
+        if (chartDataLabelSeparatorInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartDataLabels(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            {
+              ...workbookEditor.document.sheets[0]?.charts[0]?.dataLabels,
+              separator: chartDataLabelSeparatorInput.value
+            }
+          );
+        }
         if ((chartDataLabelSeriesInput.value || chartDataLabelLegendInput.value || chartDataLabelLeaderInput.value) && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartDataLabelVisibility(
             workbookEditor,
@@ -815,6 +832,7 @@ function renderEditorControls(): void {
       chartValueAxisInput.addEventListener('input', update);
       chartValueAxisPositionInput.addEventListener('input', update);
       chartDataLabelPositionInput.addEventListener('input', update);
+      chartDataLabelSeparatorInput.addEventListener('input', update);
       chartDataLabelSeriesInput.addEventListener('input', update);
       chartDataLabelLegendInput.addEventListener('input', update);
       chartDataLabelLeaderInput.addEventListener('input', update);

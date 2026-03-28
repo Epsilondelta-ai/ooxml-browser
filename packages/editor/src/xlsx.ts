@@ -626,7 +626,7 @@ export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, 
   });
 }
 
-export function setWorksheetChartDataLabelVisibility(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, visibility: { showValue?: boolean; showCategoryName?: boolean; showSeriesName?: boolean; showLegendKey?: boolean; showLeaderLines?: boolean }): XlsxWorkbook {
+export function setWorksheetChartDataLabelVisibility(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, visibility: { showValue?: boolean; showCategoryName?: boolean; showSeriesName?: boolean; showLegendKey?: boolean; showLeaderLines?: boolean; separator?: string }): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
     const chart = sheet?.charts[chartIndex];

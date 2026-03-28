@@ -30,7 +30,7 @@ describe('xlsx chart relationships', () => {
       categoryAxisPosition: 'b',
       valueAxisTitle: 'Revenue',
       valueAxisPosition: 'l',
-      dataLabels: { position: 'outEnd', showValue: true, showCategoryName: false, showSeriesName: true, showLegendKey: false, showLeaderLines: true },
+      dataLabels: { position: 'outEnd', separator: ' · ', showValue: true, showCategoryName: false, showSeriesName: true, showLegendKey: false, showLeaderLines: true },
       series: [
         { name: 'North', invertIfNegative: false, markerSymbol: 'circle', markerSize: 8 },
         { name: 'South', invertIfNegative: true, markerSymbol: 'square', markerSize: 10 }
@@ -43,7 +43,7 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b val:Revenue valPos:l dLblPos:outEnd showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b val:Revenue valPos:l dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
   });
 
   it('parses doughnut-specific chart metadata', async () => {
