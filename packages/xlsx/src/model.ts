@@ -113,6 +113,8 @@ export interface XlsxChart {
   valueAxisCrossesAt?: number;
   valueAxisMinimum?: number;
   valueAxisMaximum?: number;
+  valueAxisMajorUnit?: number;
+  valueAxisMinorUnit?: number;
   dataLabels?: XlsxChartDataLabels;
   series: XlsxChartSeries[];
   seriesNames: string[];

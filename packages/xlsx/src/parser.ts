@@ -360,6 +360,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const valueAxisScalingNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'scaling')[0] : undefined;
     const valueAxisMinNode = valueAxisScalingNode ? findElementsByLocalName(valueAxisScalingNode, 'min')[0] : undefined;
     const valueAxisMaxNode = valueAxisScalingNode ? findElementsByLocalName(valueAxisScalingNode, 'max')[0] : undefined;
+    const valueAxisMajorUnitNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorUnit')[0] : undefined;
+    const valueAxisMinorUnitNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorUnit')[0] : undefined;
     const chartType = chartRoot
       ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart', 'bubbleChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
@@ -432,6 +434,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       valueAxisCrossesAt: (() => { const value = xmlAttr(valueAxisCrossesAtNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisMinimum: (() => { const value = xmlAttr(valueAxisMinNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisMaximum: (() => { const value = xmlAttr(valueAxisMaxNode, 'val'); return value ? Number(value) : undefined; })(),
+      valueAxisMajorUnit: (() => { const value = xmlAttr(valueAxisMajorUnitNode, 'val'); return value ? Number(value) : undefined; })(),
+      valueAxisMinorUnit: (() => { const value = xmlAttr(valueAxisMinorUnitNode, 'val'); return value ? Number(value) : undefined; })(),
       dataLabels: dataLabelsNode ? {
         position: xmlAttr(dataLabelPositionNode, 'val') ?? undefined,
         separator: dataLabelSeparatorNode ? xmlText(dataLabelSeparatorNode) || undefined : undefined,

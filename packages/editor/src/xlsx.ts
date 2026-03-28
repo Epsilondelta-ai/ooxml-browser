@@ -716,6 +716,26 @@ export function setWorksheetChartValueAxisMaximum(editor: OfficeEditor<XlsxWorkb
   });
 }
 
+export function setWorksheetChartValueAxisMajorUnit(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, majorUnit: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMajorUnit = majorUnit;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisMinorUnit(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, minorUnit: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMinorUnit = minorUnit;
+    }
+  });
+}
+
 export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, dataLabels: XlsxWorkbook['sheets'][number]['charts'][number]['dataLabels'] | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
