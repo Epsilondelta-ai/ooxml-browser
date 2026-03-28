@@ -110,6 +110,7 @@ export interface XlsxChart {
   categoryAxisMajorTickMark?: string;
   categoryAxisMinorTickMark?: string;
   categoryAxisTickLabelPosition?: string;
+  categoryAxisLabelOffset?: number;
   categoryAxisDeleted?: boolean;
   valueAxisTitle?: string;
   valueAxisPosition?: string;
