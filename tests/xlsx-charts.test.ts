@@ -20,6 +20,8 @@ describe('xlsx chart relationships', () => {
       chartType: 'barChart',
       title: 'Primary Chart',
       legendPosition: 'r',
+      categoryAxisTitle: 'Region',
+      valueAxisTitle: 'Revenue',
       seriesNames: ['North', 'South']
     });
   });
@@ -28,6 +30,6 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] legend:r {North, South} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] legend:r cat:Region val:Revenue {North, South} (/xl/charts/chart1.xml)');
   });
 });

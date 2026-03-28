@@ -18,12 +18,14 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetChartCategoryAxisTitle,
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartSeriesName,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
   setWorksheetChartType,
+  setWorksheetChartValueAxisTitle,
   setWorksheetMediaTarget,
   setWorksheetPageMargins,
   setWorksheetPageSetup,
@@ -217,6 +219,8 @@ function renderEditorControls(): void {
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       const firstChartTitle = firstSheet?.charts[0]?.title ?? '';
       const firstChartLegend = firstSheet?.charts[0]?.legendPosition ?? '';
+      const firstChartCategoryAxisTitle = firstSheet?.charts[0]?.categoryAxisTitle ?? '';
+      const firstChartValueAxisTitle = firstSheet?.charts[0]?.valueAxisTitle ?? '';
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
       editorControls.innerHTML = `
@@ -277,6 +281,14 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-legend-input" value="${escapeHtml(firstChartLegend)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Category axis title</div>
+          <input id="xlsx-chart-cat-axis-input" value="${escapeHtml(firstChartCategoryAxisTitle)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Value axis title</div>
+          <input id="xlsx-chart-val-axis-input" value="${escapeHtml(firstChartValueAxisTitle)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart series</div>
           <input id="xlsx-chart-series-input" value="${escapeHtml(firstChartSeriesName)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -303,6 +315,8 @@ function renderEditorControls(): void {
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const chartTitleInput = window.document.getElementById('xlsx-chart-title-input') as HTMLInputElement;
       const chartLegendInput = window.document.getElementById('xlsx-chart-legend-input') as HTMLInputElement;
+      const chartCategoryAxisInput = window.document.getElementById('xlsx-chart-cat-axis-input') as HTMLInputElement;
+      const chartValueAxisInput = window.document.getElementById('xlsx-chart-val-axis-input') as HTMLInputElement;
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
@@ -420,6 +434,22 @@ function renderEditorControls(): void {
             chartLegendInput.value
           );
         }
+        if (chartCategoryAxisInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartCategoryAxisTitle(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartCategoryAxisInput.value
+          );
+        }
+        if (chartValueAxisInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartValueAxisTitle(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartValueAxisInput.value
+          );
+        }
         if (chartSeriesInput.value && workbookEditor.document.sheets[0]?.charts[0]?.seriesNames[0] !== undefined) {
           setWorksheetChartSeriesName(
             workbookEditor,
@@ -462,6 +492,8 @@ function renderEditorControls(): void {
       chartTargetInput.addEventListener('input', update);
       chartTitleInput.addEventListener('input', update);
       chartLegendInput.addEventListener('input', update);
+      chartCategoryAxisInput.addEventListener('input', update);
+      chartValueAxisInput.addEventListener('input', update);
       chartSeriesInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);

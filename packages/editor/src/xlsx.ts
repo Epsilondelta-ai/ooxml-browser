@@ -407,6 +407,26 @@ export function setWorksheetChartLegendPosition(editor: OfficeEditor<XlsxWorkboo
   });
 }
 
+export function setWorksheetChartCategoryAxisTitle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, title: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisTitle = title;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisTitle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, title: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisTitle = title;
+    }
+  });
+}
+
 export function setWorksheetMediaTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mediaIndex: number, targetUri: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
