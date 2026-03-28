@@ -159,12 +159,13 @@ describe('serializer round-trips', () => {
     expect(reopened.slides[0]?.notesText).toBe('Custom target note');
   });
 
-  it('does not persist notes edits when the source package has no notes part', async () => {
+  it('creates and persists notes edits when the source package has no notes part', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture({ withNotes: false }))));
-    setPresentationNotesText(editor, 0, 'Ignored note');
+    setPresentationNotesText(editor, 0, 'Created note');
 
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
-    expect(reopened.slides[0]?.notesText).toBe('');
+    expect(reopened.slides[0]?.notesUri).toBe('/ppt/notesSlides/notesSlide1.xml');
+    expect(reopened.slides[0]?.notesText).toBe('Created note');
   });
 
   it('round-trips edited pptx content', async () => {

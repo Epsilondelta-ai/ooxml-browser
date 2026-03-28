@@ -1,3 +1,4 @@
+import { relationshipsFor, updatePackagePartText, upsertRelationship } from '@ooxml/core';
 import type { PresentationDocument } from '@ooxml/pptx';
 
 import type { OfficeEditor } from './types';
@@ -18,11 +19,12 @@ export function setPresentationNotesText(editor: OfficeEditor<PresentationDocume
       return;
     }
 
-    const notesUri = slide.notesUri;
-    if (!notesUri || !draft.packageGraph.parts[notesUri]) {
+    const notesUri = ensurePresentationNotesPart(draft, slideIndex);
+    if (!notesUri) {
       return;
     }
 
+    slide.notesUri = notesUri;
     slide.notesText = text;
   });
 }
@@ -107,4 +109,70 @@ export function setPresentationSize(editor: OfficeEditor<PresentationDocument>, 
   return editor.transaction((draft) => {
     draft.size = { ...size };
   });
+}
+
+function ensurePresentationNotesPart(document: PresentationDocument, slideIndex: number): string | undefined {
+  const slide = document.slides[slideIndex];
+  if (!slide) {
+    return undefined;
+  }
+
+  const existingUri = slide.notesUri;
+  if (existingUri && document.packageGraph.parts[existingUri]) {
+    return existingUri;
+  }
+
+  const notesUri = nextNotesUri(document.packageGraph.parts, slideIndex);
+  const slideRelationships = relationshipsFor(document.packageGraph, slide.uri);
+  const notesRelationship = slideRelationships.find((relationship) => relationship.type.includes('/notesSlide'));
+  const relationshipId = notesRelationship?.id ?? nextRelationshipId(slideRelationships);
+
+  updatePackagePartText(
+    document.packageGraph,
+    notesUri,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<p:notes xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:bodyPr/><a:p><a:r><a:t></a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:notes>`,
+    'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml'
+  );
+  upsertRelationship(document.packageGraph, slide.uri, {
+    id: relationshipId,
+    type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide',
+    target: relativeRelationshipTarget(slide.uri, notesUri),
+    targetMode: 'Internal'
+  });
+
+  return notesUri;
+}
+
+function nextNotesUri(parts: PresentationDocument['packageGraph']['parts'], slideIndex: number): string {
+  let candidateIndex = slideIndex + 1;
+  let candidate = `/ppt/notesSlides/notesSlide${candidateIndex}.xml`;
+  while (parts[candidate]) {
+    candidateIndex += 1;
+    candidate = `/ppt/notesSlides/notesSlide${candidateIndex}.xml`;
+  }
+  return candidate;
+}
+
+function nextRelationshipId(relationships: ReturnType<typeof relationshipsFor>): string {
+  let candidateIndex = relationships.length + 1;
+  let candidate = `rId${candidateIndex}`;
+  const existingIds = new Set(relationships.map((relationship) => relationship.id));
+  while (existingIds.has(candidate)) {
+    candidateIndex += 1;
+    candidate = `rId${candidateIndex}`;
+  }
+  return candidate;
+}
+
+function relativeRelationshipTarget(sourceUri: string, targetUri: string): string {
+  const sourceSegments = sourceUri.replace(/^\//, '').split('/');
+  sourceSegments.pop();
+  const targetSegments = targetUri.replace(/^\//, '').split('/');
+
+  while (sourceSegments.length > 0 && targetSegments.length > 0 && sourceSegments[0] === targetSegments[0]) {
+    sourceSegments.shift();
+    targetSegments.shift();
+  }
+
+  return `${sourceSegments.map(() => '..').join('/')}${sourceSegments.length ? '/' : ''}${targetSegments.join('/')}`;
 }
