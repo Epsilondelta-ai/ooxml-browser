@@ -124,6 +124,7 @@ export interface XlsxChart {
   valueAxisMinorTickMark?: string;
   valueAxisTickLabelPosition?: string;
   valueAxisDeleted?: boolean;
+  valueAxisDisplayUnits?: string;
   dataLabels?: XlsxChartDataLabels;
   series: XlsxChartSeries[];
   seriesNames: string[];
