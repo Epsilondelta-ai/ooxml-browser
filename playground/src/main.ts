@@ -446,7 +446,7 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-series-explosion-input" value="${escapeHtml(String(firstChartSeriesExplosion))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
-          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First image target</div>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First media/object target</div>
           <input id="xlsx-media-target-input" value="${escapeHtml(firstMediaTarget)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>

@@ -129,7 +129,9 @@ function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sh
   for (const media of sheet.media) {
     upsertRelationship(graph, media.drawingUri, {
       id: media.relationshipId,
-      type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+      type: media.type === 'embeddedObject'
+        ? 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject'
+        : 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
       target: relativeRelationshipTarget(media.drawingUri, media.targetUri),
       targetMode: 'Internal'
     });

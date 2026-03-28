@@ -449,8 +449,7 @@ function parseDrawingMedia(graph: PackageGraph, drawingUri: string): XlsxMedia[]
   }
 
   const drawingRelationships = relationshipsFor(graph, drawingUri);
-  const pictures = findElementsByLocalName(xml.document, 'pic');
-  return pictures.flatMap((picture) => {
+  const pictures = findElementsByLocalName(xml.document, 'pic').flatMap((picture) => {
     const blip = findElementsByLocalName(picture, 'blip')[0];
     const relationshipId = xmlAttr(blip, 'r:embed');
     const target = relationshipId ? drawingRelationships.find((entry) => entry.id === relationshipId)?.resolvedTarget : undefined;
@@ -467,6 +466,27 @@ function parseDrawingMedia(graph: PackageGraph, drawingUri: string): XlsxMedia[]
       name: xmlAttr(nonVisual, 'name')
     }];
   });
+
+  const embeddedObjects = findElementsByLocalName(xml.document, 'graphicFrame').flatMap((frame) => {
+    const nonVisual = findElementsByLocalName(frame, 'cNvPr')[0];
+    const oleObject = findElementsByLocalName(frame, 'oleObject')[0];
+    const relationshipId = xmlAttr(oleObject, 'r:id');
+    const target = relationshipId ? drawingRelationships.find((entry) => entry.id === relationshipId)?.resolvedTarget : undefined;
+    if (!relationshipId || !target) {
+      return [];
+    }
+
+    return [{
+      relationshipId,
+      drawingUri,
+      targetUri: target,
+      type: 'embeddedObject' as const,
+      name: xmlAttr(nonVisual, 'name'),
+      progId: xmlAttr(oleObject, 'progId') ?? undefined
+    }];
+  });
+
+  return [...pictures, ...embeddedObjects];
 }
 
 function parseSheetComments(graph: PackageGraph, sheetUri: string): XlsxComment[] {

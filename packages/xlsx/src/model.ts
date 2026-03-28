@@ -116,8 +116,9 @@ export interface XlsxMedia {
   relationshipId: string;
   drawingUri: string;
   targetUri: string;
-  type: 'image';
+  type: 'image' | 'embeddedObject';
   name?: string;
+  progId?: string;
 }
 
 export interface WorkbookSheet {

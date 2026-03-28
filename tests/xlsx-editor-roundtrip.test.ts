@@ -5,7 +5,7 @@ import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, 
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createBubbleXlsxFixture, createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createPieChartedXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
+import { createBubbleXlsxFixture, createChartedXlsxFixture, createCommentedXlsxFixture, createEmbeddedObjectXlsxFixture, createMediaXlsxFixture, createPieChartedXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -517,6 +517,20 @@ describe('xlsx editor round-trips', () => {
     expect(reopened.sheets[0]?.media[0]?.targetUri).toBe('/xl/media/image2.png');
     expect(reopenedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toContain('../media/image2.png');
     expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
+  });
+
+  it('retargets worksheet embedded-object relationships through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createEmbeddedObjectXlsxFixture())));
+    setWorksheetMediaTarget(editor, 'Sheet1', 0, '/xl/embeddings/oleObject2.bin');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.media[0]?.targetUri).toBe('/xl/embeddings/oleObject2.bin');
+    expect(reopened.sheets[0]?.media[0]?.type).toBe('embeddedObject');
+    expect(reopened.sheets[0]?.media[0]?.progId).toBe('Excel.Sheet.12');
+    expect(reopenedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toContain('../embeddings/oleObject2.bin');
   });
 
   it('persists threaded comment text and person metadata through save flows', async () => {
