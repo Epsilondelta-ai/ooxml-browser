@@ -25,10 +25,11 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   }
 
   for (const sheet of workbook.sheets) {
+    const originalSheet = originalWorkbook.sheets.find((entry) => entry.uri === sheet.uri);
     updatePackagePartText(
       graph,
       sheet.uri,
-      buildWorksheetXml(sheet, sharedStringPool.indexByValue, hasSharedStringsPart, graph.parts[sheet.uri]?.text),
+      buildWorksheetXml(sheet, sharedStringPool.indexByValue, hasSharedStringsPart, graph.parts[sheet.uri]?.text, originalSheet),
       'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
     );
 
@@ -154,8 +155,8 @@ function sharedStringSignature(workbook: XlsxWorkbook): Array<{ reference: strin
 }
 
 
-function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean, existingSource?: string): string {
-  if (existingSource && canPatchWorksheet(sheet)) {
+function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean, existingSource?: string, originalSheet?: WorkbookSheet): string {
+  if (existingSource && originalSheet && canPatchWorksheet(sheet, originalSheet)) {
     let next = existingSource;
     for (const row of sheet.rows) {
       for (const cell of row.cells) {
@@ -205,7 +206,12 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
     ? `<mergeCells count="${sheet.mergedRanges.length}">${sheet.mergedRanges.map((range) => `<mergeCell ref="${escapeXml(range)}"/>`).join('')}</mergeCells>`
     : '';
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${paneXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
+  const worksheetOpenTag = preserveWorksheetOpenTag(existingSource) ?? '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${worksheetOpenTag}${paneXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
+}
+
+function preserveWorksheetOpenTag(existingSource?: string): string | undefined {
+  return existingSource?.match(/<worksheet\b[^>]*>/)?.[0];
 }
 
 function buildCellXml(cell: WorksheetCell, sharedStringIndices: Map<string, number>, useSharedStrings: boolean): string {
@@ -262,8 +268,10 @@ function buildCommentsXml(comments: XlsxComment[], existingSource?: string): str
   return `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${authorsXml}<commentList>${commentsXml}</commentList></comments>`;
 }
 
-function canPatchWorksheet(sheet: WorkbookSheet): boolean {
-  return sheet.rows.every((row) => row.cells.length > 0);
+function canPatchWorksheet(sheet: WorkbookSheet, originalSheet: WorkbookSheet): boolean {
+  return sheet.rows.every((row) => row.cells.length > 0)
+    && sheet.rows.length === originalSheet.rows.length
+    && JSON.stringify(sheet.mergedRanges) === JSON.stringify(originalSheet.mergedRanges);
 }
 
 function shouldUseSharedString(cell: WorksheetCell): boolean {

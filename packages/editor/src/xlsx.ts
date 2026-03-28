@@ -136,3 +136,12 @@ export function setWorksheetFrozenPane(editor: OfficeEditor<XlsxWorkbook>, sheet
     }
   });
 }
+
+export function setWorksheetMergedRanges(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mergedRanges: string[]): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (sheet) {
+      sheet.mergedRanges = [...mergedRanges];
+    }
+  });
+}
