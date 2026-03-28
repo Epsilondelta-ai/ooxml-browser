@@ -261,7 +261,10 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
         colorSpace: xmlAttr(node, 'clrSpc') ?? undefined,
         colorDirection: xmlAttr(node, 'dir') ?? undefined,
         motionOrigin: xmlAttr(node, 'origin') ?? undefined,
-        motionPath: xmlAttr(node, 'path') ?? undefined
+        motionPath: xmlAttr(node, 'path') ?? undefined,
+        motionPathEditMode: xmlAttr(node, 'pathEditMode') ?? undefined,
+        commandName: xmlAttr(node, 'cmd') ?? undefined,
+        commandType: xmlAttr(node, 'type') ?? undefined
       });
     }
   }

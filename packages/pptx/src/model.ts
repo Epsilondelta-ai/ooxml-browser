@@ -70,6 +70,9 @@ export interface PresentationTimingNode {
   colorDirection?: string;
   motionOrigin?: string;
   motionPath?: string;
+  motionPathEditMode?: string;
+  commandName?: string;
+  commandType?: string;
 }
 
 export interface PresentationTiming {

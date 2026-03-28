@@ -174,7 +174,7 @@ export function setPresentationTransition(editor: OfficeEditor<PresentationDocum
   });
 }
 
-export function setPresentationTimingNodes(editor: OfficeEditor<PresentationDocument>, slideIndex: number, nodes: Array<{ nodeType: string; concurrent?: boolean; nextAction?: string; previousAction?: string; presetClass?: string; presetId?: string; id?: string; duration?: string; repeatDuration?: string; repeatCount?: string; restart?: string; fill?: string; autoReverse?: boolean; acceleration?: string; deceleration?: string; triggerEvent?: string; triggerDelay?: string; triggerShapeId?: string; endTriggerEvent?: string; endTriggerDelay?: string; endTriggerShapeId?: string; targetShapeId?: string; colorSpace?: string; colorDirection?: string; motionOrigin?: string; motionPath?: string }>): PresentationDocument {
+export function setPresentationTimingNodes(editor: OfficeEditor<PresentationDocument>, slideIndex: number, nodes: Array<{ nodeType: string; concurrent?: boolean; nextAction?: string; previousAction?: string; presetClass?: string; presetId?: string; id?: string; duration?: string; repeatDuration?: string; repeatCount?: string; restart?: string; fill?: string; autoReverse?: boolean; acceleration?: string; deceleration?: string; triggerEvent?: string; triggerDelay?: string; triggerShapeId?: string; endTriggerEvent?: string; endTriggerDelay?: string; endTriggerShapeId?: string; targetShapeId?: string; colorSpace?: string; colorDirection?: string; motionOrigin?: string; motionPath?: string; motionPathEditMode?: string; commandName?: string; commandType?: string }>): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];
     if (slide) {
