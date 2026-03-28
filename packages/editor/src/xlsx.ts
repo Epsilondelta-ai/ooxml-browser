@@ -209,7 +209,7 @@ export function upsertWorkbookThreadedCommentPerson(editor: OfficeEditor<XlsxWor
   });
 }
 
-export function upsertWorksheetThreadedComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string, personId: string): XlsxWorkbook {
+export function upsertWorksheetThreadedComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string, personId: string, parentId?: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
     if (!sheet) {
@@ -222,6 +222,7 @@ export function upsertWorksheetThreadedComment(editor: OfficeEditor<XlsxWorkbook
       existing.text = text;
       existing.personId = personId;
       existing.author = author;
+      existing.parentId = parentId;
       return;
     }
 
@@ -229,6 +230,7 @@ export function upsertWorksheetThreadedComment(editor: OfficeEditor<XlsxWorkbook
       id: `threaded-${reference.toLowerCase()}`,
       reference,
       personId,
+      parentId,
       text,
       author
     });
@@ -245,6 +247,16 @@ export function setWorksheetThreadedCommentText(editor: OfficeEditor<XlsxWorkboo
   });
 }
 
+export function setWorksheetThreadedCommentTextById(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, commentId: string, text: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const comment = sheet?.threadedComments.find((entry) => entry.id === commentId);
+    if (comment) {
+      comment.text = text;
+    }
+  });
+}
+
 export function setWorksheetThreadedCommentPerson(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, personId: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
@@ -252,6 +264,37 @@ export function setWorksheetThreadedCommentPerson(editor: OfficeEditor<XlsxWorkb
     if (comment) {
       comment.personId = personId;
       comment.author = draft.threadedCommentPersons.find((entry) => entry.id === personId)?.displayName;
+    }
+  });
+}
+
+export function setWorksheetThreadedCommentPersonById(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, commentId: string, personId: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const comment = sheet?.threadedComments.find((entry) => entry.id === commentId);
+    if (comment) {
+      comment.personId = personId;
+      comment.author = draft.threadedCommentPersons.find((entry) => entry.id === personId)?.displayName;
+    }
+  });
+}
+
+export function setWorksheetThreadedCommentParent(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, parentId: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const comment = sheet?.threadedComments.find((entry) => entry.reference === reference);
+    if (comment) {
+      comment.parentId = parentId;
+    }
+  });
+}
+
+export function setWorksheetThreadedCommentParentById(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, commentId: string, parentId: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const comment = sheet?.threadedComments.find((entry) => entry.id === commentId);
+    if (comment) {
+      comment.parentId = parentId;
     }
   });
 }

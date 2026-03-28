@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisTitle, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisTitle, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createStructuredXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
+import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -394,6 +394,22 @@ describe('xlsx editor round-trips', () => {
     ]);
     expect(reopenedGraph.parts['/xl/worksheets/_rels/sheet1.xml.rels']?.text).toContain('/threadedComment');
     expect(reopenedGraph.parts['/xl/threadedComments/threadedComment1.xml']?.text).toContain('Escalate follow-up');
+  });
+
+  it('persists threaded reply-parent metadata through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createThreadedRepliesXlsxFixture())));
+    setWorksheetThreadedCommentParentById(editor, 'Sheet1', 'thread-2', 'thread-1');
+    setWorksheetThreadedCommentTextById(editor, 'Sheet1', 'thread-2', 'Need legal review');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.threadedComments).toEqual([
+      { id: 'thread-1', reference: 'A1', personId: 'person-1', text: 'Discuss pipeline', author: 'Avery' },
+      { id: 'thread-2', reference: 'A1', personId: 'person-1', parentId: 'thread-1', text: 'Need legal review', author: 'Avery' }
+    ]);
+    expect(reopenedGraph.parts['/xl/threadedComments/threadedComment1.xml']?.text).toContain('parentId="thread-1"');
   });
 });
 

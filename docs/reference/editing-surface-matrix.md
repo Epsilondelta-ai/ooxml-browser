@@ -51,6 +51,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment delete | `removeWorksheetComment` | Persisted | Persists an empty comments part when the last worksheet comment is removed. |
 | Threaded comment person | `upsertWorkbookThreadedCommentPerson` | Persisted | Preserves workbook-level modern comment people metadata. |
 | Threaded comment text/person | `setWorksheetThreadedCommentText`, `setWorksheetThreadedCommentPerson` | Persisted | Rewrites threaded comment part entries while resolving person display names from workbook people metadata. |
+| Threaded comment reply parent | `setWorksheetThreadedCommentParent`, `setWorksheetThreadedCommentParentById` | Persisted | Preserves reply-chain `parentId` metadata for modern threaded comments. |
 | Threaded comment create/update | `upsertWorksheetThreadedComment` | Persisted | Creates a threaded comments part and sheet relationship on demand when missing. |
 | Threaded comment delete | `removeWorksheetThreadedComment` | Persisted | Persists an empty threaded-comments part when the last threaded comment is removed. |
 | Table name | `setWorksheetTableName` | Persisted | Table-part serializer keeps `name`/`displayName` aligned. |
@@ -83,7 +84,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 
 ## Gaps that remain outside the public editing surface
 
-- XLSX deeper chart internals and threaded-comment reply metadata
+- XLSX deeper chart internals
 - PPTX richer animation graph editing beyond core timing/start-condition/target metadata
 - Relationship-safe embedded-object retargeting across all formats
 

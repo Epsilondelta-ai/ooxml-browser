@@ -564,7 +564,7 @@ function buildCommentsXml(comments: XlsxComment[], existingSource?: string): str
 }
 
 function buildThreadedCommentsXml(comments: XlsxThreadedComment[]): string {
-  const commentsXml = comments.map((comment) => `<threadedComment ref="${escapeXml(comment.reference)}" personId="${escapeXml(comment.personId)}" id="${escapeXml(comment.id)}"><text>${escapeXml(comment.text)}</text></threadedComment>`).join('');
+  const commentsXml = comments.map((comment) => `<threadedComment ref="${escapeXml(comment.reference)}" personId="${escapeXml(comment.personId)}" id="${escapeXml(comment.id)}"${comment.parentId ? ` parentId="${escapeXml(comment.parentId)}"` : ''}><text>${escapeXml(comment.text)}</text></threadedComment>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<ThreadedComments xmlns="http://schemas.microsoft.com/office/spreadsheetml/2018/threadedcomments">${commentsXml}</ThreadedComments>`;
 }
 

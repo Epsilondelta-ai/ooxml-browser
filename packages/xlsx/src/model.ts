@@ -56,6 +56,7 @@ export interface XlsxThreadedComment {
   id: string;
   reference: string;
   personId: string;
+  parentId?: string;
   text: string;
   author?: string;
 }

@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parseXlsx } from '@ooxml/xlsx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createThreadedXlsxFixture } from './fixture-builders';
+import { createThreadedRepliesXlsxFixture, createThreadedXlsxFixture } from './fixture-builders';
 
 describe('xlsx threaded comments', () => {
   it('parses workbook persons and worksheet threaded comments', async () => {
@@ -23,5 +23,14 @@ describe('xlsx threaded comments', () => {
     expect(html).toContain('data-threaded-ref="A1"');
     expect(html).toContain('Discuss pipeline');
     expect(html).toContain('Avery');
+  });
+
+  it('parses threaded reply metadata', async () => {
+    const workbook = parseXlsx(await openPackage(createThreadedRepliesXlsxFixture()));
+
+    expect(workbook.sheets[0]?.threadedComments).toEqual([
+      { id: 'thread-1', reference: 'A1', personId: 'person-1', text: 'Discuss pipeline', author: 'Avery' },
+      { id: 'thread-2', reference: 'A1', personId: 'person-1', parentId: 'thread-1', text: 'Need finance review', author: 'Avery' }
+    ]);
   });
 });

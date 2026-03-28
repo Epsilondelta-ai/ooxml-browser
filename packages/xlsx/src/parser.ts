@@ -447,6 +447,7 @@ function parseSheetThreadedComments(graph: PackageGraph, sheetUri: string, threa
       id: xmlAttr(commentNode, 'id') ?? `threaded-${index}`,
       reference: xmlAttr(commentNode, 'ref') ?? '',
       personId,
+      parentId: xmlAttr(commentNode, 'parentId') ?? undefined,
       text: findElementsByLocalName(commentNode, 'text').map((node) => xmlText(node)).join(''),
       author: threadedCommentPersons.find((person) => person.id === personId)?.displayName
     };
