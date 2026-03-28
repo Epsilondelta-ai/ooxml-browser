@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T11:48:22.646Z",
+  "generatedAt": "2026-03-28T11:54:05.552Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.237,
-      "parseMs": 0.506,
-      "renderMs": 0.157,
-      "serializeMs": 6.159,
+      "openMs": 4.001,
+      "parseMs": 0.418,
+      "renderMs": 0.149,
+      "serializeMs": 6.041,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.359,
-      "parseMs": 0.541,
-      "renderMs": 0.139,
-      "serializeMs": 0.815,
+      "openMs": 9.918,
+      "parseMs": 0.497,
+      "renderMs": 0.135,
+      "serializeMs": 0.764,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 11.401,
-      "parseMs": 0.555,
-      "renderMs": 0.106,
-      "serializeMs": 0.701,
+      "openMs": 10.86,
+      "parseMs": 0.459,
+      "renderMs": 0.092,
+      "serializeMs": 0.529,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.246,
-      "parseMs": 0.236,
-      "renderMs": 0.01,
-      "serializeMs": 0.209,
+      "openMs": 0.357,
+      "parseMs": 0.239,
+      "renderMs": 0.012,
+      "serializeMs": 0.232,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.355,
-      "parseMs": 0.298,
-      "renderMs": 0.02,
-      "serializeMs": 0.462,
+      "openMs": 0.243,
+      "parseMs": 0.277,
+      "renderMs": 0.014,
+      "serializeMs": 0.418,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.488,
-      "parseMs": 0.479,
+      "openMs": 0.446,
+      "parseMs": 0.499,
       "renderMs": 0.013,
-      "serializeMs": 0.579,
+      "serializeMs": 0.567,
       "outputBytes": 3931,
       "htmlLength": 659
     }
