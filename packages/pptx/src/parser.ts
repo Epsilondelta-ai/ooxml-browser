@@ -210,6 +210,8 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
         repeatCount: xmlAttr(commonTiming, 'repeatCount') ?? xmlAttr(node, 'repeatCount') ?? undefined,
         restart: xmlAttr(commonTiming, 'restart') ?? xmlAttr(node, 'restart') ?? undefined,
         fill: xmlAttr(commonTiming, 'fill') ?? xmlAttr(node, 'fill') ?? undefined,
+        acceleration: xmlAttr(commonTiming, 'accel') ?? xmlAttr(node, 'accel') ?? undefined,
+        deceleration: xmlAttr(commonTiming, 'decel') ?? xmlAttr(node, 'decel') ?? undefined,
         triggerEvent: xmlAttr(startCondition, 'evt') ?? undefined,
         triggerDelay: xmlAttr(startCondition, 'delay') ?? undefined,
         targetShapeId: xmlAttr(shapeTarget, 'spid') ?? undefined
