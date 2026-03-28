@@ -356,6 +356,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const categoryAxisMajorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'majorTickMark')[0] : undefined;
     const categoryAxisMinorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'minorTickMark')[0] : undefined;
     const categoryAxisTickLabelPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'tickLblPos')[0] : undefined;
+    const categoryAxisDeleteNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'delete')[0] : undefined;
     const valueAxisTitleNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'title')[0] : undefined;
     const valueAxisPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'axPos')[0] : undefined;
     const valueAxisCrossesNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'crosses')[0] : undefined;
@@ -368,6 +369,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const valueAxisMajorTickMarkNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorTickMark')[0] : undefined;
     const valueAxisMinorTickMarkNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorTickMark')[0] : undefined;
     const valueAxisTickLabelPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'tickLblPos')[0] : undefined;
+    const valueAxisDeleteNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'delete')[0] : undefined;
     const chartType = chartRoot
       ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart', 'bubbleChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
@@ -437,6 +439,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       categoryAxisMajorTickMark: xmlAttr(categoryAxisMajorTickMarkNode, 'val') ?? undefined,
       categoryAxisMinorTickMark: xmlAttr(categoryAxisMinorTickMarkNode, 'val') ?? undefined,
       categoryAxisTickLabelPosition: xmlAttr(categoryAxisTickLabelPositionNode, 'val') ?? undefined,
+      categoryAxisDeleted: xmlAttr(categoryAxisDeleteNode, 'val') === '1' ? true : xmlAttr(categoryAxisDeleteNode, 'val') === '0' ? false : undefined,
       valueAxisTitle: valueAxisTitleNode ? findElementsByLocalName(valueAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
       valueAxisPosition: xmlAttr(valueAxisPositionNode, 'val') ?? undefined,
       valueAxisCrosses: xmlAttr(valueAxisCrossesNode, 'val') ?? undefined,
@@ -448,6 +451,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       valueAxisMajorTickMark: xmlAttr(valueAxisMajorTickMarkNode, 'val') ?? undefined,
       valueAxisMinorTickMark: xmlAttr(valueAxisMinorTickMarkNode, 'val') ?? undefined,
       valueAxisTickLabelPosition: xmlAttr(valueAxisTickLabelPositionNode, 'val') ?? undefined,
+      valueAxisDeleted: xmlAttr(valueAxisDeleteNode, 'val') === '1' ? true : xmlAttr(valueAxisDeleteNode, 'val') === '0' ? false : undefined,
       dataLabels: dataLabelsNode ? {
         position: xmlAttr(dataLabelPositionNode, 'val') ?? undefined,
         separator: dataLabelSeparatorNode ? xmlText(dataLabelSeparatorNode) || undefined : undefined,

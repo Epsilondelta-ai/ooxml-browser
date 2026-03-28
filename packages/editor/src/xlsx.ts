@@ -696,6 +696,16 @@ export function setWorksheetChartCategoryAxisTickLabelPosition(editor: OfficeEdi
   });
 }
 
+export function setWorksheetChartCategoryAxisDeleted(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, deleted: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisDeleted = deleted;
+    }
+  });
+}
+
 export function setWorksheetChartValueAxisPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, position: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
@@ -792,6 +802,16 @@ export function setWorksheetChartValueAxisTickLabelPosition(editor: OfficeEditor
     const chart = sheet?.charts[chartIndex];
     if (chart) {
       chart.valueAxisTickLabelPosition = tickLabelPosition;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisDeleted(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, deleted: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisDeleted = deleted;
     }
   });
 }

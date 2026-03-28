@@ -33,6 +33,7 @@ describe('xlsx chart relationships', () => {
       categoryAxisMajorTickMark: 'cross',
       categoryAxisMinorTickMark: 'none',
       categoryAxisTickLabelPosition: 'nextTo',
+      categoryAxisDeleted: false,
       valueAxisTitle: 'Revenue',
       valueAxisPosition: 'l',
       valueAxisCrosses: 'max',
@@ -44,6 +45,7 @@ describe('xlsx chart relationships', () => {
       valueAxisMajorTickMark: 'out',
       valueAxisMinorTickMark: 'in',
       valueAxisTickLabelPosition: 'low',
+      valueAxisDeleted: false,
       dataLabels: { position: 'outEnd', separator: ' · ', showValue: true, showCategoryName: false, showSeriesName: true, showLegendKey: false, showLeaderLines: true, showPercent: true, showBubbleSize: false },
       series: [
         { name: 'North', invertIfNegative: false, markerSymbol: 'circle', markerSize: 8 },
@@ -57,7 +59,7 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorTick:cross catMinorTick:none catLblPos:nextTo val:Revenue valPos:l valCross:max valCrossAt:0 valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorTick:out valMinorTick:in valLblPos:low dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorTick:cross catMinorTick:none catLblPos:nextTo catDelete:false val:Revenue valPos:l valCross:max valCrossAt:0 valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorTick:out valMinorTick:in valLblPos:low valDelete:false dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
   });
 
   it('parses doughnut-specific chart metadata', async () => {
