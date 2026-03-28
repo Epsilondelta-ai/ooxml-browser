@@ -172,7 +172,8 @@ function canPatchDocxStory(kind: 'document' | 'header' | 'footer', originalBlock
 
     return block.paragraph.runs.length === 1
       && originalBlock.paragraph.runs.length === 1
-      && JSON.stringify(block.paragraph.runs[0]) === JSON.stringify(originalBlock.paragraph.runs[0])
+      && block.paragraph.runs[0]?.bold === originalBlock.paragraph.runs[0]?.bold
+      && block.paragraph.runs[0]?.italic === originalBlock.paragraph.runs[0]?.italic
       && block.paragraph.revisions.length === 0
       && originalBlock.paragraph.revisions.length === 0
       && block.paragraph.styleId === originalBlock.paragraph.styleId
