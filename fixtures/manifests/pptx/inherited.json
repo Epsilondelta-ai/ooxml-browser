@@ -1,0 +1,12 @@
+{
+  "id": "pptx-inherited",
+  "sourceApplication": "repo-generated",
+  "format": "pptx",
+  "featureTags": ["slide-layout", "slide-master", "theme", "placeholder"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "inheritance metadata render"],
+  "reopenExpectations": {"parser": true, "office": "stage-4-attestation-pending", "libreoffice": "stage-4-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}
