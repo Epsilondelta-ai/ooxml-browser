@@ -7,6 +7,7 @@ export type {
   PresentationTimingNode,
   PresentationTransition,
   SlideShape,
-  SlideShapeMedia
+  SlideShapeMedia,
+  SlideShapeTransform
 } from './model';
 export { parsePptx } from './parser';

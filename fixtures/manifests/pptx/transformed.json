@@ -1,0 +1,12 @@
+{
+  "id": "pptx-transformed",
+  "sourceApplication": "repo-generated",
+  "format": "pptx",
+  "featureTags": ["shape-transform", "image-transform"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "transform metadata render"],
+  "reopenExpectations": {"parser": true, "office": "stage-4-attestation-pending", "libreoffice": "stage-4-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

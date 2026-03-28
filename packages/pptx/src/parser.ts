@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, findElementsByLocalName, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape } from './model';
+import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape, SlideShapeTransform } from './model';
 
 export function parsePptx(graph: PackageGraph): PresentationDocument {
   const presentationUri = graph.rootDocumentUri ?? '/ppt/presentation.xml';
@@ -79,12 +79,14 @@ function parseShape(shape: Record<string, unknown>): SlideShape {
   const nvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:nvPr');
   const placeholder = xmlChild<Record<string, unknown>>(nvPr, 'p:ph');
   const textNodes = findElementsByLocalName(shape, 't');
+  const transform = parseTransform(xmlChild<Record<string, unknown>>(shape, 'p:spPr'));
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
     name: xmlAttr(cNvPr, 'name'),
     text: textNodes.map((node) => xmlText(node)).join(''),
-    placeholderType: xmlAttr(placeholder, 'type')
+    placeholderType: xmlAttr(placeholder, 'type'),
+    transform
   };
 }
 
@@ -95,15 +97,33 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
   const blip = xmlChild<Record<string, unknown>>(blipFill, 'a:blip');
   const relationshipId = xmlAttr(blip, 'r:embed');
   const target = relationshipId ? relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget : undefined;
+  const transform = parseTransform(xmlChild<Record<string, unknown>>(picture, 'p:spPr'));
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
     name: xmlAttr(cNvPr, 'name'),
     text: '',
+    transform,
     media: {
       type: 'image',
       targetUri: target ?? undefined
     }
+  };
+}
+
+function parseTransform(shapeProperties: Record<string, unknown> | undefined): SlideShapeTransform | undefined {
+  const xfrm = xmlChild<Record<string, unknown>>(shapeProperties, 'a:xfrm');
+  if (!xfrm) {
+    return undefined;
+  }
+
+  const off = xmlChild<Record<string, unknown>>(xfrm, 'a:off');
+  const ext = xmlChild<Record<string, unknown>>(xfrm, 'a:ext');
+  return {
+    x: (() => { const value = xmlAttr(off, 'x'); return value ? Number(value) : undefined; })(),
+    y: (() => { const value = xmlAttr(off, 'y'); return value ? Number(value) : undefined; })(),
+    cx: (() => { const value = xmlAttr(ext, 'cx'); return value ? Number(value) : undefined; })(),
+    cy: (() => { const value = xmlAttr(ext, 'cy'); return value ? Number(value) : undefined; })()
   };
 }
 

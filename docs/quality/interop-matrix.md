@@ -20,6 +20,7 @@ Generated from `fixtures/manifests/**`.
 | pptx-inherited | slide-layout, slide-master, theme, placeholder | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, inheritance metadata render |
 | pptx-media-comments | image, comments | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, media/comment render |
 | pptx-timed | transition, timing | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, timing metadata render |
+| pptx-transformed | shape-transform, image-transform | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, transform metadata render |
 
 ## XLSX
 

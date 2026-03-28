@@ -1,5 +1,12 @@
 import type { PackageGraph } from '@ooxml/core';
 
+export interface SlideShapeTransform {
+  x?: number;
+  y?: number;
+  cx?: number;
+  cy?: number;
+}
+
 export interface SlideShapeMedia {
   type: 'image';
   targetUri?: string;
@@ -10,6 +17,7 @@ export interface SlideShape {
   name?: string;
   text: string;
   placeholderType?: string;
+  transform?: SlideShapeTransform;
   media?: SlideShapeMedia;
 }
 
