@@ -759,8 +759,13 @@ function renderEditorControls(): void {
       const notesText = officeDocument.slides[0]?.notesText ?? '';
       const commentText = officeDocument.slides[0]?.comments[0]?.text ?? '';
       const transitionType = officeDocument.slides[0]?.transition?.type ?? '';
+      const transitionAdvanceOnClick = officeDocument.slides[0]?.transition?.advanceOnClick;
+      const transitionAdvanceAfterMs = officeDocument.slides[0]?.transition?.advanceAfterMs ?? '';
       const firstTimingDuration = officeDocument.slides[0]?.timing?.nodes[0]?.duration ?? '';
+      const firstTimingRepeatDuration = officeDocument.slides[0]?.timing?.nodes[0]?.repeatDuration ?? '';
+      const firstTimingAutoReverse = officeDocument.slides[0]?.timing?.nodes[0]?.autoReverse;
       const firstTimingTrigger = officeDocument.slides[0]?.timing?.nodes[0]?.triggerEvent ?? '';
+      const firstTimingEndTrigger = officeDocument.slides[0]?.timing?.nodes[0]?.endTriggerEvent ?? '';
       const firstTimingTarget = officeDocument.slides[0]?.timing?.nodes[0]?.targetShapeId ?? '';
       const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
       const masterUri = officeDocument.slides[0]?.masterUri ?? '';
@@ -785,12 +790,32 @@ function renderEditorControls(): void {
           <input id="pptx-transition-input" value="${escapeHtml(transitionType)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Advance on click</div>
+          <input id="pptx-transition-click-input" value="${escapeHtml(transitionAdvanceOnClick === undefined ? '' : String(transitionAdvanceOnClick))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Advance after ms</div>
+          <input id="pptx-transition-after-input" value="${escapeHtml(String(transitionAdvanceAfterMs))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing duration</div>
           <input id="pptx-timing-duration-input" value="${escapeHtml(firstTimingDuration)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing repeat duration</div>
+          <input id="pptx-timing-repeat-duration-input" value="${escapeHtml(firstTimingRepeatDuration)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing auto reverse</div>
+          <input id="pptx-timing-auto-reverse-input" value="${escapeHtml(firstTimingAutoReverse === undefined ? '' : String(firstTimingAutoReverse))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing trigger</div>
           <input id="pptx-timing-trigger-input" value="${escapeHtml(firstTimingTrigger)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing end trigger</div>
+          <input id="pptx-timing-end-trigger-input" value="${escapeHtml(firstTimingEndTrigger)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing target shape</div>
@@ -823,8 +848,13 @@ function renderEditorControls(): void {
       const notesInput = window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement;
       const commentInput = window.document.getElementById('pptx-comment-input') as HTMLInputElement;
       const transitionInput = window.document.getElementById('pptx-transition-input') as HTMLInputElement;
+      const transitionClickInput = window.document.getElementById('pptx-transition-click-input') as HTMLInputElement;
+      const transitionAfterInput = window.document.getElementById('pptx-transition-after-input') as HTMLInputElement;
       const timingDurationInput = window.document.getElementById('pptx-timing-duration-input') as HTMLInputElement;
+      const timingRepeatDurationInput = window.document.getElementById('pptx-timing-repeat-duration-input') as HTMLInputElement;
+      const timingAutoReverseInput = window.document.getElementById('pptx-timing-auto-reverse-input') as HTMLInputElement;
       const timingTriggerInput = window.document.getElementById('pptx-timing-trigger-input') as HTMLInputElement;
+      const timingEndTriggerInput = window.document.getElementById('pptx-timing-end-trigger-input') as HTMLInputElement;
       const timingTargetInput = window.document.getElementById('pptx-timing-target-input') as HTMLInputElement;
       const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
       const masterInput = window.document.getElementById('pptx-master-input') as HTMLInputElement;
@@ -845,7 +875,17 @@ function renderEditorControls(): void {
             addPresentationComment(presentationEditor, 0, { author: 'Playground', text: commentInput.value });
           }
         }
-        setPresentationTransition(presentationEditor, 0, transitionInput.value ? { type: transitionInput.value } : undefined);
+        setPresentationTransition(
+          presentationEditor,
+          0,
+          transitionInput.value
+            ? {
+                type: transitionInput.value,
+                advanceOnClick: transitionClickInput.value ? transitionClickInput.value === 'true' : undefined,
+                advanceAfterMs: transitionAfterInput.value ? Number(transitionAfterInput.value) : undefined
+              }
+            : undefined
+        );
         if (timingDurationInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
           const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
           setPresentationTimingNodes(
@@ -854,12 +894,36 @@ function renderEditorControls(): void {
             currentNodes.map((node, index) => index === 0 ? { ...node, duration: timingDurationInput.value } : node)
           );
         }
+        if (timingRepeatDurationInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
+          const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
+          setPresentationTimingNodes(
+            presentationEditor,
+            0,
+            currentNodes.map((node, index) => index === 0 ? { ...node, repeatDuration: timingRepeatDurationInput.value } : node)
+          );
+        }
+        if (timingAutoReverseInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
+          const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
+          setPresentationTimingNodes(
+            presentationEditor,
+            0,
+            currentNodes.map((node, index) => index === 0 ? { ...node, autoReverse: timingAutoReverseInput.value === 'true' } : node)
+          );
+        }
         if (timingTriggerInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
           const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
           setPresentationTimingNodes(
             presentationEditor,
             0,
             currentNodes.map((node, index) => index === 0 ? { ...node, triggerEvent: timingTriggerInput.value } : node)
+          );
+        }
+        if (timingEndTriggerInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
+          const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
+          setPresentationTimingNodes(
+            presentationEditor,
+            0,
+            currentNodes.map((node, index) => index === 0 ? { ...node, endTriggerEvent: timingEndTriggerInput.value } : node)
           );
         }
         if (timingTargetInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
@@ -890,8 +954,13 @@ function renderEditorControls(): void {
       notesInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       transitionInput.addEventListener('input', update);
+      transitionClickInput.addEventListener('input', update);
+      transitionAfterInput.addEventListener('input', update);
       timingDurationInput.addEventListener('input', update);
+      timingRepeatDurationInput.addEventListener('input', update);
+      timingAutoReverseInput.addEventListener('input', update);
       timingTriggerInput.addEventListener('input', update);
+      timingEndTriggerInput.addEventListener('input', update);
       timingTargetInput.addEventListener('input', update);
       layoutInput.addEventListener('input', update);
       masterInput.addEventListener('input', update);
