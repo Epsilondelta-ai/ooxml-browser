@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T11:09:12.152Z",
+  "generatedAt": "2026-03-28T11:14:52.518Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.127,
-      "parseMs": 0.477,
-      "renderMs": 0.146,
-      "serializeMs": 6.082,
+      "openMs": 4.521,
+      "parseMs": 0.471,
+      "renderMs": 0.151,
+      "serializeMs": 6.096,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.123,
-      "parseMs": 0.549,
-      "renderMs": 0.136,
-      "serializeMs": 0.804,
+      "openMs": 10.335,
+      "parseMs": 0.53,
+      "renderMs": 0.137,
+      "serializeMs": 0.819,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 11.154,
-      "parseMs": 0.475,
-      "renderMs": 0.095,
-      "serializeMs": 0.551,
+      "openMs": 11.341,
+      "parseMs": 0.474,
+      "renderMs": 0.099,
+      "serializeMs": 0.557,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.266,
-      "parseMs": 0.254,
-      "renderMs": 0.039,
-      "serializeMs": 0.557,
+      "openMs": 0.251,
+      "parseMs": 0.237,
+      "renderMs": 0.01,
+      "serializeMs": 0.205,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.241,
-      "parseMs": 0.315,
-      "renderMs": 0.018,
-      "serializeMs": 0.514,
+      "openMs": 0.278,
+      "parseMs": 0.267,
+      "renderMs": 0.02,
+      "serializeMs": 0.452,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.567,
-      "parseMs": 0.473,
-      "renderMs": 0.013,
-      "serializeMs": 0.568,
+      "openMs": 0.625,
+      "parseMs": 0.535,
+      "renderMs": 0.017,
+      "serializeMs": 0.636,
       "outputBytes": 3931,
       "htmlLength": 659
     }
