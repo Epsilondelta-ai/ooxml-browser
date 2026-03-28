@@ -6,16 +6,16 @@ Latest benchmark summary generated from `benchmarks/reports/latest-benchmark-res
 
 | Label | Open ms | Parse ms | Render ms | Serialize ms | Output bytes | HTML length |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| docx-micro | 4.312 | 0.468 | 0.154 | 6.192 | 889 | 228 |
-| xlsx-micro | 10.433 | 0.563 | 0.14 | 0.828 | 1776 | 187 |
-| pptx-micro | 11.517 | 0.477 | 0.099 | 0.618 | 1584 | 311 |
+| docx-micro | 4.237 | 0.506 | 0.157 | 6.159 | 889 | 228 |
+| xlsx-micro | 10.359 | 0.541 | 0.139 | 0.815 | 1776 | 187 |
+| pptx-micro | 11.401 | 0.555 | 0.106 | 0.701 | 1584 | 311 |
 
 
 ## Representative
 
 | Label | Open ms | Parse ms | Render ms | Serialize ms | Output bytes | HTML length |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| docx-representative-styled | 0.259 | 0.259 | 0.012 | 0.22 | 1527 | 293 |
-| xlsx-representative-structured | 0.325 | 0.277 | 0.019 | 0.531 | 1683 | 420 |
-| pptx-representative-inherited | 0.617 | 0.688 | 0.035 | 0.713 | 3931 | 659 |
+| docx-representative-styled | 0.246 | 0.236 | 0.01 | 0.209 | 1527 | 293 |
+| xlsx-representative-structured | 0.355 | 0.298 | 0.02 | 0.462 | 1683 | 420 |
+| pptx-representative-inherited | 0.488 | 0.479 | 0.013 | 0.579 | 3931 | 659 |
 
