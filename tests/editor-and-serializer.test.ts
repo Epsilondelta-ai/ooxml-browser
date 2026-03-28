@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, setDocxCommentText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
 
-import { createDocxFixture, createPptxFixture, createXlsxFixture } from './fixture-builders';
+import { createDocxFixture, createPptxFixture, createSectionedDocxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('editor transactions', () => {
   it('updates docx paragraphs and supports undo/redo', async () => {
@@ -35,6 +35,15 @@ describe('editor transactions', () => {
     expect(presentationEditor.document.slides[0]?.shapes[0]?.text).toBe('Updated slide');
     expect(presentationEditor.document.slides[0]?.notesText).toBe('Updated note');
   });
+
+  it('updates docx header/footer stories through story-aware helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    replaceDocxStoryParagraphText(editor, 'header', 0, 0, 'Edited header');
+    replaceDocxStoryParagraphText(editor, 'footer', 0, 0, 'Edited footer');
+
+    expect(editor.document.stories.find((story) => story.kind === 'header')?.paragraphs[0]?.text).toBe('Edited header');
+    expect(editor.document.stories.find((story) => story.kind === 'footer')?.paragraphs[0]?.text).toBe('Edited footer');
+  });
 });
 
 describe('serializer round-trips', () => {
@@ -45,7 +54,6 @@ describe('serializer round-trips', () => {
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.stories[0]?.paragraphs[0]?.text).toBe('Saved paragraph');
   });
-
 
   it('round-trips edited docx comments while preserving comment authors', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
@@ -62,8 +70,6 @@ describe('serializer round-trips', () => {
     const reopened = parseXlsx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.sheets[0]?.rows[0]?.cells[0]?.value).toBe('Persisted');
   });
-
-
 
   it('round-trips notes edits when the notes relationship targets a non-canonical part name', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture({ notesTarget: '../notesSlides/customNotes.xml' }))));
@@ -90,5 +96,15 @@ describe('serializer round-trips', () => {
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.slides[0]?.shapes[0]?.text).toBe('Persisted slide');
     expect(reopened.slides[0]?.notesText).toBe('Persisted notes');
+  });
+
+  it('round-trips edited docx header/footer story content', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    replaceDocxStoryParagraphText(editor, 'header', 0, 0, 'Saved header');
+    replaceDocxStoryParagraphText(editor, 'footer', 0, 0, 'Saved footer');
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.stories.find((story) => story.kind === 'header')?.paragraphs[0]?.text).toBe('Saved header');
+    expect(reopened.stories.find((story) => story.kind === 'footer')?.paragraphs[0]?.text).toBe('Saved footer');
   });
 });
