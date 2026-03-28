@@ -17,6 +17,8 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetPageMargins,
+  setWorksheetPageSetup,
   setWorksheetPrintArea,
   setWorksheetPrintTitles,
   setWorksheetSelection,
@@ -200,6 +202,8 @@ function renderEditorControls(): void {
       const printArea = officeDocument.definedNames.find((entry) => entry.name === '_xlnm.Print_Area' && entry.scopeSheetId === 0)?.reference.split('!')[1] ?? '';
       const printTitles = officeDocument.definedNames.find((entry) => entry.name === '_xlnm.Print_Titles' && entry.scopeSheetId === 0)?.reference ?? '';
       const selection = firstSheet?.selection;
+      const pageOrientation = firstSheet?.pageSetup?.orientation ?? '';
+      const topMargin = firstSheet?.pageMargins?.top ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1</div>
@@ -230,6 +234,14 @@ function renderEditorControls(): void {
           <input id="xlsx-selection-input" value="${escapeHtml(selection?.sqref ?? selection?.activeCell ?? '')}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Page orientation</div>
+          <input id="xlsx-orientation-input" value="${escapeHtml(pageOrientation)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Top margin</div>
+          <input id="xlsx-top-margin-input" value="${escapeHtml(String(topMargin))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!B2 comment</div>
           <input id="xlsx-comment-input" value="${escapeHtml(commentB2?.text ?? '')}" style="width: 100%; padding: 8px;" />
         </label>
@@ -241,6 +253,8 @@ function renderEditorControls(): void {
       const printAreaInput = window.document.getElementById('xlsx-print-area-input') as HTMLInputElement;
       const printTitlesInput = window.document.getElementById('xlsx-print-titles-input') as HTMLInputElement;
       const selectionInput = window.document.getElementById('xlsx-selection-input') as HTMLInputElement;
+      const orientationInput = window.document.getElementById('xlsx-orientation-input') as HTMLInputElement;
+      const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'xlsx') {
@@ -293,6 +307,29 @@ function renderEditorControls(): void {
             { activeCell: selectionInput.value.split(':')[0], sqref: selectionInput.value }
           );
         }
+        if (orientationInput.value) {
+          setWorksheetPageSetup(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            {
+              ...workbookEditor.document.sheets[0]?.pageSetup,
+              orientation: orientationInput.value
+            }
+          );
+        }
+        if (topMarginInput.value !== '') {
+          const topMarginValue = Number(topMarginInput.value);
+          if (!Number.isNaN(topMarginValue)) {
+            setWorksheetPageMargins(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              {
+                ...workbookEditor.document.sheets[0]?.pageMargins,
+                top: topMarginValue
+              }
+            );
+          }
+        }
         if (commentInput.value) {
           upsertWorksheetComment(
             workbookEditor,
@@ -311,6 +348,8 @@ function renderEditorControls(): void {
       printAreaInput.addEventListener('input', update);
       printTitlesInput.addEventListener('input', update);
       selectionInput.addEventListener('input', update);
+      orientationInput.addEventListener('input', update);
+      topMarginInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       break;
     }

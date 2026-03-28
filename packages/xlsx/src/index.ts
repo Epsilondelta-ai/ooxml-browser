@@ -8,6 +8,8 @@ export type {
   XlsxDefinedName,
   XlsxFrozenPane,
   XlsxNumberFormat,
+  XlsxPageMargins,
+  XlsxPageSetup,
   XlsxStyleTable,
   XlsxWorkbook
 } from './model';

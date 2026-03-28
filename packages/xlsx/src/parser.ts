@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -79,6 +79,8 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
 
   const frozenPane = parseFrozenPane(xmlChild<Record<string, unknown>>(worksheet, 'sheetViews'));
   const selection = parseSelection(xmlChild<Record<string, unknown>>(worksheet, 'sheetViews'));
+  const pageMargins = parsePageMargins(xmlChild<Record<string, unknown>>(worksheet, 'pageMargins'));
+  const pageSetup = parsePageSetup(xmlChild<Record<string, unknown>>(worksheet, 'pageSetup'));
 
   return {
     name,
@@ -89,6 +91,8 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
     mergedRanges,
     frozenPane,
     selection,
+    pageMargins,
+    pageSetup,
     tables: parseSheetTables(graph, uri),
     comments: parseSheetComments(graph, uri)
   };
@@ -228,6 +232,40 @@ function parseSelection(sheetViews: Record<string, unknown> | undefined): { acti
     activeCell: xmlAttr(selection, 'activeCell') ?? undefined,
     sqref: xmlAttr(selection, 'sqref') ?? undefined
   };
+}
+
+function parsePageMargins(pageMargins: Record<string, unknown> | undefined): XlsxPageMargins | undefined {
+  if (!pageMargins) {
+    return undefined;
+  }
+
+  return {
+    left: parseNumericAttr(pageMargins, 'left'),
+    right: parseNumericAttr(pageMargins, 'right'),
+    top: parseNumericAttr(pageMargins, 'top'),
+    bottom: parseNumericAttr(pageMargins, 'bottom'),
+    header: parseNumericAttr(pageMargins, 'header'),
+    footer: parseNumericAttr(pageMargins, 'footer')
+  };
+}
+
+function parsePageSetup(pageSetup: Record<string, unknown> | undefined): XlsxPageSetup | undefined {
+  if (!pageSetup) {
+    return undefined;
+  }
+
+  return {
+    orientation: xmlAttr(pageSetup, 'orientation') ?? undefined,
+    paperSize: parseNumericAttr(pageSetup, 'paperSize'),
+    scale: parseNumericAttr(pageSetup, 'scale'),
+    fitToWidth: parseNumericAttr(pageSetup, 'fitToWidth'),
+    fitToHeight: parseNumericAttr(pageSetup, 'fitToHeight')
+  };
+}
+
+function parseNumericAttr(node: Record<string, unknown>, attribute: string): number | undefined {
+  const value = xmlAttr(node, attribute);
+  return value ? Number(value) : undefined;
 }
 
 export function extractFormulaReferences(formula: string): string[] {

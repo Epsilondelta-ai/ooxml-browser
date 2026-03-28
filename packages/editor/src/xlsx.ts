@@ -329,6 +329,24 @@ export function setWorksheetPrintTitles(editor: OfficeEditor<XlsxWorkbook>, shee
   });
 }
 
+export function setWorksheetPageMargins(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, pageMargins: XlsxWorkbook['sheets'][number]['pageMargins'] | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (sheet) {
+      sheet.pageMargins = pageMargins ? { ...pageMargins } : undefined;
+    }
+  });
+}
+
+export function setWorksheetPageSetup(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, pageSetup: XlsxWorkbook['sheets'][number]['pageSetup'] | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (sheet) {
+      sheet.pageSetup = pageSetup ? { ...pageSetup } : undefined;
+    }
+  });
+}
+
 function createSheetReferenceRewriter(currentName: string, nextName: string): (value: string) => string {
   const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const quotedPattern = new RegExp(`'${escapedCurrent}'!`, 'g');

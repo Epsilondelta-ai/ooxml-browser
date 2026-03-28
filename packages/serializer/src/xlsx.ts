@@ -256,6 +256,53 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
       }
     }
 
+    if (sheet.pageMargins) {
+      const operations = [] as Array<Parameters<typeof applyXmlPatchPlan>[1][number]>;
+      if (sheet.pageMargins.left !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageMargins', targetAttr: 'left', newValue: String(sheet.pageMargins.left) });
+      }
+      if (sheet.pageMargins.right !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageMargins', targetAttr: 'right', newValue: String(sheet.pageMargins.right) });
+      }
+      if (sheet.pageMargins.top !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageMargins', targetAttr: 'top', newValue: String(sheet.pageMargins.top) });
+      }
+      if (sheet.pageMargins.bottom !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageMargins', targetAttr: 'bottom', newValue: String(sheet.pageMargins.bottom) });
+      }
+      if (sheet.pageMargins.header !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageMargins', targetAttr: 'header', newValue: String(sheet.pageMargins.header) });
+      }
+      if (sheet.pageMargins.footer !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageMargins', targetAttr: 'footer', newValue: String(sheet.pageMargins.footer) });
+      }
+      if (operations.length > 0) {
+        next = applyXmlPatchPlan(next, operations);
+      }
+    }
+
+    if (sheet.pageSetup) {
+      const operations = [] as Array<Parameters<typeof applyXmlPatchPlan>[1][number]>;
+      if (sheet.pageSetup.orientation) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageSetup', targetAttr: 'orientation', newValue: sheet.pageSetup.orientation });
+      }
+      if (sheet.pageSetup.paperSize !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageSetup', targetAttr: 'paperSize', newValue: String(sheet.pageSetup.paperSize) });
+      }
+      if (sheet.pageSetup.scale !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageSetup', targetAttr: 'scale', newValue: String(sheet.pageSetup.scale) });
+      }
+      if (sheet.pageSetup.fitToWidth !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageSetup', targetAttr: 'fitToWidth', newValue: String(sheet.pageSetup.fitToWidth) });
+      }
+      if (sheet.pageSetup.fitToHeight !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pageSetup', targetAttr: 'fitToHeight', newValue: String(sheet.pageSetup.fitToHeight) });
+      }
+      if (operations.length > 0) {
+        next = applyXmlPatchPlan(next, operations);
+      }
+    }
+
     return next;
   }
 
@@ -272,9 +319,15 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
   const mergeCellsXml = sheet.mergedRanges.length
     ? `<mergeCells count="${sheet.mergedRanges.length}">${sheet.mergedRanges.map((range) => `<mergeCell ref="${escapeXml(range)}"/>`).join('')}</mergeCells>`
     : '';
+  const pageMarginsXml = sheet.pageMargins
+    ? `<pageMargins${sheet.pageMargins.left !== undefined ? ` left="${sheet.pageMargins.left}"` : ''}${sheet.pageMargins.right !== undefined ? ` right="${sheet.pageMargins.right}"` : ''}${sheet.pageMargins.top !== undefined ? ` top="${sheet.pageMargins.top}"` : ''}${sheet.pageMargins.bottom !== undefined ? ` bottom="${sheet.pageMargins.bottom}"` : ''}${sheet.pageMargins.header !== undefined ? ` header="${sheet.pageMargins.header}"` : ''}${sheet.pageMargins.footer !== undefined ? ` footer="${sheet.pageMargins.footer}"` : ''}/>`
+    : '';
+  const pageSetupXml = sheet.pageSetup
+    ? `<pageSetup${sheet.pageSetup.orientation ? ` orientation="${escapeXml(sheet.pageSetup.orientation)}"` : ''}${sheet.pageSetup.paperSize !== undefined ? ` paperSize="${sheet.pageSetup.paperSize}"` : ''}${sheet.pageSetup.scale !== undefined ? ` scale="${sheet.pageSetup.scale}"` : ''}${sheet.pageSetup.fitToWidth !== undefined ? ` fitToWidth="${sheet.pageSetup.fitToWidth}"` : ''}${sheet.pageSetup.fitToHeight !== undefined ? ` fitToHeight="${sheet.pageSetup.fitToHeight}"` : ''}/>`
+    : '';
 
   const worksheetOpenTag = preserveWorksheetOpenTag(existingSource) ?? '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n${worksheetOpenTag}${sheetViewsXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${worksheetOpenTag}${sheetViewsXml}<sheetData>${rows}</sheetData>${mergeCellsXml}${pageMarginsXml}${pageSetupXml}</worksheet>`;
 }
 
 function preserveWorksheetOpenTag(existingSource?: string): string | undefined {
@@ -427,7 +480,9 @@ function decodeXml(value: string): string {
 function canPatchWorksheet(sheet: WorkbookSheet, originalSheet: WorkbookSheet): boolean {
   return sheet.rows.every((row) => row.cells.length > 0)
     && sheet.rows.length === originalSheet.rows.length
-    && JSON.stringify(sheet.mergedRanges) === JSON.stringify(originalSheet.mergedRanges);
+    && JSON.stringify(sheet.mergedRanges) === JSON.stringify(originalSheet.mergedRanges)
+    && JSON.stringify(sheet.pageMargins) === JSON.stringify(originalSheet.pageMargins)
+    && JSON.stringify(sheet.pageSetup) === JSON.stringify(originalSheet.pageSetup);
 }
 
 function shouldUseSharedString(cell: WorksheetCell): boolean {

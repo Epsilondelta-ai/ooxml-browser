@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -224,6 +224,22 @@ describe('xlsx editor round-trips', () => {
     expect(reopened.sheets[0]?.selection).toEqual({ activeCell: 'C3', sqref: 'C3:D4' });
     expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('activeCell="C3"');
     expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('sqref="C3:D4"');
+  });
+
+  it('persists edited worksheet page margins and setup metadata', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
+    setWorksheetPageMargins(editor, 'Sheet1', { left: 1, right: 1, top: 1.25, bottom: 1.25, header: 0.2, footer: 0.2 });
+    setWorksheetPageSetup(editor, 'Sheet1', { orientation: 'portrait', paperSize: 1, fitToWidth: 2, fitToHeight: 1, scale: 95 });
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.pageMargins).toEqual({ left: 1, right: 1, top: 1.25, bottom: 1.25, header: 0.2, footer: 0.2 });
+    expect(reopened.sheets[0]?.pageSetup).toEqual({ orientation: 'portrait', paperSize: 1, fitToWidth: 2, fitToHeight: 1, scale: 95 });
+    expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('orientation="portrait"');
+    expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('left="1"');
+    expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
   });
 
   it('persists edited worksheet merged ranges', async () => {

@@ -12,6 +12,23 @@ export interface XlsxSelection {
   sqref?: string;
 }
 
+export interface XlsxPageMargins {
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  header?: number;
+  footer?: number;
+}
+
+export interface XlsxPageSetup {
+  orientation?: string;
+  paperSize?: number;
+  scale?: number;
+  fitToWidth?: number;
+  fitToHeight?: number;
+}
+
 export interface XlsxDefinedName {
   name: string;
   reference: string;
@@ -39,6 +56,8 @@ export interface WorkbookSheet {
   mergedRanges: string[];
   frozenPane?: XlsxFrozenPane;
   selection?: XlsxSelection;
+  pageMargins?: XlsxPageMargins;
+  pageSetup?: XlsxPageSetup;
   tables: XlsxTable[];
   comments: XlsxComment[];
 }

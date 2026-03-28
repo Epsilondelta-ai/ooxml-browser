@@ -35,6 +35,8 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Defined name delete | `removeWorkbookDefinedName` | Persisted | Removes named ranges cleanly while preserving workbook-root metadata. |
 | Print area | `setWorksheetPrintArea` | Persisted | Uses the conventional `_xlnm.Print_Area` defined-name representation scoped to the sheet. |
 | Print titles | `setWorksheetPrintTitles` | Persisted | Uses the conventional `_xlnm.Print_Titles` defined-name representation scoped to the sheet. |
+| Page margins | `setWorksheetPageMargins` | Persisted | Parser/renderer/editor preserve worksheet `pageMargins` metadata for print fidelity. |
+| Page setup | `setWorksheetPageSetup` | Persisted | Preserves worksheet orientation, paper size, scale, and fit-to-page settings. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
@@ -70,7 +72,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 
 ## Gaps that remain outside the public editing surface
 
-- XLSX chart/comment-threaded extensions, print settings, and relationship-backed media/chart retargeting
+- XLSX chart/comment-threaded extensions and relationship-backed media/chart retargeting
 - PPTX richer animation graph editing beyond flat timing nodes
 - Relationship-safe embedded-object retargeting across all formats
 
