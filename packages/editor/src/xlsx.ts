@@ -696,6 +696,26 @@ export function setWorksheetChartValueAxisCrossesAt(editor: OfficeEditor<XlsxWor
   });
 }
 
+export function setWorksheetChartValueAxisMinimum(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, minimum: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMinimum = minimum;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisMaximum(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, maximum: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMaximum = maximum;
+    }
+  });
+}
+
 export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, dataLabels: XlsxWorkbook['sheets'][number]['charts'][number]['dataLabels'] | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
