@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parseXlsx } from '@ooxml/xlsx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createChartedXlsxFixture } from './fixture-builders';
+import { createChartedXlsxFixture, createPieChartedXlsxFixture } from './fixture-builders';
 
 describe('xlsx chart relationships', () => {
   it('parses worksheet chart relationship metadata', async () => {
@@ -44,5 +44,33 @@ describe('xlsx chart relationships', () => {
     const html = renderOfficeDocumentToHtml(workbook);
 
     expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b val:Revenue valPos:l dLblPos:outEnd showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
+  });
+
+  it('parses doughnut-specific chart metadata', async () => {
+    const workbook = parseXlsx(await openPackage(createPieChartedXlsxFixture()));
+    const chart = workbook.sheets[0]?.charts[0];
+
+    expect(chart).toEqual({
+      relationshipId: 'rIdChart1',
+      drawingUri: '/xl/drawings/drawing1.xml',
+      drawingNameOccurrence: 0,
+      targetUri: '/xl/charts/chart1.xml',
+      name: 'Revenue Doughnut',
+      chartType: 'doughnutChart',
+      varyColors: true,
+      title: 'Doughnut Share',
+      legendPosition: 'r',
+      firstSliceAngle: 120,
+      holeSize: 60,
+      series: [{ name: 'Share', explosion: 25 }],
+      seriesNames: ['Share']
+    });
+  });
+
+  it('renders doughnut-specific chart metadata', async () => {
+    const workbook = parseXlsx(await openPackage(createPieChartedXlsxFixture()));
+    const html = renderOfficeDocumentToHtml(workbook);
+
+    expect(html).toContain('Charts: Revenue Doughnut <doughnutChart> [Doughnut Share] firstSlice:120 holeSize:60 varyColors:true legend:r {Share explosion:25} (/xl/charts/chart1.xml)');
   });
 });

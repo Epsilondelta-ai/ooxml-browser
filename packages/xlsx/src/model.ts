@@ -75,6 +75,7 @@ export interface XlsxChartSeries {
   invertIfNegative?: boolean;
   markerSymbol?: string;
   markerSize?: number;
+  explosion?: number;
 }
 
 export interface XlsxChart {
@@ -90,6 +91,8 @@ export interface XlsxChart {
   varyColors?: boolean;
   gapWidth?: number;
   title?: string;
+  firstSliceAngle?: number;
+  holeSize?: number;
   plotVisibleOnly?: boolean;
   displayBlanksAs?: string;
   legendPosition?: string;

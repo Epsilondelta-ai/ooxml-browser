@@ -342,6 +342,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const chartRoot = chartXml?.document;
     const chartTitleNode = chartRoot ? findElementsByLocalName(chartRoot, 'title')[0] : undefined;
     const chartTitle = chartTitleNode ? findElementsByLocalName(chartTitleNode, 't').map((node) => xmlText(node)).join('') : undefined;
+    const firstSliceAngleNode = chartRoot ? findElementsByLocalName(chartRoot, 'firstSliceAng')[0] : undefined;
+    const holeSizeNode = chartRoot ? findElementsByLocalName(chartRoot, 'holeSize')[0] : undefined;
     const plotVisibleOnlyNode = chartRoot ? findElementsByLocalName(chartRoot, 'plotVisOnly')[0] : undefined;
     const displayBlanksAsNode = chartRoot ? findElementsByLocalName(chartRoot, 'dispBlanksAs')[0] : undefined;
     const legendNode = chartRoot ? findElementsByLocalName(chartRoot, 'legendPos')[0] : undefined;
@@ -352,7 +354,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const valueAxisTitleNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'title')[0] : undefined;
     const valueAxisPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'axPos')[0] : undefined;
     const chartType = chartRoot
-      ? ['barChart', 'lineChart', 'pieChart', 'areaChart', 'scatterChart']
+      ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
       : undefined;
     const chartTypeNode = chartType && chartRoot ? findElementsByLocalName(chartRoot, chartType)[0] : undefined;
@@ -379,7 +381,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
           name: textNode ? findElementsByLocalName(textNode, 't').map((node) => xmlText(node)).join('') : '',
           invertIfNegative: xmlAttr(invertIfNegativeNode, 'val') === '1' ? true : xmlAttr(invertIfNegativeNode, 'val') === '0' ? false : undefined,
           markerSymbol: xmlAttr(markerSymbolNode, 'val') ?? undefined,
-          markerSize: (() => { const value = xmlAttr(markerSizeNode, 'val'); return value ? Number(value) : undefined; })()
+          markerSize: (() => { const value = xmlAttr(markerSizeNode, 'val'); return value ? Number(value) : undefined; })(),
+          explosion: (() => { const value = xmlAttr(findElementsByLocalName(seriesNode, 'explosion')[0], 'val'); return value ? Number(value) : undefined; })()
         };
       }).filter((seriesEntry) => Boolean(seriesEntry.name))
       : [];
@@ -396,6 +399,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       varyColors: xmlAttr(varyColorsNode, 'val') === '1' ? true : xmlAttr(varyColorsNode, 'val') === '0' ? false : undefined,
       gapWidth: (() => { const value = xmlAttr(gapWidthNode, 'val'); return value ? Number(value) : undefined; })(),
       title: chartTitle || undefined,
+      firstSliceAngle: (() => { const value = xmlAttr(firstSliceAngleNode, 'val'); return value ? Number(value) : undefined; })(),
+      holeSize: (() => { const value = xmlAttr(holeSizeNode, 'val'); return value ? Number(value) : undefined; })(),
       plotVisibleOnly: xmlAttr(plotVisibleOnlyNode, 'val') === '1' ? true : xmlAttr(plotVisibleOnlyNode, 'val') === '0' ? false : undefined,
       displayBlanksAs: xmlAttr(displayBlanksAsNode, 'val') ?? undefined,
       legendPosition: xmlAttr(legendNode, 'val') ?? undefined,

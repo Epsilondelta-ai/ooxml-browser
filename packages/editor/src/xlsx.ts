@@ -682,6 +682,37 @@ export function setWorksheetChartSeriesMarker(editor: OfficeEditor<XlsxWorkbook>
   });
 }
 
+export function setWorksheetChartFirstSliceAngle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, angle: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.firstSliceAngle = angle;
+    }
+  });
+}
+
+export function setWorksheetChartHoleSize(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, holeSize: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.holeSize = holeSize;
+    }
+  });
+}
+
+export function setWorksheetChartSeriesExplosion(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, seriesIndex: number, explosion: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    const series = chart?.series[seriesIndex];
+    if (series) {
+      series.explosion = explosion;
+    }
+  });
+}
+
 export function setWorksheetMediaTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mediaIndex: number, targetUri: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

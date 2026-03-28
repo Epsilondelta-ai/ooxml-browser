@@ -51,6 +51,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Chart per-series markers | `setWorksheetChartSeriesMarker` | Persisted | Preserves per-series marker symbol/size metadata inside chart parts. |
 | Chart grouping / overlap | `setWorksheetChartGrouping`, `setWorksheetChartOverlap` | Persisted | Preserves chart-family grouping and overlap metadata inside chart parts. |
 | Chart plot-visible / blanks-as | `setWorksheetChartPlotVisibleOnly`, `setWorksheetChartDisplayBlanksAs` | Persisted | Preserves chart-level visibility and blank-cell display policy inside chart parts. |
+| Pie/doughnut slice layout | `setWorksheetChartFirstSliceAngle`, `setWorksheetChartHoleSize`, `setWorksheetChartSeriesExplosion` | Persisted | Preserves pie/doughnut angle, hole-size, and per-series explosion metadata inside chart parts. |
 | Image target URI | `setWorksheetMediaTarget` | Persisted | Retargets drawing image relationships without rewriting worksheet markup. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |

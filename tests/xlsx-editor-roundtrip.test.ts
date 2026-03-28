@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartFirstSliceAngle, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartHoleSize, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartSeriesExplosion, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
+import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createPieChartedXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -462,6 +462,24 @@ describe('xlsx editor round-trips', () => {
     expect(reopened.sheets[0]?.charts[0]?.series[0]).toEqual({ name: 'North', invertIfNegative: false, markerSymbol: 'triangle', markerSize: 12 });
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('symbol val="triangle"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('size val="12"');
+  });
+
+  it('persists doughnut first-slice, hole-size, and explosion edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createPieChartedXlsxFixture())));
+    setWorksheetChartFirstSliceAngle(editor, 'Sheet1', 0, 180);
+    setWorksheetChartHoleSize(editor, 'Sheet1', 0, 72);
+    setWorksheetChartSeriesExplosion(editor, 'Sheet1', 0, 0, 40);
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.firstSliceAngle).toBe(180);
+    expect(reopened.sheets[0]?.charts[0]?.holeSize).toBe(72);
+    expect(reopened.sheets[0]?.charts[0]?.series).toEqual([{ name: 'Share', explosion: 40 }]);
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('firstSliceAng val="180"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('holeSize val="72"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('explosion val="40"');
   });
 
   it('retargets worksheet media relationships through save flows', async () => {
