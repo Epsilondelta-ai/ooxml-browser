@@ -1,0 +1,131 @@
+{
+  "generatedAt": "2026-03-28T06:51:44.555Z",
+  "results": [
+    {
+      "id": "docx-basic",
+      "format": "docx",
+      "fixturePath": "fixtures/docx/representative/basic.docx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "seed-fixture-attestation-pending",
+      "libreOfficeStatus": "seed-fixture-attestation-pending"
+    },
+    {
+      "id": "docx-numbered",
+      "format": "docx",
+      "fixturePath": "fixtures/docx/representative/numbered.docx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-2-attestation-pending",
+      "libreOfficeStatus": "stage-2-attestation-pending"
+    },
+    {
+      "id": "docx-revisions",
+      "format": "docx",
+      "fixturePath": "fixtures/docx/representative/revisions.docx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-2-attestation-pending",
+      "libreOfficeStatus": "stage-2-attestation-pending"
+    },
+    {
+      "id": "docx-sectioned",
+      "format": "docx",
+      "fixturePath": "fixtures/docx/representative/sectioned.docx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-2-attestation-pending",
+      "libreOfficeStatus": "stage-2-attestation-pending"
+    },
+    {
+      "id": "docx-styled",
+      "format": "docx",
+      "fixturePath": "fixtures/docx/representative/styled.docx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-2-attestation-pending",
+      "libreOfficeStatus": "stage-2-attestation-pending"
+    },
+    {
+      "id": "pptx-basic",
+      "format": "pptx",
+      "fixturePath": "fixtures/pptx/representative/basic.pptx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "seed-fixture-attestation-pending",
+      "libreOfficeStatus": "seed-fixture-attestation-pending"
+    },
+    {
+      "id": "pptx-inherited",
+      "format": "pptx",
+      "fixturePath": "fixtures/pptx/representative/inherited.pptx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-4-attestation-pending",
+      "libreOfficeStatus": "stage-4-attestation-pending"
+    },
+    {
+      "id": "pptx-media-comments",
+      "format": "pptx",
+      "fixturePath": "fixtures/pptx/representative/media-comments.pptx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-4-attestation-pending",
+      "libreOfficeStatus": "stage-4-attestation-pending"
+    },
+    {
+      "id": "pptx-timed",
+      "format": "pptx",
+      "fixturePath": "fixtures/pptx/representative/timed.pptx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-4-attestation-pending",
+      "libreOfficeStatus": "stage-4-attestation-pending"
+    },
+    {
+      "id": "pptx-transformed",
+      "format": "pptx",
+      "fixturePath": "fixtures/pptx/representative/transformed.pptx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-4-attestation-pending",
+      "libreOfficeStatus": "stage-4-attestation-pending"
+    },
+    {
+      "id": "xlsx-basic",
+      "format": "xlsx",
+      "fixturePath": "fixtures/xlsx/representative/basic.xlsx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "seed-fixture-attestation-pending",
+      "libreOfficeStatus": "seed-fixture-attestation-pending"
+    },
+    {
+      "id": "xlsx-commented",
+      "format": "xlsx",
+      "fixturePath": "fixtures/xlsx/representative/commented.xlsx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-3-attestation-pending",
+      "libreOfficeStatus": "stage-3-attestation-pending"
+    },
+    {
+      "id": "xlsx-structured",
+      "format": "xlsx",
+      "fixturePath": "fixtures/xlsx/representative/structured.xlsx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-3-attestation-pending",
+      "libreOfficeStatus": "stage-3-attestation-pending"
+    },
+    {
+      "id": "xlsx-styled",
+      "format": "xlsx",
+      "fixturePath": "fixtures/xlsx/representative/styled.xlsx",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "officeStatus": "stage-3-attestation-pending",
+      "libreOfficeStatus": "stage-3-attestation-pending"
+    }
+  ]
+}

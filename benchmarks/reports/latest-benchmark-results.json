@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T06:47:44.728Z",
+  "generatedAt": "2026-03-28T06:51:49.003Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.01,
-      "parseMs": 0.453,
-      "renderMs": 0.155,
-      "serializeMs": 6.236,
+      "openMs": 4.054,
+      "parseMs": 0.462,
+      "renderMs": 0.152,
+      "serializeMs": 6.55,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.172,
-      "parseMs": 0.523,
-      "renderMs": 0.089,
-      "serializeMs": 0.525,
+      "openMs": 10.519,
+      "parseMs": 0.53,
+      "renderMs": 0.098,
+      "serializeMs": 0.537,
       "outputBytes": 1795,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 10.866,
-      "parseMs": 0.434,
+      "openMs": 11.235,
+      "parseMs": 0.429,
       "renderMs": 0.084,
-      "serializeMs": 0.308,
+      "serializeMs": 0.312,
       "outputBytes": 1620,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.242,
-      "parseMs": 0.243,
+      "openMs": 0.263,
+      "parseMs": 0.244,
       "renderMs": 0.01,
-      "serializeMs": 0.27,
+      "serializeMs": 0.299,
       "outputBytes": 1523,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.326,
-      "parseMs": 0.272,
-      "renderMs": 0.019,
-      "serializeMs": 0.425,
+      "openMs": 0.381,
+      "parseMs": 0.305,
+      "renderMs": 0.017,
+      "serializeMs": 0.486,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.535,
-      "parseMs": 0.469,
-      "renderMs": 0.012,
-      "serializeMs": 0.482,
+      "openMs": 0.587,
+      "parseMs": 0.509,
+      "renderMs": 0.016,
+      "serializeMs": 0.528,
       "outputBytes": 3937,
       "htmlLength": 659
     }

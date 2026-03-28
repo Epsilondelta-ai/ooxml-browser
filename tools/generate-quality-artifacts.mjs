@@ -4,6 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const manifestsRoot = path.join(root, 'fixtures', 'manifests');
 const benchmarkReportPath = path.join(root, 'benchmarks', 'reports', 'latest-benchmark-results.json');
+const fixtureResultsPath = path.join(root, 'benchmarks', 'reports', 'latest-fixture-results.json');
 const matrixOutputPath = path.join(root, 'docs', 'quality', 'interop-matrix.md');
 const benchmarkOutputPath = path.join(root, 'docs', 'quality', 'benchmark-baseline.md');
 
@@ -12,11 +13,8 @@ async function walk(dir) {
   const files = [];
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await walk(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith('.json')) {
-      files.push(fullPath);
-    }
+    if (entry.isDirectory()) files.push(...await walk(fullPath));
+    else if (entry.isFile() && entry.name.endsWith('.json')) files.push(fullPath);
   }
   return files;
 }
@@ -35,6 +33,8 @@ const manifests = await Promise.all(manifestFiles.map(async (filePath) => ({
   relativePath: relative(filePath),
   manifest: await readJson(filePath)
 })));
+const fixtureResults = await readJson(fixtureResultsPath).catch(() => ({ results: [] }));
+const fixtureResultById = new Map((fixtureResults.results ?? []).map((entry) => [entry.id, entry]));
 
 const grouped = manifests.reduce((acc, entry) => {
   const key = entry.manifest.format;
@@ -43,14 +43,15 @@ const grouped = manifests.reduce((acc, entry) => {
   return acc;
 }, {});
 
-const matrixSections = ['# Interoperability Matrix', '', 'Generated from `fixtures/manifests/**`.', ''];
+const matrixSections = ['# Interoperability Matrix', '', 'Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-results.json`.', ''];
 for (const format of Object.keys(grouped).sort()) {
   matrixSections.push(`## ${format.toUpperCase()}`, '');
-  matrixSections.push('| Fixture | Tags | Parser | Office | LibreOffice | Supported operations |');
-  matrixSections.push('| --- | --- | --- | --- | --- | --- |');
+  matrixSections.push('| Fixture | Tags | Parser open | Parser round-trip | Office | LibreOffice | Supported operations |');
+  matrixSections.push('| --- | --- | --- | --- | --- | --- | --- |');
   for (const entry of grouped[format].sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))) {
     const { manifest } = entry;
-    matrixSections.push(`| ${manifest.id} | ${manifest.featureTags.join(', ')} | ${String(manifest.reopenExpectations?.parser ?? '')} | ${String(manifest.reopenExpectations?.office ?? '')} | ${String(manifest.reopenExpectations?.libreoffice ?? '')} | ${manifest.supportedOperations.join(', ')} |`);
+    const result = fixtureResultById.get(manifest.id) ?? {};
+    matrixSections.push(`| ${manifest.id} | ${manifest.featureTags.join(', ')} | ${String(result.parserOpen ?? '')} | ${String(result.parserRoundTrip ?? '')} | ${String(result.officeStatus ?? manifest.reopenExpectations?.office ?? '')} | ${String(result.libreOfficeStatus ?? manifest.reopenExpectations?.libreoffice ?? '')} | ${manifest.supportedOperations.join(', ')} |`);
   }
   matrixSections.push('');
 }
@@ -58,10 +59,15 @@ for (const format of Object.keys(grouped).sort()) {
 let benchmarkMarkdown = '# Benchmark Baseline\n\nLatest benchmark summary generated from `benchmarks/reports/latest-benchmark-results.json`.\n';
 try {
   const benchmark = await readJson(benchmarkReportPath);
-  benchmarkMarkdown += '\n| Label | Open ms | Parse ms | Render ms | Serialize ms | Output bytes | HTML length |\n';
-  benchmarkMarkdown += '| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n';
-  for (const result of benchmark.results ?? []) {
-    benchmarkMarkdown += `| ${result.label} | ${result.openMs} | ${result.parseMs} | ${result.renderMs} | ${result.serializeMs} | ${result.outputBytes} | ${result.htmlLength} |\n`;
+  for (const section of ['micro', 'representative']) {
+    const rows = benchmark[section] ?? [];
+    benchmarkMarkdown += `\n## ${section[0].toUpperCase()}${section.slice(1)}\n\n`;
+    benchmarkMarkdown += '| Label | Open ms | Parse ms | Render ms | Serialize ms | Output bytes | HTML length |\n';
+    benchmarkMarkdown += '| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n';
+    for (const result of rows) {
+      benchmarkMarkdown += `| ${result.label} | ${result.openMs} | ${result.parseMs} | ${result.renderMs} | ${result.serializeMs} | ${result.outputBytes} | ${result.htmlLength} |\n`;
+    }
+    benchmarkMarkdown += '\n';
   }
 } catch {
   benchmarkMarkdown += '\nBenchmark report not found yet. Run `npm run bench` first.\n';
