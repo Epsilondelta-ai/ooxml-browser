@@ -364,6 +364,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const dataLabelPositionNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'dLblPos')[0] : undefined;
     const showValueNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showVal')[0] : undefined;
     const showCategoryNameNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showCatName')[0] : undefined;
+    const showSeriesNameNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showSerName')[0] : undefined;
+    const showLegendKeyNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showLegendKey')[0] : undefined;
     const series = chartRoot
       ? findElementsByLocalName(chartRoot, 'ser').map((seriesNode) => {
         const textNode = findElementsByLocalName(seriesNode, 'tx')[0];
@@ -401,7 +403,9 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       dataLabels: dataLabelsNode ? {
         position: xmlAttr(dataLabelPositionNode, 'val') ?? undefined,
         showValue: xmlAttr(showValueNode, 'val') === '1' ? true : xmlAttr(showValueNode, 'val') === '0' ? false : undefined,
-        showCategoryName: xmlAttr(showCategoryNameNode, 'val') === '1' ? true : xmlAttr(showCategoryNameNode, 'val') === '0' ? false : undefined
+        showCategoryName: xmlAttr(showCategoryNameNode, 'val') === '1' ? true : xmlAttr(showCategoryNameNode, 'val') === '0' ? false : undefined,
+        showSeriesName: xmlAttr(showSeriesNameNode, 'val') === '1' ? true : xmlAttr(showSeriesNameNode, 'val') === '0' ? false : undefined,
+        showLegendKey: xmlAttr(showLegendKeyNode, 'val') === '1' ? true : xmlAttr(showLegendKeyNode, 'val') === '0' ? false : undefined
       } : undefined,
       series,
       seriesNames: series.map((seriesEntry) => seriesEntry.name)

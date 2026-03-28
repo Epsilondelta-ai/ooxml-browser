@@ -21,6 +21,7 @@ import {
   setWorksheetChartCategoryAxisPosition,
   setWorksheetChartCategoryAxisTitle,
   setWorksheetChartDataLabels,
+  setWorksheetChartDataLabelVisibility,
   setWorksheetChartDisplayBlanksAs,
   setWorksheetChartGapWidth,
   setWorksheetChartGrouping,
@@ -245,6 +246,8 @@ function renderEditorControls(): void {
       const firstChartValueAxisTitle = firstSheet?.charts[0]?.valueAxisTitle ?? '';
       const firstChartValueAxisPosition = firstSheet?.charts[0]?.valueAxisPosition ?? '';
       const firstChartDataLabelPosition = firstSheet?.charts[0]?.dataLabels?.position ?? '';
+      const firstChartDataLabelSeries = firstSheet?.charts[0]?.dataLabels?.showSeriesName;
+      const firstChartDataLabelLegend = firstSheet?.charts[0]?.dataLabels?.showLegendKey;
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstChartSeriesInvert = firstSheet?.charts[0]?.series[0]?.invertIfNegative;
       const firstChartSeriesMarker = firstSheet?.charts[0]?.series[0]?.markerSymbol ?? '';
@@ -354,6 +357,14 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-dlbl-pos-input" value="${escapeHtml(firstChartDataLabelPosition)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show series name</div>
+          <input id="xlsx-chart-dlbl-series-input" value="${escapeHtml(firstChartDataLabelSeries === undefined ? '' : String(firstChartDataLabelSeries))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Show legend key</div>
+          <input id="xlsx-chart-dlbl-legend-input" value="${escapeHtml(firstChartDataLabelLegend === undefined ? '' : String(firstChartDataLabelLegend))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart series</div>
           <input id="xlsx-chart-series-input" value="${escapeHtml(firstChartSeriesName)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -407,6 +418,8 @@ function renderEditorControls(): void {
       const chartValueAxisInput = window.document.getElementById('xlsx-chart-val-axis-input') as HTMLInputElement;
       const chartValueAxisPositionInput = window.document.getElementById('xlsx-chart-val-axis-pos-input') as HTMLInputElement;
       const chartDataLabelPositionInput = window.document.getElementById('xlsx-chart-dlbl-pos-input') as HTMLInputElement;
+      const chartDataLabelSeriesInput = window.document.getElementById('xlsx-chart-dlbl-series-input') as HTMLInputElement;
+      const chartDataLabelLegendInput = window.document.getElementById('xlsx-chart-dlbl-legend-input') as HTMLInputElement;
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const chartSeriesInvertInput = window.document.getElementById('xlsx-chart-series-invert-input') as HTMLInputElement;
       const chartSeriesMarkerInput = window.document.getElementById('xlsx-chart-series-marker-input') as HTMLInputElement;
@@ -625,6 +638,17 @@ function renderEditorControls(): void {
             }
           );
         }
+        if ((chartDataLabelSeriesInput.value || chartDataLabelLegendInput.value) && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartDataLabelVisibility(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            {
+              showSeriesName: chartDataLabelSeriesInput.value ? chartDataLabelSeriesInput.value === 'true' : undefined,
+              showLegendKey: chartDataLabelLegendInput.value ? chartDataLabelLegendInput.value === 'true' : undefined
+            }
+          );
+        }
         if (chartSeriesInput.value && workbookEditor.document.sheets[0]?.charts[0]?.seriesNames[0] !== undefined) {
           setWorksheetChartSeriesName(
             workbookEditor,
@@ -711,6 +735,8 @@ function renderEditorControls(): void {
       chartValueAxisInput.addEventListener('input', update);
       chartValueAxisPositionInput.addEventListener('input', update);
       chartDataLabelPositionInput.addEventListener('input', update);
+      chartDataLabelSeriesInput.addEventListener('input', update);
+      chartDataLabelLegendInput.addEventListener('input', update);
       chartSeriesInput.addEventListener('input', update);
       chartSeriesInvertInput.addEventListener('input', update);
       chartSeriesMarkerInput.addEventListener('input', update);

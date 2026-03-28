@@ -616,6 +616,19 @@ export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, 
   });
 }
 
+export function setWorksheetChartDataLabelVisibility(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, visibility: { showValue?: boolean; showCategoryName?: boolean; showSeriesName?: boolean; showLegendKey?: boolean }): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.dataLabels = {
+        ...chart.dataLabels,
+        ...visibility
+      };
+    }
+  });
+}
+
 export function setWorksheetChartVaryColors(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, varyColors: boolean | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
