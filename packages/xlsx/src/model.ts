@@ -88,6 +88,10 @@ export interface XlsxChart {
   targetUri: string;
   name?: string;
   chartType?: string;
+  scatterStyle?: string;
+  bubbleScale?: number;
+  showNegativeBubbles?: boolean;
+  sizeRepresents?: string;
   smooth?: boolean;
   grouping?: string;
   overlap?: number;

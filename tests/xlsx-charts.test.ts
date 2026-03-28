@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parseXlsx } from '@ooxml/xlsx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createChartedXlsxFixture, createPieChartedXlsxFixture } from './fixture-builders';
+import { createBubbleXlsxFixture, createChartedXlsxFixture, createPieChartedXlsxFixture } from './fixture-builders';
 
 describe('xlsx chart relationships', () => {
   it('parses worksheet chart relationship metadata', async () => {
@@ -72,5 +72,35 @@ describe('xlsx chart relationships', () => {
     const html = renderOfficeDocumentToHtml(workbook);
 
     expect(html).toContain('Charts: Revenue Doughnut <doughnutChart> [Doughnut Share] firstSlice:120 holeSize:60 varyColors:true legend:r {Share explosion:25} (/xl/charts/chart1.xml)');
+  });
+
+  it('parses bubble-chart-specific metadata', async () => {
+    const workbook = parseXlsx(await openPackage(createBubbleXlsxFixture()));
+    const chart = workbook.sheets[0]?.charts[0];
+
+    expect(chart).toEqual({
+      relationshipId: 'rIdChart1',
+      drawingUri: '/xl/drawings/drawing1.xml',
+      drawingNameOccurrence: 0,
+      targetUri: '/xl/charts/chart1.xml',
+      name: 'Bubble Forecast',
+      chartType: 'bubbleChart',
+      bubbleScale: 140,
+      showNegativeBubbles: true,
+      sizeRepresents: 'area',
+      varyColors: true,
+      title: 'Bubble Opportunity Map',
+      legendPosition: 'r',
+      dataLabels: { position: 'bestFit', showValue: true, showBubbleSize: true },
+      series: [{ name: 'Opportunities', invertIfNegative: false }],
+      seriesNames: ['Opportunities']
+    });
+  });
+
+  it('renders bubble-chart-specific metadata', async () => {
+    const workbook = parseXlsx(await openPackage(createBubbleXlsxFixture()));
+    const html = renderOfficeDocumentToHtml(workbook);
+
+    expect(html).toContain('Charts: Bubble Forecast <bubbleChart> [Bubble Opportunity Map] bubbleScale:140 showNegBubbles:true sizeRep:area varyColors:true legend:r dLblPos:bestFit showVal:true showBubble:true {Opportunities invert:false} (/xl/charts/chart1.xml)');
   });
 });

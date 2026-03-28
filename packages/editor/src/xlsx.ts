@@ -516,6 +516,46 @@ export function setWorksheetChartType(editor: OfficeEditor<XlsxWorkbook>, sheetN
   });
 }
 
+export function setWorksheetChartScatterStyle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, scatterStyle: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.scatterStyle = scatterStyle;
+    }
+  });
+}
+
+export function setWorksheetChartBubbleScale(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, bubbleScale: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.bubbleScale = bubbleScale;
+    }
+  });
+}
+
+export function setWorksheetChartShowNegativeBubbles(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, showNegativeBubbles: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.showNegativeBubbles = showNegativeBubbles;
+    }
+  });
+}
+
+export function setWorksheetChartSizeRepresents(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, sizeRepresents: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.sizeRepresents = sizeRepresents;
+    }
+  });
+}
+
 export function setWorksheetChartSmooth(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, smooth: boolean | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

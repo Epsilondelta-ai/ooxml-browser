@@ -354,10 +354,14 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const valueAxisTitleNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'title')[0] : undefined;
     const valueAxisPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'axPos')[0] : undefined;
     const chartType = chartRoot
-      ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart']
+      ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart', 'bubbleChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
       : undefined;
     const chartTypeNode = chartType && chartRoot ? findElementsByLocalName(chartRoot, chartType)[0] : undefined;
+    const scatterStyleNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'scatterStyle')[0] : undefined;
+    const bubbleScaleNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'bubbleScale')[0] : undefined;
+    const showNegativeBubblesNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'showNegBubbles')[0] : undefined;
+    const sizeRepresentsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'sizeRepresents')[0] : undefined;
     const smoothNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'smooth')[0] : undefined;
     const groupingNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'grouping')[0] : undefined;
     const overlapNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'overlap')[0] : undefined;
@@ -396,6 +400,10 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
       chartType,
+      scatterStyle: xmlAttr(scatterStyleNode, 'val') ?? undefined,
+      bubbleScale: (() => { const value = xmlAttr(bubbleScaleNode, 'val'); return value ? Number(value) : undefined; })(),
+      showNegativeBubbles: xmlAttr(showNegativeBubblesNode, 'val') === '1' ? true : xmlAttr(showNegativeBubblesNode, 'val') === '0' ? false : undefined,
+      sizeRepresents: xmlAttr(sizeRepresentsNode, 'val') ?? undefined,
       smooth: xmlAttr(smoothNode, 'val') === '1' ? true : xmlAttr(smoothNode, 'val') === '0' ? false : undefined,
       grouping: xmlAttr(groupingNode, 'val') ?? undefined,
       overlap: (() => { const value = xmlAttr(overlapNode, 'val'); return value ? Number(value) : undefined; })(),

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartFirstSliceAngle, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartHoleSize, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartSeriesExplosion, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartBubbleScale, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartFirstSliceAngle, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartHoleSize, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartScatterStyle, setWorksheetChartSeriesExplosion, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartShowNegativeBubbles, setWorksheetChartSizeRepresents, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createPieChartedXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
+import { createBubbleXlsxFixture, createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createPieChartedXlsxFixture, createStructuredXlsxFixture, createThreadedRepliesXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -483,6 +483,27 @@ describe('xlsx editor round-trips', () => {
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('firstSliceAng val="180"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('holeSize val="72"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('explosion val="40"');
+  });
+
+  it('persists bubble-chart policy edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createBubbleXlsxFixture())));
+    setWorksheetChartScatterStyle(editor, 'Sheet1', 0, 'lineMarker');
+    setWorksheetChartBubbleScale(editor, 'Sheet1', 0, 180);
+    setWorksheetChartShowNegativeBubbles(editor, 'Sheet1', 0, false);
+    setWorksheetChartSizeRepresents(editor, 'Sheet1', 0, 'w');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.scatterStyle).toBe('lineMarker');
+    expect(reopened.sheets[0]?.charts[0]?.bubbleScale).toBe(180);
+    expect(reopened.sheets[0]?.charts[0]?.showNegativeBubbles).toBe(false);
+    expect(reopened.sheets[0]?.charts[0]?.sizeRepresents).toBe('w');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('scatterStyle val="lineMarker"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('bubbleScale val="180"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showNegBubbles val="0"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('sizeRepresents val="w"');
   });
 
   it('retargets worksheet media relationships through save flows', async () => {

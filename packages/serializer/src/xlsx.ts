@@ -141,6 +141,10 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
     const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
     if (
       chart.chartType !== originalChart?.chartType
+      || chart.scatterStyle !== originalChart?.scatterStyle
+      || chart.bubbleScale !== originalChart?.bubbleScale
+      || chart.showNegativeBubbles !== originalChart?.showNegativeBubbles
+      || chart.sizeRepresents !== originalChart?.sizeRepresents
       || chart.firstSliceAngle !== originalChart?.firstSliceAngle
       || chart.holeSize !== originalChart?.holeSize
       || chart.smooth !== originalChart?.smooth
@@ -159,7 +163,12 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || JSON.stringify(chart.dataLabels ?? null) !== JSON.stringify(originalChart?.dataLabels ?? null)
       || JSON.stringify(chart.series) !== JSON.stringify(originalChart?.series ?? [])
     ) {
-      const existingSource = chart.chartType === originalChart?.chartType ? graph.parts[chart.targetUri]?.text : undefined;
+      const requiresRebuild = chart.chartType !== originalChart?.chartType
+        || chart.scatterStyle !== originalChart?.scatterStyle
+        || chart.bubbleScale !== originalChart?.bubbleScale
+        || chart.showNegativeBubbles !== originalChart?.showNegativeBubbles
+        || chart.sizeRepresents !== originalChart?.sizeRepresents;
+      const existingSource = requiresRebuild ? undefined : graph.parts[chart.targetUri]?.text;
       updatePackagePartText(
         graph,
         chart.targetUri,
@@ -517,6 +526,38 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newValue: chart.grouping
         });
       }
+      if (chart.scatterStyle !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:scatterStyle',
+          targetAttr: 'val',
+          newValue: chart.scatterStyle
+        });
+      }
+      if (chart.bubbleScale !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:bubbleScale',
+          targetAttr: 'val',
+          newValue: String(chart.bubbleScale)
+        });
+      }
+      if (chart.showNegativeBubbles !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:showNegBubbles',
+          targetAttr: 'val',
+          newValue: chart.showNegativeBubbles ? '1' : '0'
+        });
+      }
+      if (chart.sizeRepresents !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:sizeRepresents',
+          targetAttr: 'val',
+          newValue: chart.sizeRepresents
+        });
+      }
       if (chart.smooth !== undefined) {
         operations.push({
           op: 'replaceAttribute',
@@ -740,6 +781,10 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
 
   const chartType = chart.chartType ?? 'barChart';
   const seriesXml = chart.series.map((seriesEntry, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesEntry.name)}</a:t></c:rich></c:tx>${seriesEntry.invertIfNegative !== undefined ? `<c:invertIfNegative val="${seriesEntry.invertIfNegative ? '1' : '0'}"/>` : ''}${seriesEntry.markerSymbol !== undefined || seriesEntry.markerSize !== undefined ? `<c:marker>${seriesEntry.markerSymbol !== undefined ? `<c:symbol val="${escapeXml(seriesEntry.markerSymbol)}"/>` : ''}${seriesEntry.markerSize !== undefined ? `<c:size val="${seriesEntry.markerSize}"/>` : ''}</c:marker>` : ''}${seriesEntry.explosion !== undefined ? `<c:explosion val="${seriesEntry.explosion}"/>` : ''}</c:ser>`).join('');
+  const scatterStyleXml = chart.scatterStyle !== undefined ? `<c:scatterStyle val="${escapeXml(chart.scatterStyle)}"/>` : '';
+  const bubbleScaleXml = chart.bubbleScale !== undefined ? `<c:bubbleScale val="${chart.bubbleScale}"/>` : '';
+  const showNegativeBubblesXml = chart.showNegativeBubbles !== undefined ? `<c:showNegBubbles val="${chart.showNegativeBubbles ? '1' : '0'}"/>` : '';
+  const sizeRepresentsXml = chart.sizeRepresents !== undefined ? `<c:sizeRepresents val="${escapeXml(chart.sizeRepresents)}"/>` : '';
   const firstSliceAngleXml = chart.firstSliceAngle !== undefined ? `<c:firstSliceAng val="${chart.firstSliceAngle}"/>` : '';
   const holeSizeXml = chart.holeSize !== undefined ? `<c:holeSize val="${chart.holeSize}"/>` : '';
   const varyColorsXml = chart.varyColors !== undefined ? `<c:varyColors val="${chart.varyColors ? '1' : '0'}"/>` : '';
@@ -753,7 +798,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.separator !== undefined ? `<c:separator>${escapeXml(chart.dataLabels.separator)}</c:separator>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showSeriesName !== undefined ? `<c:showSerName val="${chart.dataLabels.showSeriesName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLegendKey !== undefined ? `<c:showLegendKey val="${chart.dataLabels.showLegendKey ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLeaderLines !== undefined ? `<c:showLeaderLines val="${chart.dataLabels.showLeaderLines ? '1' : '0'}"/>` : ''}${chart.dataLabels.showPercent !== undefined ? `<c:showPercent val="${chart.dataLabels.showPercent ? '1' : '0'}"/>` : ''}${chart.dataLabels.showBubbleSize !== undefined ? `<c:showBubbleSize val="${chart.dataLabels.showBubbleSize ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}${firstSliceAngleXml}${holeSizeXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${scatterStyleXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}${bubbleScaleXml}${showNegativeBubblesXml}${sizeRepresentsXml}${firstSliceAngleXml}${holeSizeXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
