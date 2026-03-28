@@ -197,13 +197,17 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
   for (const nodeType of ['p:par', 'p:seq', 'p:anim']) {
     for (const node of findElementsByLocalName(timingNode, nodeType.split(':')[1])) {
       const commonTiming = xmlChild<Record<string, unknown>>(node, 'p:cTn');
+      const startConditionList = xmlChild<Record<string, unknown>>(node, 'p:stCondLst');
+      const startCondition = xmlChild<Record<string, unknown>>(startConditionList, 'p:cond');
       nodes.push({
         nodeType: nodeType.split(':')[1],
         presetClass: xmlAttr(commonTiming, 'presetClass') ?? xmlAttr(node, 'presetClass') ?? undefined,
         presetId: xmlAttr(commonTiming, 'presetID') ?? xmlAttr(node, 'presetID') ?? undefined,
         id: xmlAttr(commonTiming, 'id') ?? xmlAttr(node, 'id') ?? undefined,
         duration: xmlAttr(commonTiming, 'dur') ?? xmlAttr(node, 'dur') ?? undefined,
-        repeatCount: xmlAttr(commonTiming, 'repeatCount') ?? xmlAttr(node, 'repeatCount') ?? undefined
+        repeatCount: xmlAttr(commonTiming, 'repeatCount') ?? xmlAttr(node, 'repeatCount') ?? undefined,
+        triggerEvent: xmlAttr(startCondition, 'evt') ?? undefined,
+        triggerDelay: xmlAttr(startCondition, 'delay') ?? undefined
       });
     }
   }

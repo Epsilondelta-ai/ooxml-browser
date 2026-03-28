@@ -392,6 +392,7 @@ function renderEditorControls(): void {
       const commentText = officeDocument.slides[0]?.comments[0]?.text ?? '';
       const transitionType = officeDocument.slides[0]?.transition?.type ?? '';
       const firstTimingDuration = officeDocument.slides[0]?.timing?.nodes[0]?.duration ?? '';
+      const firstTimingTrigger = officeDocument.slides[0]?.timing?.nodes[0]?.triggerEvent ?? '';
       const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
       const masterUri = officeDocument.slides[0]?.masterUri ?? '';
       const themeUri = officeDocument.slides[0]?.themeUri ?? '';
@@ -417,6 +418,10 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing duration</div>
           <input id="pptx-timing-duration-input" value="${escapeHtml(firstTimingDuration)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First timing trigger</div>
+          <input id="pptx-timing-trigger-input" value="${escapeHtml(firstTimingTrigger)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Layout URI</div>
@@ -446,6 +451,7 @@ function renderEditorControls(): void {
       const commentInput = window.document.getElementById('pptx-comment-input') as HTMLInputElement;
       const transitionInput = window.document.getElementById('pptx-transition-input') as HTMLInputElement;
       const timingDurationInput = window.document.getElementById('pptx-timing-duration-input') as HTMLInputElement;
+      const timingTriggerInput = window.document.getElementById('pptx-timing-trigger-input') as HTMLInputElement;
       const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
       const masterInput = window.document.getElementById('pptx-master-input') as HTMLInputElement;
       const themeInput = window.document.getElementById('pptx-theme-input') as HTMLInputElement;
@@ -474,6 +480,14 @@ function renderEditorControls(): void {
             currentNodes.map((node, index) => index === 0 ? { ...node, duration: timingDurationInput.value } : node)
           );
         }
+        if (timingTriggerInput.value && presentationEditor.document.slides[0]?.timing?.nodes.length) {
+          const currentNodes = presentationEditor.document.slides[0].timing?.nodes ?? [];
+          setPresentationTimingNodes(
+            presentationEditor,
+            0,
+            currentNodes.map((node, index) => index === 0 ? { ...node, triggerEvent: timingTriggerInput.value } : node)
+          );
+        }
         if (layoutInput.value) {
           setPresentationSlideLayout(presentationEditor, 0, layoutInput.value);
         }
@@ -495,6 +509,7 @@ function renderEditorControls(): void {
       commentInput.addEventListener('input', update);
       transitionInput.addEventListener('input', update);
       timingDurationInput.addEventListener('input', update);
+      timingTriggerInput.addEventListener('input', update);
       layoutInput.addEventListener('input', update);
       masterInput.addEventListener('input', update);
       themeInput.addEventListener('input', update);

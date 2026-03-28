@@ -47,6 +47,8 @@ export interface PresentationTimingNode {
   id?: string;
   duration?: string;
   repeatCount?: string;
+  triggerEvent?: string;
+  triggerDelay?: string;
 }
 
 export interface PresentationTiming {

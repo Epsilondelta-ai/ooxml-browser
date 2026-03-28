@@ -258,7 +258,12 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
     return '';
   }
 
-  const body = nodes.map((node) => `<p:${node.nodeType}><p:cTn${node.id ? ` id="${escapeXml(node.id)}"` : ''}${node.presetClass ? ` presetClass="${escapeXml(node.presetClass)}"` : ''}${node.presetId ? ` presetID="${escapeXml(node.presetId)}"` : ''}${node.duration ? ` dur="${escapeXml(node.duration)}"` : ''}${node.repeatCount ? ` repeatCount="${escapeXml(node.repeatCount)}"` : ''}/></p:${node.nodeType}>`).join('');
+  const body = nodes.map((node) => {
+    const conditionXml = node.triggerEvent || node.triggerDelay
+      ? `<p:stCondLst><p:cond${node.triggerEvent ? ` evt="${escapeXml(node.triggerEvent)}"` : ''}${node.triggerDelay ? ` delay="${escapeXml(node.triggerDelay)}"` : ''}/></p:stCondLst>`
+      : '';
+    return `<p:${node.nodeType}><p:cTn${node.id ? ` id="${escapeXml(node.id)}"` : ''}${node.presetClass ? ` presetClass="${escapeXml(node.presetClass)}"` : ''}${node.presetId ? ` presetID="${escapeXml(node.presetId)}"` : ''}${node.duration ? ` dur="${escapeXml(node.duration)}"` : ''}${node.repeatCount ? ` repeatCount="${escapeXml(node.repeatCount)}"` : ''}/>${conditionXml}</p:${node.nodeType}>`;
+  }).join('');
   return `<p:timing><p:tnLst>${body}</p:tnLst></p:timing>`;
 }
 

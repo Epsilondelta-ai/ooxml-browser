@@ -164,20 +164,22 @@ describe('pptx editor round-trips', () => {
   it('persists edited slide timing metadata', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createTimedPptxFixture())));
     setPresentationTimingNodes(editor, 0, [
-      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatCount: '2' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatCount: 'indefinite' },
-      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatCount: '1' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatCount: '2', triggerEvent: 'onClick', triggerDelay: '100' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatCount: 'indefinite', triggerEvent: 'afterPrevious', triggerDelay: '250' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatCount: '1', triggerEvent: 'withPrevious', triggerDelay: '0' }
     ]);
 
     const serialized = serializeOfficeDocument(editor.document);
     const reopened = parsePptx(await openPackage(serialized));
     const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.timing?.nodes).toEqual([
-      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatCount: '2' },
-      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatCount: 'indefinite' },
-      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatCount: '1' }
+      { nodeType: 'par', presetClass: 'entr', presetId: '11', id: '101', duration: '900', repeatCount: '2', triggerEvent: 'onClick', triggerDelay: '100' },
+      { nodeType: 'seq', presetClass: 'exit', presetId: '22', id: '202', duration: '1200', repeatCount: 'indefinite', triggerEvent: 'afterPrevious', triggerDelay: '250' },
+      { nodeType: 'anim', presetClass: 'emph', presetId: '33', id: '303', duration: '450', repeatCount: '1', triggerEvent: 'withPrevious', triggerDelay: '0' }
     ]);
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('dur="900"');
     expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('repeatCount="indefinite"');
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('evt="afterPrevious"');
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('delay="100"');
   });
 });
