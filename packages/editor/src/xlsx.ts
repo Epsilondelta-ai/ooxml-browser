@@ -22,3 +22,62 @@ export function setWorkbookCellValue(editor: OfficeEditor<XlsxWorkbook>, sheetNa
     }
   });
 }
+
+
+export function insertWorkbookRow(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, rowIndex: number): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    for (const row of sheet.rows) {
+      if (row.index >= rowIndex) {
+        row.index += 1;
+      }
+
+      for (const cell of row.cells) {
+        cell.reference = shiftCellReferenceRow(cell.reference, rowIndex, 1);
+        if (cell.formula) {
+          cell.formula = shiftFormulaRowReferences(cell.formula, rowIndex, 1);
+        }
+      }
+    }
+
+    sheet.rows.sort((left, right) => left.index - right.index);
+    sheet.rows.push({ index: rowIndex, cells: [] });
+    sheet.rows.sort((left, right) => left.index - right.index);
+
+    sheet.mergedRanges = sheet.mergedRanges.map((range) => shiftRangeRows(range, rowIndex, 1));
+    if (sheet.frozenPane?.topLeftCell) {
+      sheet.frozenPane.topLeftCell = shiftCellReferenceRow(sheet.frozenPane.topLeftCell, rowIndex, 1);
+    }
+
+    draft.definedNames = draft.definedNames.map((definedName) => ({
+      ...definedName,
+      reference: shiftReferenceRows(definedName.reference, rowIndex, 1)
+    }));
+  });
+}
+
+function shiftFormulaRowReferences(formula: string, threshold: number, delta: number): string {
+  return formula.replace(/(\$?[A-Z]{1,3}\$?)(\d+)/g, (_match, column, row) => {
+    const numericRow = Number(row);
+    return `${column}${numericRow >= threshold ? numericRow + delta : numericRow}`;
+  });
+}
+
+function shiftCellReferenceRow(reference: string, threshold: number, delta: number): string {
+  return reference.replace(/(\$?[A-Z]{1,3}\$?)(\d+)/, (_match, column, row) => {
+    const numericRow = Number(row);
+    return `${column}${numericRow >= threshold ? numericRow + delta : numericRow}`;
+  });
+}
+
+function shiftRangeRows(range: string, threshold: number, delta: number): string {
+  return range.split(':').map((entry) => shiftCellReferenceRow(entry, threshold, delta)).join(':');
+}
+
+function shiftReferenceRows(reference: string, threshold: number, delta: number): string {
+  return reference.replace(/(\$?[A-Z]{1,3}\$?\d+(?::\$?[A-Z]{1,3}\$?\d+)?)/g, (match) => shiftRangeRows(match, threshold, delta));
+}
