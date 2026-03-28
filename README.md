@@ -29,8 +29,9 @@ Browser-first workspace for parsing, rendering, editing, and serializing OOXML (
 
 ## Examples
 - `examples/basic` - upload and preview an OOXML file
-- `playground` - upload, inspect summaries, apply a small edit, preview, and save
+- `playground` - upload, inspect summaries, apply text/metadata edits, preview, and save
 
 ## Documentation
 - `docs/` contains the research/design baseline
+- `docs/reference/editing-surface-matrix.md` tracks the current public editing helpers and persistence expectations
 - `.omx/plans/` contains the consensus plan, PRD, test spec, and review artifacts

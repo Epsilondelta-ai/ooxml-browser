@@ -1,5 +1,16 @@
 import { createBrowserSession } from '@ooxml/browser';
-import { replaceDocxParagraphText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue, type EditableOfficeDocument, type OfficeEditor } from '@ooxml/editor';
+import {
+  replaceDocxParagraphText,
+  setDocxParagraphStyle,
+  setPresentationNotesText,
+  setPresentationShapeText,
+  setPresentationTransition,
+  setWorkbookCellFormula,
+  setWorkbookCellValue,
+  setWorkbookSheetName,
+  type EditableOfficeDocument,
+  type OfficeEditor
+} from '@ooxml/editor';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
 const app = document.getElementById('app');
@@ -12,7 +23,7 @@ app.innerHTML = `
   <section style="font-family: system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 24px; display: grid; gap: 16px;">
     <header style="display: grid; gap: 6px;">
       <h1 style="margin: 0;">OOXML Playground</h1>
-      <p style="margin: 0; color: #475569;">Load an OOXML document, inspect its package summary, apply a small edit, and save the modified file.</p>
+      <p style="margin: 0; color: #475569;">Load an OOXML document, inspect its package summary, apply text and metadata edits, and save the modified file.</p>
     </header>
 
     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
@@ -121,69 +132,119 @@ function renderEditorControls(): void {
   switch (officeDocument.kind) {
     case 'docx': {
       const firstParagraph = officeDocument.stories[0]?.paragraphs[0]?.text ?? '';
+      const firstStyle = officeDocument.stories[0]?.paragraphs[0]?.styleId ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First paragraph</div>
           <input id="docx-input" value="${escapeHtml(firstParagraph)}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Paragraph style</div>
+          <input id="docx-style-input" value="${escapeHtml(firstStyle)}" style="width: 100%; padding: 8px;" />
+        </label>
       `;
       const input = window.document.getElementById('docx-input') as HTMLInputElement;
-      input.addEventListener('input', () => {
+      const styleInput = window.document.getElementById('docx-style-input') as HTMLInputElement;
+      const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'docx') {
           return;
         }
         replaceDocxParagraphText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'docx' }>>, 0, 0, input.value);
+        setDocxParagraphStyle(
+          currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'docx' }>>,
+          'document',
+          0,
+          0,
+          styleInput.value || undefined
+        );
         renderPreview();
-      });
+      };
+      input.addEventListener('input', update);
+      styleInput.addEventListener('input', update);
       break;
     }
     case 'xlsx': {
-      const firstCell = officeDocument.sheets[0]?.rows[0]?.cells[0]?.value ?? '';
+      const firstSheet = officeDocument.sheets[0];
+      const firstCell = firstSheet?.rows[0]?.cells[0]?.value ?? '';
+      const firstFormulaCell = firstSheet?.rows.flatMap((row) => row.cells).find((cell) => cell.formula);
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1</div>
           <input id="xlsx-input" value="${escapeHtml(firstCell)}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First sheet name</div>
+          <input id="xlsx-sheet-input" value="${escapeHtml(firstSheet?.name ?? 'Sheet1')}" style="width: 100%; padding: 8px;" />
+        </label>
+        ${firstFormulaCell ? `<label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">${escapeHtml(firstFormulaCell.reference)} formula</div>
+          <input id="xlsx-formula-input" value="${escapeHtml(firstFormulaCell.formula ?? '')}" style="width: 100%; padding: 8px;" />
+        </label>` : ''}
       `;
       const input = window.document.getElementById('xlsx-input') as HTMLInputElement;
-      input.addEventListener('input', () => {
+      const sheetInput = window.document.getElementById('xlsx-sheet-input') as HTMLInputElement;
+      const formulaInput = firstFormulaCell ? window.document.getElementById('xlsx-formula-input') as HTMLInputElement : null;
+      const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'xlsx') {
           return;
         }
-        setWorkbookCellValue(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'xlsx' }>>, 'Sheet1', 'A1', input.value);
+        const workbookEditor = currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'xlsx' }>>;
+        const currentSheetName = workbookEditor.document.sheets[0]?.name ?? 'Sheet1';
+        setWorkbookCellValue(workbookEditor, currentSheetName, 'A1', input.value);
+        if (sheetInput.value && sheetInput.value !== currentSheetName) {
+          setWorkbookSheetName(workbookEditor, currentSheetName, sheetInput.value);
+        }
+        if (formulaInput && firstFormulaCell) {
+          const formulaSheetName = workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1';
+          setWorkbookCellFormula(
+            workbookEditor,
+            formulaSheetName,
+            firstFormulaCell.reference,
+            formulaInput.value,
+            firstFormulaCell.value
+          );
+        }
         renderPreview();
-      });
+      };
+      input.addEventListener('input', update);
+      sheetInput.addEventListener('input', update);
+      formulaInput?.addEventListener('input', update);
       break;
     }
     case 'pptx': {
       const shapeText = officeDocument.slides[0]?.shapes[0]?.text ?? '';
       const notesText = officeDocument.slides[0]?.notesText ?? '';
-      const notesUri = officeDocument.slides[0]?.notesUri;
-      const hasNotes = notesUri ? Boolean(officeDocument.packageGraph.parts[notesUri]) : false;
+      const transitionType = officeDocument.slides[0]?.transition?.type ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First shape text</div>
           <input id="pptx-shape-input" value="${escapeHtml(shapeText)}" style="width: 100%; padding: 8px;" />
         </label>
-        ${hasNotes ? `<label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Notes</div>
           <textarea id="pptx-notes-input" style="width: 100%; min-height: 96px; padding: 8px;">${escapeHtml(notesText)}</textarea>
-        </label>` : '<p style="margin: 0; color: #64748b;">This slide has no notes part to edit.</p>'}
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Transition type</div>
+          <input id="pptx-transition-input" value="${escapeHtml(transitionType)}" style="width: 100%; padding: 8px;" />
+        </label>
       `;
       const shapeInput = window.document.getElementById('pptx-shape-input') as HTMLInputElement;
-      const notesInput = hasNotes ? window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement : null;
+      const notesInput = window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement;
+      const transitionInput = window.document.getElementById('pptx-transition-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'pptx') {
           return;
         }
-        setPresentationShapeText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>, 0, 0, shapeInput.value);
-        if (notesInput) {
-          setPresentationNotesText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>, 0, notesInput.value);
-        }
+        const presentationEditor = currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>;
+        setPresentationShapeText(presentationEditor, 0, 0, shapeInput.value);
+        setPresentationNotesText(presentationEditor, 0, notesInput.value);
+        setPresentationTransition(presentationEditor, 0, transitionInput.value ? { type: transitionInput.value } : undefined);
         renderPreview();
       };
       shapeInput.addEventListener('input', update);
-      notesInput?.addEventListener('input', update);
+      notesInput.addEventListener('input', update);
+      transitionInput.addEventListener('input', update);
       break;
     }
   }

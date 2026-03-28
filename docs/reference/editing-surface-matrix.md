@@ -15,6 +15,8 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment text | `setDocxCommentText` | Persisted | Comment XML patch path preserves unrelated story parts. |
 | Comment author | `setDocxCommentAuthor` | Persisted | Comment XML patch path updates `w:author`. |
 | Section page size/margins | `setDocxSectionLayout` | Persisted | Section changes disable paragraph-only patch fast path. |
+| Header/footer reference type | `setDocxSectionReferenceType` | Persisted | Reuses the section rebuild path for `sectPr` reference metadata. |
+| Header/footer reference target | `setDocxSectionReferenceTarget` | Persisted | Updates document relationships to point at alternate existing header/footer parts. |
 
 ## XLSX
 
@@ -52,7 +54,6 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 ## Gaps that remain outside the public editing surface
 
 - DOCX tracked-change author/date mutation helpers
-- DOCX header/footer reference reassignment
 - XLSX chart/comment-threaded extensions, print settings, selection state, and relationship-backed media/chart retargeting
 - PPTX layout/master/theme reassignment and richer animation graph editing beyond flat timing nodes
 - Relationship-safe embedded-object retargeting across all formats
