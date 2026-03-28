@@ -45,7 +45,6 @@ describe('docx serializer persistence', () => {
   });
 });
 
-
 describe('docx patch preservation', () => {
   it('preserves unknown document attributes when patching simple paragraph edits', async () => {
     const document = parseDocx(await openPackage(createDocxFixture()));
@@ -57,5 +56,33 @@ describe('docx patch preservation', () => {
 
     expect(reopenedGraph.parts['/word/document.xml']?.text).toContain('customAttr="keep"');
     expect(reopenedGraph.parts['/word/document.xml']?.text).toContain('Patched text');
+  });
+
+  it('leaves styles.xml untouched for simple styled paragraph edits', async () => {
+    const originalBytes = createStyledDocxFixture();
+    const originalGraph = await openPackage(originalBytes);
+    const document = parseDocx(originalGraph);
+    document.stories[0].paragraphs[0].text = 'Retitled heading';
+    document.stories[0].paragraphs[0].runs[0].text = 'Retitled heading';
+
+    const serialized = serializeOfficeDocument(document);
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopenedGraph.parts['/word/styles.xml']?.text).toBe(originalGraph.parts['/word/styles.xml']?.text);
+    expect(reopenedGraph.parts['/word/styles.xml']?.text).toContain('customStylesAttr="keep"');
+  });
+
+  it('leaves numbering.xml untouched for simple numbered paragraph edits', async () => {
+    const originalBytes = createNumberedDocxFixture();
+    const originalGraph = await openPackage(originalBytes);
+    const document = parseDocx(originalGraph);
+    document.stories[0].paragraphs[0].text = 'Updated list item';
+    document.stories[0].paragraphs[0].runs[0].text = 'Updated list item';
+
+    const serialized = serializeOfficeDocument(document);
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopenedGraph.parts['/word/numbering.xml']?.text).toBe(originalGraph.parts['/word/numbering.xml']?.text);
+    expect(reopenedGraph.parts['/word/numbering.xml']?.text).toContain('customNumberingAttr="keep"');
   });
 });

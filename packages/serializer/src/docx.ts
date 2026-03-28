@@ -1,8 +1,9 @@
 import { applyXmlPatchPlan, clonePackageGraph, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
-import type { DocxComment, DocxDocument, DocxParagraph, DocxSection, DocxStyle, DocxTable } from '@ooxml/docx';
+import { parseDocx, type DocxComment, type DocxDocument, type DocxParagraph, type DocxSection, type DocxStyle, type DocxTable } from '@ooxml/docx';
 
 export function serializeDocx(document: DocxDocument): Uint8Array {
   const graph = clonePackageGraph(document.packageGraph);
+  const originalDocument = parseDocx(document.packageGraph);
 
   for (const story of document.stories) {
     const contentType = story.kind === 'header'
@@ -20,7 +21,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   }
 
   const commentsUri = '/word/comments.xml';
-  if (graph.parts[commentsUri]) {
+  if (graph.parts[commentsUri] && JSON.stringify(document.comments) !== JSON.stringify(originalDocument.comments)) {
     const existingSource = graph.parts[commentsUri].text;
     const nextSource = existingSource ? patchDocxCommentsXml(existingSource, document.comments) : buildCommentsXml(document.comments);
     updatePackagePartText(
@@ -31,7 +32,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
     );
   }
 
-  if (document.numbering.partUri && graph.parts[document.numbering.partUri]) {
+  if (document.numbering.partUri && graph.parts[document.numbering.partUri] && JSON.stringify(document.numbering) !== JSON.stringify(originalDocument.numbering)) {
     updatePackagePartText(
       graph,
       document.numbering.partUri,
@@ -41,7 +42,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   }
 
   const stylesUri = graph.parts['/word/styles.xml'] ? '/word/styles.xml' : undefined;
-  if (stylesUri) {
+  if (stylesUri && JSON.stringify(document.styles) !== JSON.stringify(originalDocument.styles)) {
     updatePackagePartText(
       graph,
       stylesUri,

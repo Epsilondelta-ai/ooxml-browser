@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T07:09:12.072Z",
+  "generatedAt": "2026-03-28T07:10:58.287Z",
   "results": [
     {
       "id": "docx-basic",
@@ -30,13 +30,12 @@
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/word/document.xml",
-        "/word/numbering.xml"
+        "/word/document.xml"
       ],
       "addedParts": [],
       "removedParts": [],
-      "changedPartCount": 2,
-      "preservedPartCount": 2,
+      "changedPartCount": 1,
+      "preservedPartCount": 3,
       "totalOriginalPartCount": 4,
       "officeStatus": "stage-2-attestation-pending",
       "libreOfficeStatus": "stage-2-attestation-pending"
@@ -88,13 +87,12 @@
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/word/document.xml",
-        "/word/styles.xml"
+        "/word/document.xml"
       ],
       "addedParts": [],
       "removedParts": [],
-      "changedPartCount": 2,
-      "preservedPartCount": 2,
+      "changedPartCount": 1,
+      "preservedPartCount": 3,
       "totalOriginalPartCount": 4,
       "officeStatus": "stage-2-attestation-pending",
       "libreOfficeStatus": "stage-2-attestation-pending"
