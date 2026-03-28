@@ -41,6 +41,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Table name | `setWorksheetTableName` | Persisted | Table-part serializer keeps `name`/`displayName` aligned. |
 | Table range | `setWorksheetTableRange` | Persisted | Table-part patch updates `ref`. |
 | Frozen pane | `setWorksheetFrozenPane` | Persisted | Worksheet patch path updates pane attributes. |
+| Selection state | `setWorksheetSelection` | Persisted | Parser/renderer/editor preserve active-cell and sqref metadata inside `sheetViews`. |
 | Merged ranges | `setWorksheetMergedRanges` | Persisted | May force worksheet rebuild; rebuild path preserves worksheet root attrs. |
 
 ## PPTX
