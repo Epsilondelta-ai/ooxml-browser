@@ -7,3 +7,4 @@ export * from './contracts/index';
 export * from './relationships';
 export * from './provenance';
 export * from './xml-patch';
+export * from './patch-plan';

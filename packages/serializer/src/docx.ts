@@ -1,4 +1,4 @@
-import { clonePackageGraph, replaceAttributeValue, replaceInnerTextByAttribute, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import { applyXmlPatchPlan, clonePackageGraph, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
 import type { DocxComment, DocxDocument, DocxParagraph, DocxSection, DocxStyle, DocxTable } from '@ooxml/docx';
 
 export function serializeDocx(document: DocxDocument): Uint8Array {
@@ -61,7 +61,7 @@ function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], sec
       if (block.kind !== 'paragraph') {
         continue;
       }
-      next = replaceInnerTextByAttribute(next, { containerTag: kind === 'document' ? 'w:p' : kind === 'header' ? 'w:p' : 'w:p', occurrence: paragraphOccurrence, textTag: 'w:t', newText: block.paragraph.text });
+      next = applyXmlPatchPlan(next, [{ op: 'replaceText', containerTag: 'w:p', occurrence: paragraphOccurrence, textTag: 'w:t', newText: block.paragraph.text }]);
       paragraphOccurrence += 1;
     }
     return next;
@@ -125,12 +125,11 @@ function escapeXml(value: string): string {
 
 
 function patchDocxCommentsXml(source: string, comments: DocxComment[]): string {
-  let next = source;
-  for (const comment of comments) {
-    next = replaceAttributeValue(next, { tagName: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, targetAttr: 'w:author', newValue: comment.author ?? '' });
-    next = replaceInnerTextByAttribute(next, { containerTag: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, textTag: 'w:t', newText: comment.text });
-  }
-  return next;
+  const operations = comments.flatMap((comment) => [
+    { op: 'replaceAttribute' as const, tagName: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, targetAttr: 'w:author', newValue: comment.author ?? '' },
+    { op: 'replaceText' as const, containerTag: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, textTag: 'w:t', newText: comment.text }
+  ]);
+  return applyXmlPatchPlan(source, operations);
 }
 
 

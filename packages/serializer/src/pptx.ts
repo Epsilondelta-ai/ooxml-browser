@@ -1,4 +1,4 @@
-import { clonePackageGraph, relationshipsFor, replaceInnerTextByAttribute, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
 import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTimingNode, SlideShape } from '@ooxml/pptx';
 
 export function serializePptx(presentation: PresentationDocument): Uint8Array {
@@ -82,11 +82,13 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
 
 function buildCommentsXml(comments: PresentationComment[], existingSource?: string): string {
   if (existingSource) {
-    let next = existingSource;
-    comments.forEach((comment, index) => {
-      next = replaceInnerTextByAttribute(next, { containerTag: 'p:cm', occurrence: index, textTag: 'p:text', newText: comment.text });
-    });
-    return next;
+    return applyXmlPatchPlan(existingSource, comments.map((comment, index) => ({
+      op: 'replaceText' as const,
+      containerTag: 'p:cm',
+      occurrence: index,
+      textTag: 'p:text',
+      newText: comment.text
+    })));
   }
 
   const body = comments.map((comment) => `<p:cm${comment.author ? ` authorId="${escapeXml(comment.author)}"` : ''}><p:text>${escapeXml(comment.text)}</p:text></p:cm>`).join('');

@@ -1,5 +1,5 @@
-import { clonePackageGraph, relationshipsFor, replaceAttributeValue, replaceInnerTextByAttribute, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart } from '@ooxml/core';
-import type { WorkbookSheet, XlsxComment, XlsxDefinedName, XlsxTable, XlsxWorkbook, WorksheetCell } from '@ooxml/xlsx';
+import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart } from '@ooxml/core';
+import type { WorkbookSheet, WorksheetCell, XlsxComment, XlsxDefinedName, XlsxTable, XlsxWorkbook } from '@ooxml/xlsx';
 
 export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   const graph = clonePackageGraph(workbook.packageGraph);
@@ -60,8 +60,7 @@ function buildWorkbookXml(workbook: XlsxWorkbook): string {
     : '';
   const sheetsXml = workbook.sheets.map((sheet) => `<sheet name="${escapeXml(sheet.name)}" sheetId="${sheet.sheetId}" r:id="${escapeXml(sheet.relationshipId)}"/>`).join('');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${definedNamesXml}<sheets>${sheetsXml}</sheets></workbook>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${definedNamesXml}<sheets>${sheetsXml}</sheets></workbook>`;
 }
 
 function buildDefinedNameXml(definedName: XlsxDefinedName): string {
@@ -90,30 +89,32 @@ function createSharedStringPool(workbook: XlsxWorkbook): { values: string[]; ind
 
 function buildSharedStringsXml(values: string[]): string {
   const items = values.map((value) => `<si><t>${escapeXml(value)}</t></si>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${values.length}" uniqueCount="${values.length}">${items}</sst>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${values.length}" uniqueCount="${values.length}">${items}</sst>`;
 }
 
 function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean, existingSource?: string): string {
-
   if (existingSource && canPatchWorksheet(sheet)) {
     let next = existingSource;
     for (const row of sheet.rows) {
       for (const cell of row.cells) {
+        const operations = [] as Array<Parameters<typeof applyXmlPatchPlan>[1][number]>;
         if (cell.formula) {
-          next = replaceInnerTextByAttribute(next, { containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 'f', newText: cell.formula });
+          operations.push({ op: 'replaceText', containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 'f', newText: cell.formula });
         }
-
-        if (shouldUseSharedString(cell) && !useSharedStrings) {
-          next = replaceInnerTextByAttribute(next, { containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 't', newText: cell.value });
-        } else {
-          next = replaceInnerTextByAttribute(next, { containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 'v', newText: cell.value });
-        }
+        operations.push({
+          op: 'replaceText',
+          containerTag: 'c',
+          keyAttr: 'r',
+          keyValue: cell.reference,
+          textTag: shouldUseSharedString(cell) && !useSharedStrings ? 't' : 'v',
+          newText: cell.value
+        });
+        next = applyXmlPatchPlan(next, operations);
       }
     }
 
     if (sheet.frozenPane?.topLeftCell) {
-      next = replaceAttributeValue(next, { tagName: 'pane', targetAttr: 'topLeftCell', newValue: sheet.frozenPane.topLeftCell });
+      next = applyXmlPatchPlan(next, [{ op: 'replaceAttribute', tagName: 'pane', targetAttr: 'topLeftCell', newValue: sheet.frozenPane.topLeftCell }]);
     }
 
     return next;
@@ -127,8 +128,7 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
     ? `<mergeCells count="${sheet.mergedRanges.length}">${sheet.mergedRanges.map((range) => `<mergeCell ref="${escapeXml(range)}"/>`).join('')}</mergeCells>`
     : '';
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${paneXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${paneXml}<sheetData>${rows}</sheetData>${mergeCellsXml}</worksheet>`;
 }
 
 function buildCellXml(cell: WorksheetCell, sharedStringIndices: Map<string, number>, useSharedStrings: boolean): string {
@@ -154,36 +154,39 @@ function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGr
   const xml = getParsedXmlPart(graph, table.partUri);
   const source = xml?.source;
   if (source) {
-    return replaceAttributeValue(
-      replaceAttributeValue(
-        replaceAttributeValue(source, { tagName: 'table', targetAttr: 'name', newValue: table.name }),
-        { tagName: 'table', targetAttr: 'displayName', newValue: table.name }
-      ),
-      { tagName: 'table', targetAttr: 'ref', newValue: table.range }
-    );
+    return applyXmlPatchPlan(source, [
+      { op: 'replaceAttribute', tagName: 'table', targetAttr: 'name', newValue: table.name },
+      { op: 'replaceAttribute', tagName: 'table', targetAttr: 'displayName', newValue: table.name },
+      { op: 'replaceAttribute', tagName: 'table', targetAttr: 'ref', newValue: table.range }
+    ]);
   }
 
   const root = xml?.document.table as Record<string, unknown> | undefined;
   const tableId = root ? xmlAttr(root, 'id') ?? '1' : '1';
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="${escapeXml(tableId)}" name="${escapeXml(table.name)}" displayName="${escapeXml(table.name)}" ref="${escapeXml(table.range)}"/>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="${escapeXml(tableId)}" name="${escapeXml(table.name)}" displayName="${escapeXml(table.name)}" ref="${escapeXml(table.range)}"/>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
   if (existingSource) {
-    let next = existingSource;
-    for (const comment of comments) {
-      next = replaceInnerTextByAttribute(next, { containerTag: 'comment', keyAttr: 'ref', keyValue: comment.reference, textTag: 't', newText: comment.text });
-    }
-    return next;
+    return applyXmlPatchPlan(existingSource, comments.map((comment) => ({
+      op: 'replaceText' as const,
+      containerTag: 'comment',
+      keyAttr: 'ref',
+      keyValue: comment.reference,
+      textTag: 't',
+      newText: comment.text
+    })));
   }
 
   const authors = Array.from(new Set(comments.map((comment) => comment.author).filter((author): author is string => Boolean(author))));
   const authorIndex = new Map(authors.map((author, index) => [author, index]));
   const commentsXml = comments.map((comment) => `<comment ref="${escapeXml(comment.reference)}"${comment.author ? ` authorId="${authorIndex.get(comment.author) ?? 0}"` : ''}><text><r><t>${escapeXml(comment.text)}</t></r></text></comment>`).join('');
   const authorsXml = authors.length ? `<authors>${authors.map((author) => `<author>${escapeXml(author)}</author>`).join('')}</authors>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${authorsXml}<commentList>${commentsXml}</commentList></comments>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${authorsXml}<commentList>${commentsXml}</commentList></comments>`;
+}
+
+function canPatchWorksheet(sheet: WorkbookSheet): boolean {
+  return sheet.rows.every((row) => row.cells.length > 0);
 }
 
 function shouldUseSharedString(cell: WorksheetCell): boolean {
@@ -201,9 +204,4 @@ function escapeXml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
-}
-
-
-function canPatchWorksheet(sheet: WorkbookSheet): boolean {
-  return sheet.rows.every((row) => row.cells.length > 0);
 }
