@@ -48,6 +48,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Shape transform | `setPresentationShapeTransform` | Persisted | Rebuild path persists transform values. |
 | Image target URI | `setPresentationImageTarget` | Persisted | Serializer updates slide image relationship targets. |
 | Slide layout target | `setPresentationSlideLayout` | Persisted | Serializer retargets the slideLayout relationship to an alternate existing layout part. |
+| Slide master target | `setPresentationSlideMaster` | Persisted | Serializer retargets the slideLayout-to-slideMaster relationship to an alternate existing master part. |
 | Notes text | `setPresentationNotesText` | Persisted | Creates a notes part on demand when missing, otherwise patches the existing notes part. |
 | Comment text | `setPresentationCommentText` | Persisted | Comment-part patch path. |
 | Comment author | `setPresentationCommentAuthor` | Persisted | Occurrence-aware attribute patch path. |
@@ -59,7 +60,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 ## Gaps that remain outside the public editing surface
 
 - XLSX chart/comment-threaded extensions, print settings, selection state, and relationship-backed media/chart retargeting
-- PPTX master/theme reassignment and richer animation graph editing beyond flat timing nodes
+- PPTX theme reassignment and richer animation graph editing beyond flat timing nodes
 - Relationship-safe embedded-object retargeting across all formats
 
 ## Maintenance rule
