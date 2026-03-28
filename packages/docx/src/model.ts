@@ -45,9 +45,14 @@ export interface DocxComment {
   text: string;
 }
 
+export type DocxBlock =
+  | { kind: 'paragraph'; paragraph: DocxParagraph }
+  | { kind: 'table'; table: DocxTable };
+
 export interface DocxStory {
   kind: 'document' | 'header' | 'footer';
   uri: string;
+  blocks: DocxBlock[];
   paragraphs: DocxParagraph[];
   tables: DocxTable[];
 }

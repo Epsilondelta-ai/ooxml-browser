@@ -14,7 +14,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
     updatePackagePartText(
       graph,
       story.uri,
-      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind),
+      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks),
       contentType
     );
   }
@@ -51,8 +51,8 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   return serializePackageGraph(graph);
 }
 
-function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer'): string {
-  const paragraphXml = paragraphs.map((paragraph) => {
+function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = []): string {
+  const paragraphXmlFor = (paragraph: DocxParagraph) => {
     const paragraphProperties = [
       paragraph.styleId ? `<w:pStyle w:val="${escapeXml(paragraph.styleId)}"/>` : '',
       paragraph.numbering ? `<w:numPr><w:ilvl w:val="${paragraph.numbering.level}"/><w:numId w:val="${escapeXml(paragraph.numbering.numId)}"/></w:numPr>` : ''
@@ -62,12 +62,16 @@ function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], sec
     const revisionsXml = paragraph.revisions.map((revision) => `<w:${revision.kind === 'insertion' ? 'ins' : 'del'}${revision.id ? ` w:id="${escapeXml(revision.id)}"` : ''}${revision.author ? ` w:author="${escapeXml(revision.author)}"` : ''}${revision.date ? ` w:date="${escapeXml(revision.date)}"` : ''}><w:r>${revision.kind === 'deletion' ? `<w:delText>${escapeXml(revision.text)}</w:delText>` : `<w:t>${escapeXml(revision.text)}</w:t>`}</w:r></w:${revision.kind === 'insertion' ? 'ins' : 'del'}>`).join('');
 
     return `<w:p>${paragraphProperties ? `<w:pPr>${paragraphProperties}</w:pPr>` : ''}${runsXml}${revisionsXml}</w:p>`;
-  }).join('');
-  const tableXml = tables.map((table) => `<w:tbl>${table.rows.map((row) => `<w:tr>${row.cells.map((cell) => `<w:tc><w:p><w:r><w:t>${escapeXml(cell.text)}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`).join('')}</w:tbl>`).join('');
+  };
+  const tableXmlFor = (table: DocxTable) => `<w:tbl>${table.rows.map((row) => `<w:tr>${row.cells.map((cell) => `<w:tc><w:p><w:r><w:t>${escapeXml(cell.text)}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`).join('')}</w:tbl>`;
+  const orderedBlocks = (blocks.length ? blocks : [
+    ...paragraphs.map((paragraph) => ({ kind: 'paragraph', paragraph } as const)),
+    ...tables.map((table) => ({ kind: 'table', table } as const))
+  ]).map((block) => block.kind === 'paragraph' ? paragraphXmlFor(block.paragraph) : tableXmlFor(block.table)).join('');
 
   const sectionXml = kind === 'document' && section ? buildSectionXml(section) : '';
   const rootTag = kind === 'header' ? 'w:hdr' : kind === 'footer' ? 'w:ftr' : 'w:document';
-  const bodyXml = kind === 'document' ? `<w:body>${paragraphXml}${tableXml}${sectionXml}</w:body>` : `${paragraphXml}${tableXml}`;
+  const bodyXml = kind === 'document' ? `<w:body>${orderedBlocks}${sectionXml}</w:body>` : `${orderedBlocks}`;
   return `<?xml version="1.0" encoding="UTF-8"?>\n<${rootTag} xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${bodyXml}</${rootTag}>`;
 }
 

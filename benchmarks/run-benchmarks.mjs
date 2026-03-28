@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 
@@ -44,9 +44,9 @@ function createPptxFixture() {
   }));
 }
 
-async function benchmark(label, fixture, parse) {
+async function benchmark(label, bytes, parse) {
   const startOpen = performance.now();
-  const graph = await openPackage(fixture());
+  const graph = await openPackage(bytes);
   const openMs = performance.now() - startOpen;
 
   const startParse = performance.now();
@@ -58,7 +58,7 @@ async function benchmark(label, fixture, parse) {
   const renderMs = performance.now() - startRender;
 
   const startSerialize = performance.now();
-  const bytes = serializeOfficeDocument(document);
+  const serializedBytes = serializeOfficeDocument(document);
   const serializeMs = performance.now() - startSerialize;
 
   return {
@@ -67,19 +67,30 @@ async function benchmark(label, fixture, parse) {
     parseMs: Number(parseMs.toFixed(3)),
     renderMs: Number(renderMs.toFixed(3)),
     serializeMs: Number(serializeMs.toFixed(3)),
-    outputBytes: bytes.byteLength,
+    outputBytes: serializedBytes.byteLength,
     htmlLength: html.length
   };
 }
 
+async function representativeBenchmarks() {
+  const fixtures = [
+    ['docx-representative-styled', 'fixtures/docx/representative/styled.docx', parseDocx],
+    ['xlsx-representative-structured', 'fixtures/xlsx/representative/structured.xlsx', parseXlsx],
+    ['pptx-representative-inherited', 'fixtures/pptx/representative/inherited.pptx', parsePptx]
+  ];
+
+  return Promise.all(fixtures.map(async ([label, fixturePath, parse]) => benchmark(label, new Uint8Array(await readFile(path.join(process.cwd(), fixturePath))), parse)));
+}
+
 const report = {
-  suite: 'ooxml-micro',
+  suite: 'ooxml-benchmarks',
   generatedAt: new Date().toISOString(),
-  results: await Promise.all([
-    benchmark('docx-micro', createDocxFixture, parseDocx),
-    benchmark('xlsx-micro', createXlsxFixture, parseXlsx),
-    benchmark('pptx-micro', createPptxFixture, parsePptx)
-  ])
+  micro: await Promise.all([
+    benchmark('docx-micro', createDocxFixture(), parseDocx),
+    benchmark('xlsx-micro', createXlsxFixture(), parseXlsx),
+    benchmark('pptx-micro', createPptxFixture(), parsePptx)
+  ]),
+  representative: await representativeBenchmarks()
 };
 
 const reportsDir = path.join(process.cwd(), 'benchmarks', 'reports');

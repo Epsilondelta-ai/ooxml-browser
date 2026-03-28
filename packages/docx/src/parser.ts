@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { DocxAbstractNumbering, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRevision, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
+import type { DocxAbstractNumbering, DocxBlock, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRevision, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
 
 export function parseDocx(graph: PackageGraph): DocxDocument {
   const mainDocumentUri = graph.rootDocumentUri ?? '/word/document.xml';
@@ -50,13 +50,62 @@ function parseStory(graph: PackageGraph, uri: string, kind: DocxStory['kind']): 
 
   const root = xml.document['w:document'] ?? xml.document['w:hdr'] ?? xml.document['w:ftr'];
   const body = xmlChild<Record<string, unknown>>(root, 'w:body') ?? root;
+  const paragraphs = xmlChildren<Record<string, unknown>>(body, 'w:p').map(parseParagraph);
+  const tables = xmlChildren<Record<string, unknown>>(body, 'w:tbl').map(parseTable);
+  const blocks = parseStoryBlocks(xml.tokens, kind, paragraphs, tables);
 
   return {
     kind,
     uri,
-    paragraphs: xmlChildren<Record<string, unknown>>(body, 'w:p').map(parseParagraph),
-    tables: xmlChildren<Record<string, unknown>>(body, 'w:tbl').map(parseTable)
+    blocks,
+    paragraphs,
+    tables
   };
+}
+
+
+function parseStoryBlocks(tokens: unknown[], kind: DocxStory['kind'], paragraphs: DocxParagraph[], tables: DocxTable[]): DocxBlock[] {
+  const rootKey = kind === 'document' ? 'w:document' : kind === 'header' ? 'w:hdr' : 'w:ftr';
+  const rootToken = tokens.find((token) => token && typeof token === 'object' && rootKey in (token as Record<string, unknown>)) as Record<string, unknown> | undefined;
+  const rootChildren = rootToken?.[rootKey];
+  const rootEntries = Array.isArray(rootChildren) ? rootChildren : [];
+  const bodyEntries = kind === 'document'
+    ? ((rootEntries.find((entry) => entry && typeof entry === 'object' && 'w:body' in (entry as Record<string, unknown>)) as Record<string, unknown> | undefined)?.['w:body'])
+    : rootEntries;
+  const entries = Array.isArray(bodyEntries) ? bodyEntries : [];
+
+  const paragraphQueue = [...paragraphs];
+  const tableQueue = [...tables];
+  const blocks: DocxBlock[] = [];
+
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+
+    if ('w:p' in (entry as Record<string, unknown>)) {
+      const paragraph = paragraphQueue.shift();
+      if (paragraph) {
+        blocks.push({ kind: 'paragraph', paragraph });
+      }
+    }
+
+    if ('w:tbl' in (entry as Record<string, unknown>)) {
+      const table = tableQueue.shift();
+      if (table) {
+        blocks.push({ kind: 'table', table });
+      }
+    }
+  }
+
+  if (blocks.length === 0) {
+    return [
+      ...paragraphs.map((paragraph) => ({ kind: 'paragraph', paragraph } as DocxBlock)),
+      ...tables.map((table) => ({ kind: 'table', table } as DocxBlock))
+    ];
+  }
+
+  return blocks;
 }
 
 function parseParagraph(node: Record<string, unknown>): DocxParagraph {

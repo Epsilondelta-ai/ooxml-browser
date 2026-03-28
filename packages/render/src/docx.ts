@@ -5,8 +5,12 @@ import type { RenderOptions } from './types';
 export function renderDocx(document: DocxDocument, options: RenderOptions): string {
   const storyMarkup = document.stories.map((story) => {
     const numberingState = new Map<string, number[]>();
-    const paragraphs = story.paragraphs
-      .map((paragraph) => {
+    const blocks = (story.blocks.length ? story.blocks : [
+      ...story.paragraphs.map((paragraph) => ({ kind: 'paragraph', paragraph } as const)),
+      ...story.tables.map((table) => ({ kind: 'table', table } as const))
+    ]).map((block) => {
+      if (block.kind === 'paragraph') {
+        const paragraph = block.paragraph;
         const style = resolveDocxStyle(document, paragraph.styleId);
         const styleAttr = [
           style?.bold ? 'font-weight: 700' : '',
@@ -15,19 +19,19 @@ export function renderDocx(document: DocxDocument, options: RenderOptions): stri
 
         const numbering = resolveDocxNumbering(document, paragraph);
         const label = numbering && paragraph.numbering ? renderNumberingLabel(numberingState, paragraph.numbering.numId, numbering) : '';
-        const revisionsMarkup = paragraph.revisions.map((revision) => `<span class="ooxml-docx-revision ooxml-docx-revision--${revision.kind}" data-revision-kind="${revision.kind}">${revision.kind === 'insertion' ? '[+' : '[-'}${escapeHtml(revision.text)}]</span>`).join(' ');
+        const revisionsMarkup = paragraph.revisions.map((revision: typeof paragraph.revisions[number]) => `<span class="ooxml-docx-revision ooxml-docx-revision--${revision.kind}" data-revision-kind="${revision.kind}">${revision.kind === 'insertion' ? '[+' : '[-'}${escapeHtml(revision.text)}]</span>`).join(' ');
         return `<p class="ooxml-docx-paragraph"${paragraph.styleId ? ` data-style-id="${escapeHtml(paragraph.styleId)}"` : ''}${paragraph.numbering ? ` data-num-id="${escapeHtml(paragraph.numbering.numId)}" data-num-level="${paragraph.numbering.level}"` : ''}${styleAttr ? ` style="${styleAttr}"` : ''}>${label ? `<span class="ooxml-docx-numbering">${escapeHtml(label)}</span> ` : ''}${escapeHtml(paragraph.text)}${revisionsMarkup ? ` <span class="ooxml-docx-revisions">${revisionsMarkup}</span>` : ''}</p>`;
-      })
-      .join('');
-    const tables = story.tables.map((table) => {
-      const rows = table.rows.map((row) => {
-        const cells = row.cells.map((cell) => `<td>${escapeHtml(cell.text)}</td>`).join('');
+      }
+
+      const table = block.table;
+      const rows = table.rows.map((row: typeof table.rows[number]) => {
+        const cells = row.cells.map((cell: typeof row.cells[number]) => `<td>${escapeHtml(cell.text)}</td>`).join('');
         return `<tr>${cells}</tr>`;
       }).join('');
       return `<table class="ooxml-docx-table"><tbody>${rows}</tbody></table>`;
     }).join('');
 
-    return `<section class="ooxml-docx-story" data-story-kind="${story.kind}">${paragraphs}${tables}</section>`;
+    return `<section class="ooxml-docx-story" data-story-kind="${story.kind}">${blocks}</section>`;
   }).join('');
 
   const commentsMarkup = options.showComments === false
