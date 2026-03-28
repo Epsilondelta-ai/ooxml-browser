@@ -40,7 +40,7 @@ describe('pptx serializer persistence', () => {
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(parsePptx(await openPackage(createTimedPptxFixture())))));
     const slide = reopened.slides[0];
 
-    expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast' });
+    expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast', advanceOnClick: true, advanceAfterMs: 7000 });
     expect(slide?.timing?.nodeCount).toBe(2);
     expect(slide?.timing?.nodes.map((node) => node.nodeType)).toEqual(['par', 'seq']);
   });
