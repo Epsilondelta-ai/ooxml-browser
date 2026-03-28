@@ -12,8 +12,12 @@ describe('pptx editor round-trips', () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createMediaPptxFixture())));
     setPresentationCommentText(editor, 0, 0, 'Updated review');
 
-    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.comments[0]?.text).toBe('Updated review');
+    expect(reopened.slides[0]?.comments[0]?.author).toBe('Codex');
+    expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('authorId="Codex"');
   });
 
   it('persists edited shape text and transform metadata', async () => {

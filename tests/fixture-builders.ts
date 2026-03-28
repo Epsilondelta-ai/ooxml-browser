@@ -346,7 +346,7 @@ export function createCommentedXlsxFixture(): Uint8Array {
     'xl/comments1.xml': `<?xml version="1.0" encoding="UTF-8"?>
 <comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><authors><author>Codex</author></authors><commentList><comment ref="B2" authorId="0"><text><r><t>Review this value</t></r></text></comment></commentList></comments>`,
     'xl/tables/table1.xml': `<?xml version="1.0" encoding="UTF-8"?>
-<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="1" name="SalesTable" displayName="SalesTable" ref="A1:B2"/>`
+<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="1" name="SalesTable" displayName="SalesTable" ref="A1:B2" totalsRowShown="0"/>`
   }));
 }
 

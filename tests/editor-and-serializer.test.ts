@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, setDocxCommentText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
@@ -44,6 +44,15 @@ describe('serializer round-trips', () => {
 
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.stories[0]?.paragraphs[0]?.text).toBe('Saved paragraph');
+  });
+
+
+  it('round-trips edited docx comments while preserving comment authors', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
+    setDocxCommentText(editor, '0', 'Updated comment');
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.comments[0]).toEqual({ id: '0', author: 'Codex', text: 'Updated comment' });
   });
 
   it('round-trips edited xlsx content', async () => {
