@@ -362,6 +362,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const valueAxisMaxNode = valueAxisScalingNode ? findElementsByLocalName(valueAxisScalingNode, 'max')[0] : undefined;
     const valueAxisMajorUnitNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorUnit')[0] : undefined;
     const valueAxisMinorUnitNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorUnit')[0] : undefined;
+    const valueAxisMajorTickMarkNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'majorTickMark')[0] : undefined;
+    const valueAxisMinorTickMarkNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'minorTickMark')[0] : undefined;
     const chartType = chartRoot
       ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart', 'bubbleChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
@@ -436,6 +438,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       valueAxisMaximum: (() => { const value = xmlAttr(valueAxisMaxNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisMajorUnit: (() => { const value = xmlAttr(valueAxisMajorUnitNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisMinorUnit: (() => { const value = xmlAttr(valueAxisMinorUnitNode, 'val'); return value ? Number(value) : undefined; })(),
+      valueAxisMajorTickMark: xmlAttr(valueAxisMajorTickMarkNode, 'val') ?? undefined,
+      valueAxisMinorTickMark: xmlAttr(valueAxisMinorTickMarkNode, 'val') ?? undefined,
       dataLabels: dataLabelsNode ? {
         position: xmlAttr(dataLabelPositionNode, 'val') ?? undefined,
         separator: dataLabelSeparatorNode ? xmlText(dataLabelSeparatorNode) || undefined : undefined,

@@ -170,6 +170,8 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.valueAxisMaximum !== originalChart?.valueAxisMaximum
       || chart.valueAxisMajorUnit !== originalChart?.valueAxisMajorUnit
       || chart.valueAxisMinorUnit !== originalChart?.valueAxisMinorUnit
+      || chart.valueAxisMajorTickMark !== originalChart?.valueAxisMajorTickMark
+      || chart.valueAxisMinorTickMark !== originalChart?.valueAxisMinorTickMark
       || JSON.stringify(chart.dataLabels ?? null) !== JSON.stringify(originalChart?.dataLabels ?? null)
       || JSON.stringify(chart.series) !== JSON.stringify(originalChart?.series ?? [])
     ) {
@@ -740,6 +742,24 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           occurrence: 0
         });
       }
+      if (chart.valueAxisMajorTickMark !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:majorTickMark',
+          targetAttr: 'val',
+          newValue: chart.valueAxisMajorTickMark,
+          occurrence: 0
+        });
+      }
+      if (chart.valueAxisMinorTickMark !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:minorTickMark',
+          targetAttr: 'val',
+          newValue: chart.valueAxisMinorTickMark,
+          occurrence: 0
+        });
+      }
       if (chart.dataLabels?.position !== undefined) {
         operations.push({
           op: 'replaceAttribute',
@@ -877,7 +897,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const plotVisibleOnlyXml = chart.plotVisibleOnly !== undefined ? `<c:plotVisOnly val="${chart.plotVisibleOnly ? '1' : '0'}"/>` : '';
   const displayBlanksAsXml = chart.displayBlanksAs !== undefined ? `<c:dispBlanksAs val="${escapeXml(chart.displayBlanksAs)}"/>` : '';
   const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition || chart.categoryAxisCrosses || chart.categoryAxisCrossesAt !== undefined ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}${chart.categoryAxisCrosses ? `<c:crosses val="${escapeXml(chart.categoryAxisCrosses)}"/>` : ''}${chart.categoryAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.categoryAxisCrossesAt}"/>` : ''}</c:catAx>` : '';
-  const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition || chart.valueAxisCrosses || chart.valueAxisCrossesAt !== undefined || chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined || chart.valueAxisMajorUnit !== undefined || chart.valueAxisMinorUnit !== undefined ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined ? `<c:scaling>${chart.valueAxisMinimum !== undefined ? `<c:min val="${chart.valueAxisMinimum}"/>` : ''}${chart.valueAxisMaximum !== undefined ? `<c:max val="${chart.valueAxisMaximum}"/>` : ''}</c:scaling>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}${chart.valueAxisCrosses ? `<c:crosses val="${escapeXml(chart.valueAxisCrosses)}"/>` : ''}${chart.valueAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.valueAxisCrossesAt}"/>` : ''}${chart.valueAxisMajorUnit !== undefined ? `<c:majorUnit val="${chart.valueAxisMajorUnit}"/>` : ''}${chart.valueAxisMinorUnit !== undefined ? `<c:minorUnit val="${chart.valueAxisMinorUnit}"/>` : ''}</c:valAx>` : '';
+  const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition || chart.valueAxisCrosses || chart.valueAxisCrossesAt !== undefined || chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined || chart.valueAxisMajorUnit !== undefined || chart.valueAxisMinorUnit !== undefined || chart.valueAxisMajorTickMark || chart.valueAxisMinorTickMark ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined ? `<c:scaling>${chart.valueAxisMinimum !== undefined ? `<c:min val="${chart.valueAxisMinimum}"/>` : ''}${chart.valueAxisMaximum !== undefined ? `<c:max val="${chart.valueAxisMaximum}"/>` : ''}</c:scaling>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}${chart.valueAxisCrosses ? `<c:crosses val="${escapeXml(chart.valueAxisCrosses)}"/>` : ''}${chart.valueAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.valueAxisCrossesAt}"/>` : ''}${chart.valueAxisMajorUnit !== undefined ? `<c:majorUnit val="${chart.valueAxisMajorUnit}"/>` : ''}${chart.valueAxisMinorUnit !== undefined ? `<c:minorUnit val="${chart.valueAxisMinorUnit}"/>` : ''}${chart.valueAxisMajorTickMark ? `<c:majorTickMark val="${escapeXml(chart.valueAxisMajorTickMark)}"/>` : ''}${chart.valueAxisMinorTickMark ? `<c:minorTickMark val="${escapeXml(chart.valueAxisMinorTickMark)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.separator !== undefined ? `<c:separator>${escapeXml(chart.dataLabels.separator)}</c:separator>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showSeriesName !== undefined ? `<c:showSerName val="${chart.dataLabels.showSeriesName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLegendKey !== undefined ? `<c:showLegendKey val="${chart.dataLabels.showLegendKey ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLeaderLines !== undefined ? `<c:showLeaderLines val="${chart.dataLabels.showLeaderLines ? '1' : '0'}"/>` : ''}${chart.dataLabels.showPercent !== undefined ? `<c:showPercent val="${chart.dataLabels.showPercent ? '1' : '0'}"/>` : ''}${chart.dataLabels.showBubbleSize !== undefined ? `<c:showBubbleSize val="${chart.dataLabels.showBubbleSize ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${scatterStyleXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}${bubbleScaleXml}${showNegativeBubblesXml}${sizeRepresentsXml}${firstSliceAngleXml}${holeSizeXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;

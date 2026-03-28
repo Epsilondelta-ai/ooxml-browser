@@ -115,6 +115,8 @@ export interface XlsxChart {
   valueAxisMaximum?: number;
   valueAxisMajorUnit?: number;
   valueAxisMinorUnit?: number;
+  valueAxisMajorTickMark?: string;
+  valueAxisMinorTickMark?: string;
   dataLabels?: XlsxChartDataLabels;
   series: XlsxChartSeries[];
   seriesNames: string[];

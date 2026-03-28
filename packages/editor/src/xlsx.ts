@@ -736,6 +736,26 @@ export function setWorksheetChartValueAxisMinorUnit(editor: OfficeEditor<XlsxWor
   });
 }
 
+export function setWorksheetChartValueAxisMajorTickMark(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickMark: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMajorTickMark = tickMark;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisMinorTickMark(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickMark: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisMinorTickMark = tickMark;
+    }
+  });
+}
+
 export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, dataLabels: XlsxWorkbook['sheets'][number]['charts'][number]['dataLabels'] | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
