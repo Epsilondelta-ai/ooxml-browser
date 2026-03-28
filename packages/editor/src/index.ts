@@ -105,8 +105,15 @@ export function setPresentationShapeText(editor: OfficeEditor<PresentationDocume
 export function setPresentationNotesText(editor: OfficeEditor<PresentationDocument>, slideIndex: number, text: string): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];
-    if (slide) {
-      slide.notesText = text;
+    if (!slide) {
+      return;
     }
+
+    const notesUri = slide.notesUri;
+    if (!notesUri || !draft.packageGraph.parts[notesUri]) {
+      return;
+    }
+
+    slide.notesText = text;
   });
 }

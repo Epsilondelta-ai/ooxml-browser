@@ -54,6 +54,25 @@ describe('serializer round-trips', () => {
     expect(reopened.sheets[0]?.rows[0]?.cells[0]?.value).toBe('Persisted');
   });
 
+
+
+  it('round-trips notes edits when the notes relationship targets a non-canonical part name', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture({ notesTarget: '../notesSlides/customNotes.xml' }))));
+    setPresentationNotesText(editor, 0, 'Custom target note');
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.slides[0]?.notesUri).toBe('/ppt/notesSlides/customNotes.xml');
+    expect(reopened.slides[0]?.notesText).toBe('Custom target note');
+  });
+
+  it('does not persist notes edits when the source package has no notes part', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture({ withNotes: false }))));
+    setPresentationNotesText(editor, 0, 'Ignored note');
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.slides[0]?.notesText).toBe('');
+  });
+
   it('round-trips edited pptx content', async () => {
     const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture())));
     setPresentationShapeText(editor, 0, 0, 'Persisted slide');

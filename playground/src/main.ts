@@ -1,5 +1,5 @@
 import { createBrowserSession } from '@ooxml/browser';
-import { createOfficeEditor, replaceDocxParagraphText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue, type EditableOfficeDocument, type OfficeEditor } from '@ooxml/editor';
+import { replaceDocxParagraphText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue, type EditableOfficeDocument, type OfficeEditor } from '@ooxml/editor';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
 const app = document.getElementById('app');
@@ -47,6 +47,7 @@ const summary = document.getElementById('summary') as HTMLPreElement;
 const preview = document.getElementById('preview') as HTMLDivElement;
 const editorControls = document.getElementById('editor-controls') as HTMLDivElement;
 
+let currentSession: Awaited<ReturnType<typeof createBrowserSession>> | null = null;
 let currentEditor: OfficeEditor<EditableOfficeDocument> | null = null;
 let currentFileName = 'document.ooxml';
 
@@ -61,7 +62,8 @@ fileInput.addEventListener('change', async () => {
 
   try {
     const session = await createBrowserSession(file);
-    currentEditor = createOfficeEditor(session.document);
+    currentSession = session;
+    currentEditor = session.createEditor();
     summary.textContent = JSON.stringify({
       packageSummary: session.packageSummary,
       documentSummary: session.documentSummary
@@ -71,6 +73,7 @@ fileInput.addEventListener('change', async () => {
     saveButton.disabled = false;
     status.textContent = `Loaded ${file.name}`;
   } catch (error) {
+    currentSession = null;
     currentEditor = null;
     summary.textContent = '';
     preview.innerHTML = '';
@@ -85,8 +88,11 @@ saveButton.addEventListener('click', () => {
     return;
   }
 
-  const bytes = currentEditor.serialize();
-  const blob = new Blob([Uint8Array.from(bytes)], { type: 'application/octet-stream' });
+  if (!currentSession) {
+    return;
+  }
+
+  const blob = currentSession.save();
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -152,28 +158,32 @@ function renderEditorControls(): void {
     case 'pptx': {
       const shapeText = officeDocument.slides[0]?.shapes[0]?.text ?? '';
       const notesText = officeDocument.slides[0]?.notesText ?? '';
+      const notesUri = officeDocument.slides[0]?.notesUri;
+      const hasNotes = notesUri ? Boolean(officeDocument.packageGraph.parts[notesUri]) : false;
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First shape text</div>
           <input id="pptx-shape-input" value="${escapeHtml(shapeText)}" style="width: 100%; padding: 8px;" />
         </label>
-        <label>
+        ${hasNotes ? `<label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Notes</div>
           <textarea id="pptx-notes-input" style="width: 100%; min-height: 96px; padding: 8px;">${escapeHtml(notesText)}</textarea>
-        </label>
+        </label>` : '<p style="margin: 0; color: #64748b;">This slide has no notes part to edit.</p>'}
       `;
       const shapeInput = window.document.getElementById('pptx-shape-input') as HTMLInputElement;
-      const notesInput = window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement;
+      const notesInput = hasNotes ? window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement : null;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'pptx') {
           return;
         }
         setPresentationShapeText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>, 0, 0, shapeInput.value);
-        setPresentationNotesText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>, 0, notesInput.value);
+        if (notesInput) {
+          setPresentationNotesText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>, 0, notesInput.value);
+        }
         renderPreview();
       };
       shapeInput.addEventListener('input', update);
-      notesInput.addEventListener('input', update);
+      notesInput?.addEventListener('input', update);
       break;
     }
   }

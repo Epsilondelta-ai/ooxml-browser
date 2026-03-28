@@ -15,6 +15,7 @@ export interface SlideShape {
 export interface PresentationSlide {
   title: string;
   uri: string;
+  notesUri?: string;
   notesText: string;
   shapes: SlideShape[];
 }
@@ -79,27 +80,31 @@ function parseSlide(graph: PackageGraph, uri: string): PresentationSlide {
     };
   });
 
-  const notesText = parseNotesText(graph, uri);
+  const notesInfo = parseNotesInfo(graph, uri);
   const title = shapes.find((shape) => shape.text.trim())?.text ?? 'Slide';
 
   return {
     title,
     uri,
-    notesText,
+    notesUri: notesInfo.uri,
+    notesText: notesInfo.text,
     shapes
   };
 }
 
-function parseNotesText(graph: PackageGraph, slideUri: string): string {
+function parseNotesInfo(graph: PackageGraph, slideUri: string): { uri?: string; text: string } {
   const notesRelationship = relationshipsFor(graph, slideUri).find((relationship) => relationship.type.includes('/notesSlide'));
   if (!notesRelationship?.resolvedTarget) {
-    return '';
+    return { text: '' };
   }
 
   const xml = getParsedXmlPart(graph, notesRelationship.resolvedTarget);
   if (!xml) {
-    return '';
+    return { uri: notesRelationship.resolvedTarget, text: '' };
   }
 
-  return findElementsByLocalName(xml.document, 't').map((node) => xmlText(node)).join('');
+  return {
+    uri: notesRelationship.resolvedTarget,
+    text: findElementsByLocalName(xml.document, 't').map((node) => xmlText(node)).join('')
+  };
 }

@@ -30,7 +30,7 @@ function serializeDocx(document: DocxDocument): Uint8Array {
   }
 
   const commentsUri = '/word/comments.xml';
-  if (graph.parts[commentsUri] || document.comments.length > 0) {
+  if (graph.parts[commentsUri]) {
     updatePackagePartText(
       graph,
       commentsUri,
@@ -47,7 +47,9 @@ function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   const sharedStringPool = createSharedStringPool(workbook);
   const sharedStringsUri = '/xl/sharedStrings.xml';
 
-  if (graph.parts[sharedStringsUri] || sharedStringPool.values.length > 0) {
+  const hasSharedStringsPart = Boolean(graph.parts[sharedStringsUri]);
+
+  if (hasSharedStringsPart) {
     updatePackagePartText(
       graph,
       sharedStringsUri,
@@ -60,7 +62,7 @@ function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
     updatePackagePartText(
       graph,
       sheet.uri,
-      buildWorksheetXml(sheet, sharedStringPool.indexByValue),
+      buildWorksheetXml(sheet, sharedStringPool.indexByValue, hasSharedStringsPart),
       'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
     );
   }
@@ -79,8 +81,8 @@ function serializePptx(presentation: PresentationDocument): Uint8Array {
       'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
     );
 
-    const notesUri = slide.uri.replace('/slides/', '/notesSlides/').replace('slide', 'notesSlide');
-    if (graph.parts[notesUri] || slide.notesText) {
+    const notesUri = slide.notesUri;
+    if (notesUri && graph.parts[notesUri]) {
       updatePackagePartText(
         graph,
         notesUri,
@@ -130,12 +132,12 @@ function buildSharedStringsXml(values: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${values.length}" uniqueCount="${values.length}">${items}</sst>`;
 }
 
-function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>): string {
-  const rows = sheet.rows.map((row) => `<row r="${row.index}">${row.cells.map((cell) => buildCellXml(cell, sharedStringIndices)).join('')}</row>`).join('');
+function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean): string {
+  const rows = sheet.rows.map((row) => `<row r="${row.index}">${row.cells.map((cell) => buildCellXml(cell, sharedStringIndices, useSharedStrings)).join('')}</row>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows}</sheetData></worksheet>`;
 }
 
-function buildCellXml(cell: WorksheetCell, sharedStringIndices: Map<string, number>): string {
+function buildCellXml(cell: WorksheetCell, sharedStringIndices: Map<string, number>, useSharedStrings: boolean): string {
   const styleAttribute = cell.styleIndex !== undefined ? ` s="${cell.styleIndex}"` : '';
 
   if (cell.formula) {
@@ -143,8 +145,12 @@ function buildCellXml(cell: WorksheetCell, sharedStringIndices: Map<string, numb
   }
 
   if (shouldUseSharedString(cell)) {
-    const sharedIndex = sharedStringIndices.get(cell.value) ?? 0;
-    return `<c r="${escapeXml(cell.reference)}" t="s"${styleAttribute}><v>${sharedIndex}</v></c>`;
+    if (useSharedStrings) {
+      const sharedIndex = sharedStringIndices.get(cell.value) ?? 0;
+      return `<c r="${escapeXml(cell.reference)}" t="s"${styleAttribute}><v>${sharedIndex}</v></c>`;
+    }
+
+    return `<c r="${escapeXml(cell.reference)}" t="inlineStr"${styleAttribute}><is><t>${escapeXml(cell.value)}</t></is></c>`;
   }
 
   return `<c r="${escapeXml(cell.reference)}"${cell.type !== 'n' ? ` t="${escapeXml(cell.type)}"` : ''}${styleAttribute}><v>${escapeXml(cell.value)}</v></c>`;

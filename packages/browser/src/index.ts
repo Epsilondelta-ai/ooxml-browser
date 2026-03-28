@@ -28,23 +28,34 @@ export async function openOfficeDocument(input: ArrayBuffer | Uint8Array | Blob)
 export async function createBrowserSession(input: ArrayBuffer | Uint8Array | Blob): Promise<BrowserSession> {
   const packageGraph = await openPackage(input);
   const document = parseOfficeDocument(packageGraph);
+  let editor: OfficeEditor<EditableOfficeDocument> | null = null;
+
+  const activeDocument = (): EditableOfficeDocument => editor?.document ?? document;
 
   return {
     packageGraph,
-    document,
+    get document() {
+      return activeDocument() as ParsedOfficeDocument;
+    },
     packageSummary: summarizePackageGraph(packageGraph),
-    documentSummary: inspectOfficeDocument(document),
+    get documentSummary() {
+      return inspectOfficeDocument(activeDocument() as ParsedOfficeDocument);
+    },
     renderToHtml(options = {}) {
-      return renderOfficeDocumentToHtml(document, options);
+      return renderOfficeDocumentToHtml(activeDocument() as ParsedOfficeDocument, options);
     },
     mount(target, options = {}) {
-      return mountOfficeDocument(document, target, options);
+      return mountOfficeDocument(activeDocument() as ParsedOfficeDocument, target, options);
     },
     createEditor() {
-      return createOfficeEditor(document);
+      if (!editor) {
+        editor = createOfficeEditor(document);
+      }
+
+      return editor;
     },
     save() {
-      const bytes = Uint8Array.from(serializeOfficeDocument(document));
+      const bytes = Uint8Array.from(editor ? editor.serialize() : serializeOfficeDocument(document));
       return new Blob([bytes], {
         type: 'application/octet-stream'
       });

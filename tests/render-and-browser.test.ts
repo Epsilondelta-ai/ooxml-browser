@@ -30,6 +30,27 @@ describe('renderers', () => {
 });
 
 describe('browser session and devtools summaries', () => {
+
+  it('keeps browser-session save output in sync with editor mutations', async () => {
+    const session = await createBrowserSession(createDocxFixture());
+    const editor = session.createEditor();
+
+    if (editor.document.kind !== 'docx') {
+      throw new Error('Expected docx editor');
+    }
+
+    editor.transaction((draft) => {
+      if (draft.kind === 'docx') {
+        draft.stories[0]?.paragraphs[0] && (draft.stories[0].paragraphs[0].text = 'Session save text');
+        if (draft.stories[0]?.paragraphs[0]?.runs[0]) {
+          draft.stories[0].paragraphs[0].runs[0].text = 'Session save text';
+        }
+      }
+    });
+
+    const reopened = parseDocx(await openPackage(await session.save().arrayBuffer()));
+    expect(reopened.stories[0]?.paragraphs[0]?.text).toBe('Session save text');
+  });
   it('creates browser sessions with summaries for docx packages', async () => {
     const session = await createBrowserSession(createDocxFixture());
 

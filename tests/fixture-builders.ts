@@ -90,7 +90,11 @@ export function createXlsxFixture(): Uint8Array {
   }));
 }
 
-export function createPptxFixture(): Uint8Array {
+export function createPptxFixture(options: { withNotes?: boolean; notesTarget?: string } = {}): Uint8Array {
+  const withNotes = options.withNotes ?? true;
+  const notesTarget = options.notesTarget ?? "../notesSlides/notesSlide1.xml";
+  const notesPartName = notesTarget.replace("../", "/ppt/");
+
   return zipSync(encodedEntries({
     '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -98,7 +102,7 @@ export function createPptxFixture(): Uint8Array {
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
-  <Override PartName="/ppt/notesSlides/notesSlide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>
+  <Override PartName="${notesPartName}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>
 </Types>`,
     '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
@@ -129,11 +133,12 @@ export function createPptxFixture(): Uint8Array {
     </p:spTree>
   </p:cSld>
 </p:sld>`,
-    'ppt/slides/_rels/slide1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+    ...(withNotes ? {
+      'ppt/slides/_rels/slide1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide" Target="../notesSlides/notesSlide1.xml"/>
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide" Target="${notesTarget}"/>
 </Relationships>`,
-    'ppt/notesSlides/notesSlide1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+      [notesPartName.slice(1)]: `<?xml version="1.0" encoding="UTF-8"?>
 <p:notes xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
   <p:cSld>
     <p:spTree>
@@ -146,5 +151,6 @@ export function createPptxFixture(): Uint8Array {
     </p:spTree>
   </p:cSld>
 </p:notes>`
+    } : {})
   }));
 }
