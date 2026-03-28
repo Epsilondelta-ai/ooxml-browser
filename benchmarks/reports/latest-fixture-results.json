@@ -1,12 +1,23 @@
 {
-  "generatedAt": "2026-03-28T06:51:44.555Z",
+  "generatedAt": "2026-03-28T07:02:02.584Z",
   "results": [
     {
       "id": "docx-basic",
       "format": "docx",
       "fixturePath": "fixtures/docx/representative/basic.docx",
+      "mutation": "comment-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/word/comments.xml",
+        "/word/document.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 2,
+      "preservedPartCount": 2,
+      "totalOriginalPartCount": 4,
       "officeStatus": "seed-fixture-attestation-pending",
       "libreOfficeStatus": "seed-fixture-attestation-pending"
     },
@@ -14,8 +25,19 @@
       "id": "docx-numbered",
       "format": "docx",
       "fixturePath": "fixtures/docx/representative/numbered.docx",
+      "mutation": "paragraph-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/word/document.xml",
+        "/word/numbering.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 2,
+      "preservedPartCount": 2,
+      "totalOriginalPartCount": 4,
       "officeStatus": "stage-2-attestation-pending",
       "libreOfficeStatus": "stage-2-attestation-pending"
     },
@@ -23,8 +45,18 @@
       "id": "docx-revisions",
       "format": "docx",
       "fixturePath": "fixtures/docx/representative/revisions.docx",
+      "mutation": "paragraph-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/word/document.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 1,
+      "totalOriginalPartCount": 2,
       "officeStatus": "stage-2-attestation-pending",
       "libreOfficeStatus": "stage-2-attestation-pending"
     },
@@ -32,8 +64,18 @@
       "id": "docx-sectioned",
       "format": "docx",
       "fixturePath": "fixtures/docx/representative/sectioned.docx",
+      "mutation": "paragraph-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/word/document.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 4,
+      "totalOriginalPartCount": 5,
       "officeStatus": "stage-2-attestation-pending",
       "libreOfficeStatus": "stage-2-attestation-pending"
     },
@@ -41,8 +83,19 @@
       "id": "docx-styled",
       "format": "docx",
       "fixturePath": "fixtures/docx/representative/styled.docx",
+      "mutation": "paragraph-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/word/document.xml",
+        "/word/styles.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 2,
+      "preservedPartCount": 2,
+      "totalOriginalPartCount": 4,
       "officeStatus": "stage-2-attestation-pending",
       "libreOfficeStatus": "stage-2-attestation-pending"
     },
@@ -50,8 +103,18 @@
       "id": "pptx-basic",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/basic.pptx",
+      "mutation": "shape-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/ppt/slides/slide1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 5,
+      "totalOriginalPartCount": 6,
       "officeStatus": "seed-fixture-attestation-pending",
       "libreOfficeStatus": "seed-fixture-attestation-pending"
     },
@@ -59,8 +122,18 @@
       "id": "pptx-inherited",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/inherited.pptx",
+      "mutation": "shape-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/ppt/slides/slide1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 10,
+      "totalOriginalPartCount": 11,
       "officeStatus": "stage-4-attestation-pending",
       "libreOfficeStatus": "stage-4-attestation-pending"
     },
@@ -68,8 +141,19 @@
       "id": "pptx-media-comments",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/media-comments.pptx",
+      "mutation": "comment-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/ppt/comments/comment1.xml",
+        "/ppt/slides/slide1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 2,
+      "preservedPartCount": 5,
+      "totalOriginalPartCount": 7,
       "officeStatus": "stage-4-attestation-pending",
       "libreOfficeStatus": "stage-4-attestation-pending"
     },
@@ -77,8 +161,18 @@
       "id": "pptx-timed",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/timed.pptx",
+      "mutation": "shape-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/ppt/slides/slide1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 3,
+      "totalOriginalPartCount": 4,
       "officeStatus": "stage-4-attestation-pending",
       "libreOfficeStatus": "stage-4-attestation-pending"
     },
@@ -86,8 +180,18 @@
       "id": "pptx-transformed",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/transformed.pptx",
+      "mutation": "shape-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/ppt/slides/slide1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 5,
+      "totalOriginalPartCount": 6,
       "officeStatus": "stage-4-attestation-pending",
       "libreOfficeStatus": "stage-4-attestation-pending"
     },
@@ -95,8 +199,19 @@
       "id": "xlsx-basic",
       "format": "xlsx",
       "fixturePath": "fixtures/xlsx/representative/basic.xlsx",
+      "mutation": "cell-value-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/xl/sharedStrings.xml",
+        "/xl/worksheets/sheet1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 2,
+      "preservedPartCount": 3,
+      "totalOriginalPartCount": 5,
       "officeStatus": "seed-fixture-attestation-pending",
       "libreOfficeStatus": "seed-fixture-attestation-pending"
     },
@@ -104,8 +219,18 @@
       "id": "xlsx-commented",
       "format": "xlsx",
       "fixturePath": "fixtures/xlsx/representative/commented.xlsx",
+      "mutation": "comment-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/xl/comments1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 6,
+      "totalOriginalPartCount": 7,
       "officeStatus": "stage-3-attestation-pending",
       "libreOfficeStatus": "stage-3-attestation-pending"
     },
@@ -113,8 +238,18 @@
       "id": "xlsx-structured",
       "format": "xlsx",
       "fixturePath": "fixtures/xlsx/representative/structured.xlsx",
+      "mutation": "cell-value-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/xl/worksheets/sheet1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 3,
+      "totalOriginalPartCount": 4,
       "officeStatus": "stage-3-attestation-pending",
       "libreOfficeStatus": "stage-3-attestation-pending"
     },
@@ -122,8 +257,19 @@
       "id": "xlsx-styled",
       "format": "xlsx",
       "fixturePath": "fixtures/xlsx/representative/styled.xlsx",
+      "mutation": "cell-value-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/xl/sharedStrings.xml",
+        "/xl/worksheets/sheet1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 2,
+      "preservedPartCount": 4,
+      "totalOriginalPartCount": 6,
       "officeStatus": "stage-3-attestation-pending",
       "libreOfficeStatus": "stage-3-attestation-pending"
     }

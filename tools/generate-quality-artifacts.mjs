@@ -28,11 +28,13 @@ function relative(filePath) {
 }
 
 const manifestFiles = await walk(manifestsRoot);
-const manifests = await Promise.all(manifestFiles.map(async (filePath) => ({
-  filePath,
-  relativePath: relative(filePath),
-  manifest: await readJson(filePath)
-})));
+const manifests = await Promise.all(
+  manifestFiles.map(async (filePath) => ({
+    filePath,
+    relativePath: relative(filePath),
+    manifest: await readJson(filePath)
+  }))
+);
 const fixtureResults = await readJson(fixtureResultsPath).catch(() => ({ results: [] }));
 const fixtureResultById = new Map((fixtureResults.results ?? []).map((entry) => [entry.id, entry]));
 
@@ -43,15 +45,28 @@ const grouped = manifests.reduce((acc, entry) => {
   return acc;
 }, {});
 
-const matrixSections = ['# Interoperability Matrix', '', 'Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-results.json`.', ''];
+const matrixSections = [
+  '# Interoperability Matrix',
+  '',
+  'Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-results.json`.',
+  ''
+];
 for (const format of Object.keys(grouped).sort()) {
   matrixSections.push(`## ${format.toUpperCase()}`, '');
-  matrixSections.push('| Fixture | Tags | Parser open | Parser round-trip | Office | LibreOffice | Supported operations |');
-  matrixSections.push('| --- | --- | --- | --- | --- | --- | --- |');
+  matrixSections.push(
+    '| Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |'
+  );
+  matrixSections.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const entry of grouped[format].sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))) {
     const { manifest } = entry;
     const result = fixtureResultById.get(manifest.id) ?? {};
-    matrixSections.push(`| ${manifest.id} | ${manifest.featureTags.join(', ')} | ${String(result.parserOpen ?? '')} | ${String(result.parserRoundTrip ?? '')} | ${String(result.officeStatus ?? manifest.reopenExpectations?.office ?? '')} | ${String(result.libreOfficeStatus ?? manifest.reopenExpectations?.libreoffice ?? '')} | ${manifest.supportedOperations.join(', ')} |`);
+    const preservation =
+      typeof result.preservedPartCount === 'number' && typeof result.totalOriginalPartCount === 'number'
+        ? `${result.preservedPartCount}/${result.totalOriginalPartCount}`
+        : '—';
+    matrixSections.push(
+      `| ${manifest.id} | ${manifest.featureTags.join(', ')} | ${String(result.mutation ?? '—')} | ${String(result.parserOpen ?? '')} | ${String(result.parserRoundTrip ?? '')} | ${String(result.editedRoundTrip ?? '')} | ${preservation} | ${(result.changedParts ?? []).join(', ') || '—'} | ${String(result.officeStatus ?? manifest.reopenExpectations?.office ?? '')} | ${String(result.libreOfficeStatus ?? manifest.reopenExpectations?.libreoffice ?? '')} |`
+    );
   }
   matrixSections.push('');
 }
@@ -76,4 +91,14 @@ try {
 await mkdir(path.dirname(matrixOutputPath), { recursive: true });
 await writeFile(matrixOutputPath, `${matrixSections.join('\n')}\n`);
 await writeFile(benchmarkOutputPath, benchmarkMarkdown);
-console.log(JSON.stringify({ matrixOutputPath: relative(matrixOutputPath), benchmarkOutputPath: relative(benchmarkOutputPath), manifestCount: manifests.length }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      matrixOutputPath: relative(matrixOutputPath),
+      benchmarkOutputPath: relative(benchmarkOutputPath),
+      manifestCount: manifests.length
+    },
+    null,
+    2
+  )
+);

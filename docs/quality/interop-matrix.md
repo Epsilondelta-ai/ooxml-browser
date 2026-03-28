@@ -4,30 +4,30 @@ Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-r
 
 ## DOCX
 
-| Fixture | Tags | Parser open | Parser round-trip | Office | LibreOffice | Supported operations |
-| --- | --- | --- | --- | --- | --- | --- |
-| docx-basic | paragraphs, comments, table | true | true | seed-fixture-attestation-pending | seed-fixture-attestation-pending | no-op round trip, paragraph text edit |
-| docx-numbered | numbering, list-rendering | true | true | stage-2-attestation-pending | stage-2-attestation-pending | no-op round trip, numbered paragraph render |
-| docx-revisions | tracked-changes, revisions | true | true | stage-2-attestation-pending | stage-2-attestation-pending | no-op round trip, revision render |
-| docx-sectioned | sections, headers, footers | true | true | stage-2-attestation-pending | stage-2-attestation-pending | no-op round trip, header/footer render |
-| docx-styled | styles, style-inheritance | true | true | stage-2-attestation-pending | stage-2-attestation-pending | no-op round trip, styled paragraph render |
+| Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| docx-basic | paragraphs, comments, table | comment-text-edit | true | true | true | 2/4 | /word/comments.xml, /word/document.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
+| docx-numbered | numbering, list-rendering | paragraph-text-edit | true | true | true | 2/4 | /word/document.xml, /word/numbering.xml | stage-2-attestation-pending | stage-2-attestation-pending |
+| docx-revisions | tracked-changes, revisions | paragraph-text-edit | true | true | true | 1/2 | /word/document.xml | stage-2-attestation-pending | stage-2-attestation-pending |
+| docx-sectioned | sections, headers, footers | paragraph-text-edit | true | true | true | 4/5 | /word/document.xml | stage-2-attestation-pending | stage-2-attestation-pending |
+| docx-styled | styles, style-inheritance | paragraph-text-edit | true | true | true | 2/4 | /word/document.xml, /word/styles.xml | stage-2-attestation-pending | stage-2-attestation-pending |
 
 ## PPTX
 
-| Fixture | Tags | Parser open | Parser round-trip | Office | LibreOffice | Supported operations |
-| --- | --- | --- | --- | --- | --- | --- |
-| pptx-basic | slide, notes, text-shape | true | true | seed-fixture-attestation-pending | seed-fixture-attestation-pending | no-op round trip, shape text edit, notes edit |
-| pptx-inherited | slide-layout, slide-master, theme, placeholder | true | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, inheritance metadata render |
-| pptx-media-comments | image, comments | true | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, media/comment render |
-| pptx-timed | transition, timing | true | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, timing metadata render |
-| pptx-transformed | shape-transform, image-transform | true | true | stage-4-attestation-pending | stage-4-attestation-pending | no-op round trip, transform metadata render |
+| Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| pptx-basic | slide, notes, text-shape | shape-text-edit | true | true | true | 5/6 | /ppt/slides/slide1.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
+| pptx-inherited | slide-layout, slide-master, theme, placeholder | shape-text-edit | true | true | true | 10/11 | /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
+| pptx-media-comments | image, comments | comment-text-edit | true | true | true | 5/7 | /ppt/comments/comment1.xml, /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
+| pptx-timed | transition, timing | shape-text-edit | true | true | true | 3/4 | /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
+| pptx-transformed | shape-transform, image-transform | shape-text-edit | true | true | true | 5/6 | /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
 
 ## XLSX
 
-| Fixture | Tags | Parser open | Parser round-trip | Office | LibreOffice | Supported operations |
-| --- | --- | --- | --- | --- | --- | --- |
-| xlsx-basic | sharedStrings, formula, worksheet | true | true | seed-fixture-attestation-pending | seed-fixture-attestation-pending | no-op round trip, cell edit |
-| xlsx-commented | comments, tables | true | true | stage-3-attestation-pending | stage-3-attestation-pending | no-op round trip, comment and table render |
-| xlsx-structured | defined-names, merged-cells, frozen-panes, formula-references | true | true | stage-3-attestation-pending | stage-3-attestation-pending | no-op round trip, worksheet structure render |
-| xlsx-styled | styles, number-formats | true | true | stage-3-attestation-pending | stage-3-attestation-pending | no-op round trip, styled numeric render |
+| Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| xlsx-basic | sharedStrings, formula, worksheet | cell-value-edit | true | true | true | 3/5 | /xl/sharedStrings.xml, /xl/worksheets/sheet1.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
+| xlsx-commented | comments, tables | comment-text-edit | true | true | true | 6/7 | /xl/comments1.xml | stage-3-attestation-pending | stage-3-attestation-pending |
+| xlsx-structured | defined-names, merged-cells, frozen-panes, formula-references | cell-value-edit | true | true | true | 3/4 | /xl/worksheets/sheet1.xml | stage-3-attestation-pending | stage-3-attestation-pending |
+| xlsx-styled | styles, number-formats | cell-value-edit | true | true | true | 4/6 | /xl/sharedStrings.xml, /xl/worksheets/sheet1.xml | stage-3-attestation-pending | stage-3-attestation-pending |
 
