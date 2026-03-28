@@ -38,6 +38,14 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml'
     );
   }
+  if (document.comments.length === 0 && graph.parts[commentsUri] && originalDocument.comments.length > 0) {
+    updatePackagePartText(
+      graph,
+      commentsUri,
+      buildCommentsXml([]),
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml'
+    );
+  }
 
   if (document.numbering.partUri && graph.parts[document.numbering.partUri] && JSON.stringify(document.numbering) !== JSON.stringify(originalDocument.numbering)) {
     updatePackagePartText(

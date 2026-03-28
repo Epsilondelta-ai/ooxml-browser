@@ -68,6 +68,19 @@ export function setPresentationCommentAuthor(editor: OfficeEditor<PresentationDo
   });
 }
 
+export function removePresentationComment(editor: OfficeEditor<PresentationDocument>, slideIndex: number, commentIndex: number): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (!slide) {
+      return;
+    }
+
+    slide.comments = slide.comments
+      .filter((_comment, index) => index !== commentIndex)
+      .map((comment, index) => ({ ...comment, index }));
+  });
+}
+
 export function setPresentationShapeTransform(editor: OfficeEditor<PresentationDocument>, slideIndex: number, shapeIndex: number, transform: { x?: number; y?: number; cx?: number; cy?: number }): PresentationDocument {
   return editor.transaction((draft) => {
     const shape = draft.slides[slideIndex]?.shapes[shapeIndex];

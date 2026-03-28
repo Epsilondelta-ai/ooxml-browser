@@ -159,6 +159,17 @@ export function setWorksheetCommentAuthor(editor: OfficeEditor<XlsxWorkbook>, sh
   });
 }
 
+export function removeWorksheetComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    sheet.comments = sheet.comments.filter((entry) => entry.reference !== reference);
+  });
+}
+
 export function upsertWorksheetComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string, author?: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { addPresentationComment, createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationSlideMaster, setPresentationSlideTheme, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { addPresentationComment, createOfficeEditor, removePresentationComment, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationSlideMaster, setPresentationSlideTheme, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -30,6 +30,17 @@ describe('pptx editor round-trips', () => {
     const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.comments[0]?.author).toBe('Reviewer');
     expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('authorId="Reviewer"');
+  });
+
+  it('persists deleted slide comments', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createMediaPptxFixture())));
+    removePresentationComment(editor, 0, 0);
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+    expect(reopened.slides[0]?.comments).toEqual([]);
+    expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).not.toContain('<p:cm ');
   });
 
   it('creates comment parts on demand for slides that start without comments', async () => {

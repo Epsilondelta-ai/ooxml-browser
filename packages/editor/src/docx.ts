@@ -178,6 +178,12 @@ export function setDocxCommentAuthor(editor: OfficeEditor<DocxDocument>, comment
   });
 }
 
+export function removeDocxComment(editor: OfficeEditor<DocxDocument>, commentId: string): DocxDocument {
+  return editor.transaction((draft) => {
+    draft.comments = draft.comments.filter((entry) => entry.id !== commentId);
+  });
+}
+
 export function setDocxSectionLayout(editor: OfficeEditor<DocxDocument>, sectionIndex: number, layout: { pageSize?: { width: number; height: number }; pageMargins?: { top: number; right: number; bottom: number; left: number } }): DocxDocument {
   return editor.transaction((draft) => {
     const section = draft.sections[sectionIndex];

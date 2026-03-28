@@ -55,6 +55,14 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
       );
     }
+    if (sheet.comments.length === 0 && commentsRelationship?.resolvedTarget) {
+      updatePackagePartText(
+        graph,
+        commentsRelationship.resolvedTarget,
+        buildCommentsXml([], graph.parts[commentsRelationship.resolvedTarget]?.text),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
+      );
+    }
   }
 
   return serializePackageGraph(graph);
@@ -264,6 +272,10 @@ function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGr
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
+  if (comments.length === 0) {
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><commentList></commentList></comments>`;
+  }
+
   const normalizedAuthors = comments.map((comment) => comment.author ?? '');
   const authorSetChanged = JSON.stringify(normalizedAuthors) !== JSON.stringify(parseCommentAuthors(existingSource));
 

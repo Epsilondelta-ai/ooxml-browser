@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { addDocxComment, createOfficeEditor, setDocxCommentAuthor, setDocxCommentText } from '@ooxml/editor';
+import { addDocxComment, createOfficeEditor, removeDocxComment, setDocxCommentAuthor, setDocxCommentText } from '@ooxml/editor';
 import { parseDocx, resolveDocxNumbering, resolveDocxStyle } from '@ooxml/docx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -82,6 +82,18 @@ describe('docx patch preservation', () => {
 
     expect(reopened.comments[0]?.author).toBe('Reviewer');
     expect(reopenedGraph.parts['/word/comments.xml']?.text).toContain('w:author="Reviewer"');
+  });
+
+  it('persists deleted comments', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
+    removeDocxComment(editor, '0');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseDocx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.comments).toEqual([]);
+    expect(reopenedGraph.parts['/word/comments.xml']?.text).not.toContain('<w:comment ');
   });
 
   it('creates comments parts on demand when the source package has none', async () => {
