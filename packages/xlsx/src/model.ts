@@ -53,7 +53,9 @@ export interface XlsxChart {
   drawingNameOccurrence: number;
   targetUri: string;
   name?: string;
+  chartType?: string;
   title?: string;
+  seriesNames: string[];
 }
 
 export interface XlsxMedia {

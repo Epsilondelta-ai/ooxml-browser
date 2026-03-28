@@ -318,14 +318,28 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
 
     const nonVisual = findElementsByLocalName(frame, 'cNvPr')[0];
     const chartXml = getParsedXmlPart(graph, target);
-    const chartTitle = chartXml ? findElementsByLocalName(chartXml.document, 't').map((node) => xmlText(node)).join('') : undefined;
+    const chartRoot = chartXml?.document;
+    const chartTitleNode = chartRoot ? findElementsByLocalName(chartRoot, 'title')[0] : undefined;
+    const chartTitle = chartTitleNode ? findElementsByLocalName(chartTitleNode, 't').map((node) => xmlText(node)).join('') : undefined;
+    const chartType = chartRoot
+      ? ['barChart', 'lineChart', 'pieChart', 'areaChart', 'scatterChart']
+        .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
+      : undefined;
+    const seriesNames = chartRoot
+      ? findElementsByLocalName(chartRoot, 'ser').map((seriesNode) => {
+        const textNode = findElementsByLocalName(seriesNode, 'tx')[0];
+        return textNode ? findElementsByLocalName(textNode, 't').map((node) => xmlText(node)).join('') : '';
+      }).filter(Boolean)
+      : [];
     return [{
       relationshipId,
       drawingUri,
       drawingNameOccurrence,
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
-      title: chartTitle || undefined
+      chartType,
+      title: chartTitle || undefined,
+      seriesNames
     }];
   });
 }

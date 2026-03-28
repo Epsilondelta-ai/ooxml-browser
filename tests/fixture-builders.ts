@@ -383,9 +383,9 @@ export function createChartedXlsxFixture(): Uint8Array {
     'xl/drawings/_rels/drawing1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdChart1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart1.xml"/></Relationships>`,
     'xl/charts/chart1.xml': `<?xml version="1.0" encoding="UTF-8"?>
-<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart><c:title><c:tx><c:rich><a:t xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">Primary Chart</a:t></c:rich></c:tx></c:title></c:chart></c:chartSpace>`,
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>Primary Chart</a:t></c:rich></c:tx></c:title><c:plotArea><c:barChart><c:ser><c:idx val="0"/><c:order val="0"/><c:tx><c:rich><a:t>North</a:t></c:rich></c:tx></c:ser><c:ser><c:idx val="1"/><c:order val="1"/><c:tx><c:rich><a:t>South</a:t></c:rich></c:tx></c:ser></c:barChart></c:plotArea></c:chart></c:chartSpace>`,
     'xl/charts/chart2.xml': `<?xml version="1.0" encoding="UTF-8"?>
-<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart><c:title><c:tx><c:rich><a:t xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">Alternate Chart</a:t></c:rich></c:tx></c:title></c:chart></c:chartSpace>`
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>Alternate Chart</a:t></c:rich></c:tx></c:title><c:plotArea><c:lineChart><c:ser><c:idx val="0"/><c:order val="0"/><c:tx><c:rich><a:t>Forecast</a:t></c:rich></c:tx></c:ser></c:lineChart></c:plotArea></c:chart></c:chartSpace>`
   }));
 }
 

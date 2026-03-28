@@ -17,7 +17,9 @@ describe('xlsx chart relationships', () => {
       drawingNameOccurrence: 0,
       targetUri: '/xl/charts/chart1.xml',
       name: 'Sales Chart',
-      title: 'Primary Chart'
+      chartType: 'barChart',
+      title: 'Primary Chart',
+      seriesNames: ['North', 'South']
     });
   });
 
@@ -25,6 +27,6 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart [Primary Chart] (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] {North, South} (/xl/charts/chart1.xml)');
   });
 });

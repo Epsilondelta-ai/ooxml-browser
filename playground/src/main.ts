@@ -19,6 +19,7 @@ import {
   setWorkbookCellValue,
   setWorkbookSheetName,
   setWorksheetChartName,
+  setWorksheetChartSeriesName,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
   setWorksheetMediaTarget,
@@ -212,6 +213,7 @@ function renderEditorControls(): void {
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       const firstChartTitle = firstSheet?.charts[0]?.title ?? '';
+      const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
       editorControls.innerHTML = `
         <label>
@@ -263,6 +265,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-title-input" value="${escapeHtml(firstChartTitle)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart series</div>
+          <input id="xlsx-chart-series-input" value="${escapeHtml(firstChartSeriesName)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First image target</div>
           <input id="xlsx-media-target-input" value="${escapeHtml(firstMediaTarget)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -283,6 +289,7 @@ function renderEditorControls(): void {
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const chartTitleInput = window.document.getElementById('xlsx-chart-title-input') as HTMLInputElement;
+      const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const update = () => {
@@ -383,6 +390,15 @@ function renderEditorControls(): void {
             chartTitleInput.value
           );
         }
+        if (chartSeriesInput.value && workbookEditor.document.sheets[0]?.charts[0]?.seriesNames[0] !== undefined) {
+          setWorksheetChartSeriesName(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            0,
+            chartSeriesInput.value
+          );
+        }
         if (mediaTargetInput.value && workbookEditor.document.sheets[0]?.media[0]) {
           setWorksheetMediaTarget(
             workbookEditor,
@@ -414,6 +430,7 @@ function renderEditorControls(): void {
       chartNameInput.addEventListener('input', update);
       chartTargetInput.addEventListener('input', update);
       chartTitleInput.addEventListener('input', update);
+      chartSeriesInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       break;

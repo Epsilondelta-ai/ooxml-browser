@@ -94,7 +94,7 @@ function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sh
 function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSheet: WorkbookSheet | undefined, sheet: WorkbookSheet): void {
   for (const chart of sheet.charts) {
     const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
-    if (chart.title !== originalChart?.title) {
+    if (chart.title !== originalChart?.title || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])) {
       const existingSource = graph.parts[chart.targetUri]?.text;
       updatePackagePartText(
         graph,
@@ -426,19 +426,34 @@ function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGr
 }
 
 function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: string): string {
-  if (existingSource && chart.title !== undefined) {
-    return applyXmlPatchPlan(existingSource, [
-      {
+  if (existingSource) {
+    const operations: Array<Parameters<typeof applyXmlPatchPlan>[1][number]> = [];
+    if (chart.title !== undefined) {
+      operations.push({
         op: 'replaceText',
         containerTag: 'c:title',
         occurrence: 0,
         textTag: 'a:t',
         newText: chart.title
-      }
-    ]);
+      });
+    }
+    for (const [seriesIndex, seriesName] of chart.seriesNames.entries()) {
+      operations.push({
+        op: 'replaceText',
+        containerTag: 'c:ser',
+        occurrence: seriesIndex,
+        textTag: 'a:t',
+        newText: seriesName
+      });
+    }
+    if (operations.length > 0) {
+      return applyXmlPatchPlan(existingSource, operations);
+    }
   }
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title></c:chart></c:chartSpace>`;
+  const chartType = chart.chartType ?? 'barChart';
+  const seriesXml = chart.seriesNames.map((seriesName, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesName)}</a:t></c:rich></c:tx></c:ser>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}</c:${chartType}></c:plotArea></c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
