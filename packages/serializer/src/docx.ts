@@ -173,6 +173,8 @@ function canPatchDocxStory(kind: 'document' | 'header' | 'footer', originalBlock
     return block.paragraph.runs.length === 1
       && originalBlock.paragraph.runs.length === 1
       && block.paragraph.revisions.length === 0
-      && originalBlock.paragraph.revisions.length === 0;
+      && originalBlock.paragraph.revisions.length === 0
+      && block.paragraph.styleId === originalBlock.paragraph.styleId
+      && JSON.stringify(block.paragraph.numbering ?? null) === JSON.stringify(originalBlock.paragraph.numbering ?? null);
   });
 }

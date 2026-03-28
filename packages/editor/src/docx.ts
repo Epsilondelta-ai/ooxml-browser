@@ -34,6 +34,38 @@ export function replaceDocxStoryParagraphText(
   });
 }
 
+export function setDocxParagraphStyle(
+  editor: OfficeEditor<DocxDocument>,
+  storyKind: 'document' | 'header' | 'footer',
+  storyOccurrence: number,
+  paragraphIndex: number,
+  styleId: string | undefined
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
+    const paragraph = story?.paragraphs[paragraphIndex];
+    if (paragraph) {
+      paragraph.styleId = styleId;
+    }
+  });
+}
+
+export function setDocxParagraphNumbering(
+  editor: OfficeEditor<DocxDocument>,
+  storyKind: 'document' | 'header' | 'footer',
+  storyOccurrence: number,
+  paragraphIndex: number,
+  numbering: { numId: string; level: number } | undefined
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
+    const paragraph = story?.paragraphs[paragraphIndex];
+    if (paragraph) {
+      paragraph.numbering = numbering ? { ...numbering } : undefined;
+    }
+  });
+}
+
 export function setDocxTableCellText(
   editor: OfficeEditor<DocxDocument>,
   storyKind: 'document' | 'header' | 'footer',

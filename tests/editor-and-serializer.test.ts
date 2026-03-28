@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxSectionLayout, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphStyle, setDocxSectionLayout, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
 
-import { createDocxFixture, createPptxFixture, createSectionedDocxFixture, createXlsxFixture } from './fixture-builders';
+import { createDocxFixture, createNumberedDocxFixture, createPptxFixture, createSectionedDocxFixture, createStyledDocxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('editor transactions', () => {
   it('updates docx paragraphs and supports undo/redo', async () => {
@@ -57,6 +57,16 @@ describe('editor transactions', () => {
     expect(editor.document.sections[0]?.pageMargins).toEqual({ top: 720, right: 960, bottom: 720, left: 960 });
   });
 
+  it('updates docx paragraph style and numbering through editor helpers', async () => {
+    const styledEditor = createOfficeEditor(parseDocx(await openPackage(createStyledDocxFixture())));
+    setDocxParagraphStyle(styledEditor, 'document', 0, 0, 'Base');
+    expect(styledEditor.document.stories[0]?.paragraphs[0]?.styleId).toBe('Base');
+
+    const numberedEditor = createOfficeEditor(parseDocx(await openPackage(createNumberedDocxFixture())));
+    setDocxParagraphNumbering(numberedEditor, 'document', 0, 0, { numId: '7', level: 1 });
+    expect(numberedEditor.document.stories[0]?.paragraphs[0]?.numbering).toEqual({ numId: '7', level: 1 });
+  });
+
   it('updates docx table cells through story-aware helpers', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
     setDocxTableCellText(editor, 'document', 0, 0, 0, 1, 'Edited cell');
@@ -93,6 +103,18 @@ describe('serializer round-trips', () => {
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.sections[0]?.pageSize).toEqual({ width: 12240, height: 15840 });
     expect(reopened.sections[0]?.pageMargins).toEqual({ top: 720, right: 960, bottom: 720, left: 960 });
+  });
+
+  it('round-trips edited docx paragraph style and numbering metadata', async () => {
+    const styledEditor = createOfficeEditor(parseDocx(await openPackage(createStyledDocxFixture())));
+    setDocxParagraphStyle(styledEditor, 'document', 0, 0, 'Base');
+    const reopenedStyled = parseDocx(await openPackage(serializeOfficeDocument(styledEditor.document)));
+    expect(reopenedStyled.stories[0]?.paragraphs[0]?.styleId).toBe('Base');
+
+    const numberedEditor = createOfficeEditor(parseDocx(await openPackage(createNumberedDocxFixture())));
+    setDocxParagraphNumbering(numberedEditor, 'document', 0, 0, { numId: '7', level: 1 });
+    const reopenedNumbered = parseDocx(await openPackage(serializeOfficeDocument(numberedEditor.document)));
+    expect(reopenedNumbered.stories[0]?.paragraphs[0]?.numbering).toEqual({ numId: '7', level: 1 });
   });
 
   it('round-trips edited docx table cell content', async () => {
