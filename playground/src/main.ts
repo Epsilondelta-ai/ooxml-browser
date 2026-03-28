@@ -20,6 +20,7 @@ import {
   setWorkbookSheetName,
   setWorksheetChartCategoryAxisPosition,
   setWorksheetChartCategoryAxisTitle,
+  setWorksheetChartDataLabels,
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartSeriesName,
@@ -229,6 +230,7 @@ function renderEditorControls(): void {
       const firstChartCategoryAxisPosition = firstSheet?.charts[0]?.categoryAxisPosition ?? '';
       const firstChartValueAxisTitle = firstSheet?.charts[0]?.valueAxisTitle ?? '';
       const firstChartValueAxisPosition = firstSheet?.charts[0]?.valueAxisPosition ?? '';
+      const firstChartDataLabelPosition = firstSheet?.charts[0]?.dataLabels?.position ?? '';
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
       const firstThreadedComment = firstSheet?.threadedComments[0];
@@ -308,6 +310,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-val-axis-pos-input" value="${escapeHtml(firstChartValueAxisPosition)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Data label position</div>
+          <input id="xlsx-chart-dlbl-pos-input" value="${escapeHtml(firstChartDataLabelPosition)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart series</div>
           <input id="xlsx-chart-series-input" value="${escapeHtml(firstChartSeriesName)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -346,6 +352,7 @@ function renderEditorControls(): void {
       const chartCategoryAxisPositionInput = window.document.getElementById('xlsx-chart-cat-axis-pos-input') as HTMLInputElement;
       const chartValueAxisInput = window.document.getElementById('xlsx-chart-val-axis-input') as HTMLInputElement;
       const chartValueAxisPositionInput = window.document.getElementById('xlsx-chart-val-axis-pos-input') as HTMLInputElement;
+      const chartDataLabelPositionInput = window.document.getElementById('xlsx-chart-dlbl-pos-input') as HTMLInputElement;
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
@@ -497,6 +504,17 @@ function renderEditorControls(): void {
             chartValueAxisPositionInput.value
           );
         }
+        if (chartDataLabelPositionInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartDataLabels(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            {
+              ...workbookEditor.document.sheets[0]?.charts[0]?.dataLabels,
+              position: chartDataLabelPositionInput.value
+            }
+          );
+        }
         if (chartSeriesInput.value && workbookEditor.document.sheets[0]?.charts[0]?.seriesNames[0] !== undefined) {
           setWorksheetChartSeriesName(
             workbookEditor,
@@ -555,6 +573,7 @@ function renderEditorControls(): void {
       chartCategoryAxisPositionInput.addEventListener('input', update);
       chartValueAxisInput.addEventListener('input', update);
       chartValueAxisPositionInput.addEventListener('input', update);
+      chartDataLabelPositionInput.addEventListener('input', update);
       chartSeriesInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);

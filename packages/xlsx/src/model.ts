@@ -61,6 +61,12 @@ export interface XlsxThreadedComment {
   author?: string;
 }
 
+export interface XlsxChartDataLabels {
+  position?: string;
+  showValue?: boolean;
+  showCategoryName?: boolean;
+}
+
 export interface XlsxChart {
   relationshipId: string;
   drawingUri: string;
@@ -74,6 +80,7 @@ export interface XlsxChart {
   categoryAxisPosition?: string;
   valueAxisTitle?: string;
   valueAxisPosition?: string;
+  dataLabels?: XlsxChartDataLabels;
   seriesNames: string[];
 }
 

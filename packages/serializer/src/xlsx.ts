@@ -147,6 +147,7 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.categoryAxisPosition !== originalChart?.categoryAxisPosition
       || chart.valueAxisTitle !== originalChart?.valueAxisTitle
       || chart.valueAxisPosition !== originalChart?.valueAxisPosition
+      || JSON.stringify(chart.dataLabels ?? null) !== JSON.stringify(originalChart?.dataLabels ?? null)
       || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])
     ) {
       const existingSource = chart.chartType === originalChart?.chartType ? graph.parts[chart.targetUri]?.text : undefined;
@@ -535,6 +536,30 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           occurrence: 1
         });
       }
+      if (chart.dataLabels?.position !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:dLblPos',
+          targetAttr: 'val',
+          newValue: chart.dataLabels.position
+        });
+      }
+      if (chart.dataLabels?.showValue !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:showVal',
+          targetAttr: 'val',
+          newValue: chart.dataLabels.showValue ? '1' : '0'
+        });
+      }
+      if (chart.dataLabels?.showCategoryName !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:showCatName',
+          targetAttr: 'val',
+          newValue: chart.dataLabels.showCategoryName ? '1' : '0'
+        });
+      }
       for (const [seriesIndex, seriesName] of chart.seriesNames.entries()) {
         operations.push({
           op: 'replaceText',
@@ -553,8 +578,9 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const seriesXml = chart.seriesNames.map((seriesName, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesName)}</a:t></c:rich></c:tx></c:ser>`).join('');
   const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
+  const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}${dataLabelsXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
