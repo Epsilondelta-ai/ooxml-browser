@@ -90,6 +90,7 @@ export interface XlsxChart {
   chartStyle?: number;
   chartType?: string;
   barDirection?: string;
+  autoTitleDeleted?: boolean;
   scatterStyle?: string;
   bubbleScale?: number;
   showNegativeBubbles?: boolean;

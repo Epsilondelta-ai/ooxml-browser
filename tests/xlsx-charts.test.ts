@@ -19,6 +19,7 @@ describe('xlsx chart relationships', () => {
       name: 'Sales Chart',
       chartStyle: 102,
       chartType: 'barChart',
+      autoTitleDeleted: false,
       barDirection: 'col',
       plotVisibleOnly: true,
       displayBlanksAs: 'gap',
@@ -75,7 +76,7 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart style:102 <barChart> [Primary Chart] barDir:col plotVisibleOnly:true blanks:gap dLblsOverMax:true roundedCorners:true grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r legendOverlay:false cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorGrid:true catMinorGrid:false catMajorTick:cross catTickSkip:2 catMinorTick:none catLblPos:nextTo catLblSkip:2 catLblAlgn:ctr catNoMulti:true catLblOffset:175 catDelete:false val:Revenue valPos:l valCross:max valCrossAt:0 valCrossBetween:between valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorGrid:true valMinorGrid:false valMajorTick:out valMinorTick:in valLblPos:low valDelete:false valDispUnits:hundreds dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart style:102 <barChart> autoTitleDeleted:false [Primary Chart] barDir:col plotVisibleOnly:true blanks:gap dLblsOverMax:true roundedCorners:true grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r legendOverlay:false cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorGrid:true catMinorGrid:false catMajorTick:cross catTickSkip:2 catMinorTick:none catLblPos:nextTo catLblSkip:2 catLblAlgn:ctr catNoMulti:true catLblOffset:175 catDelete:false val:Revenue valPos:l valCross:max valCrossAt:0 valCrossBetween:between valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorGrid:true valMinorGrid:false valMajorTick:out valMinorTick:in valLblPos:low valDelete:false valDispUnits:hundreds dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
   });
 
   it('parses doughnut-specific chart metadata', async () => {
@@ -110,7 +111,7 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Alternate Chart style:7 <lineChart> [Alternate Chart] smooth:true dropLines:true hiLowLines:false serLines:true upDownBars:false plotVisibleOnly:false blanks:span roundedCorners:false grouping:standard overlap:-20 varyColors:false gapWidth:90 legend:b legendOverlay:true cat:Month catPos:l val:Bookings valPos:r dLblPos:bestFit dLblSep:/ showVal:false showCat:true showSeries:false showLegendKey:true showLeaderLines:false showPercent:false showBubble:true {Forecast invert:false marker:diamond size:6} (/xl/charts/chart2.xml)');
+    expect(html).toContain('Alternate Chart style:7 <lineChart> autoTitleDeleted:true [Alternate Chart] smooth:true dropLines:true hiLowLines:false serLines:true upDownBars:false plotVisibleOnly:false blanks:span roundedCorners:false grouping:standard overlap:-20 varyColors:false gapWidth:90 legend:b legendOverlay:true cat:Month catPos:l val:Bookings valPos:r dLblPos:bestFit dLblSep:/ showVal:false showCat:true showSeries:false showLegendKey:true showLeaderLines:false showPercent:false showBubble:true {Forecast invert:false marker:diamond size:6} (/xl/charts/chart2.xml)');
     expect(html).toContain('dropLines:true');
     expect(html).toContain('hiLowLines:false');
     expect(html).toContain('serLines:true');

@@ -505,6 +505,16 @@ export function setWorksheetChartStyle(editor: OfficeEditor<XlsxWorkbook>, sheet
   });
 }
 
+export function setWorksheetChartAutoTitleDeleted(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, autoTitleDeleted: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.autoTitleDeleted = autoTitleDeleted;
+    }
+  });
+}
+
 export function setWorksheetChartSeriesName(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, seriesIndex: number, name: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
