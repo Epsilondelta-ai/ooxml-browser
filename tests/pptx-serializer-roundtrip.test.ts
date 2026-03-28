@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createInheritedPptxFixture, createMediaPptxFixture, createTimedPptxFixture } from './fixture-builders';
+import { createInheritedPptxFixture, createMediaPptxFixture, createTimedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx serializer persistence', () => {
   it('preserves layout/master/theme metadata through serialize/reopen', async () => {
@@ -23,6 +23,17 @@ describe('pptx serializer persistence', () => {
 
     expect(slide?.shapes.find((shape) => shape.media?.type === 'image')?.media?.targetUri).toBe('/ppt/media/image1.png');
     expect(slide?.comments).toEqual([{ author: 'Codex', text: 'Review image placement', index: 0 }]);
+  });
+
+
+  it('preserves shape transform metadata through serialize/reopen', async () => {
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(parsePptx(await openPackage(createTransformedPptxFixture())))));
+    const slide = reopened.slides[0];
+    const textShape = slide?.shapes.find((shape) => shape.name === 'Body');
+    const imageShape = slide?.shapes.find((shape) => shape.media?.type === 'image');
+
+    expect(textShape?.transform).toEqual({ x: 100, y: 200, cx: 3000, cy: 4000 });
+    expect(imageShape?.transform).toEqual({ x: 500, y: 600, cx: 7000, cy: 8000 });
   });
 
   it('preserves timing and transition metadata through serialize/reopen', async () => {

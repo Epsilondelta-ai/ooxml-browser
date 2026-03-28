@@ -45,12 +45,22 @@ function buildSlideXml(slide: PresentationSlide, slideRelationships: ReturnType<
 }
 
 function buildShapeXml(shape: SlideShape, slideRelationships: ReturnType<typeof relationshipsFor>): string {
+  const transformXml = buildTransformXml(shape.transform);
+
   if (shape.media?.type === 'image') {
     const relationshipId = slideRelationships.find((relationship) => relationship.resolvedTarget === shape.media?.targetUri)?.id ?? 'rIdImage';
-    return `<p:pic><p:nvPicPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Image')}"/></p:nvPicPr><p:blipFill><a:blip r:embed="${escapeXml(relationshipId)}"/></p:blipFill></p:pic>`;
+    return `<p:pic><p:nvPicPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Image')}"/></p:nvPicPr><p:spPr>${transformXml}</p:spPr><p:blipFill><a:blip r:embed="${escapeXml(relationshipId)}"/></p:blipFill></p:pic>`;
   }
 
-  return `<p:sp><p:nvSpPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Shape')}"/><p:nvPr>${shape.placeholderType ? `<p:ph type="${escapeXml(shape.placeholderType)}"/>` : ''}</p:nvPr></p:nvSpPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(shape.text)}</a:t></a:r></a:p></p:txBody></p:sp>`;
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Shape')}"/><p:nvPr>${shape.placeholderType ? `<p:ph type="${escapeXml(shape.placeholderType)}"/>` : ''}</p:nvPr></p:nvSpPr><p:spPr>${transformXml}</p:spPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(shape.text)}</a:t></a:r></a:p></p:txBody></p:sp>`;
+}
+
+function buildTransformXml(transform: SlideShape['transform']): string {
+  if (!transform || [transform.x, transform.y, transform.cx, transform.cy].every((value) => value === undefined)) {
+    return '';
+  }
+
+  return `<a:xfrm><a:off x="${transform.x ?? 0}" y="${transform.y ?? 0}"/><a:ext cx="${transform.cx ?? 0}" cy="${transform.cy ?? 0}"/></a:xfrm>`;
 }
 
 function buildTransitionXml(type: string | undefined, speed: string | undefined): string {
