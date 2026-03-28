@@ -30,6 +30,8 @@ describe('xlsx chart relationships', () => {
       categoryAxisPosition: 'b',
       categoryAxisCrosses: 'autoZero',
       categoryAxisCrossesAt: 1,
+      categoryAxisMajorGridlines: true,
+      categoryAxisMinorGridlines: false,
       categoryAxisMajorTickMark: 'cross',
       categoryAxisMinorTickMark: 'none',
       categoryAxisTickLabelPosition: 'nextTo',
@@ -64,7 +66,7 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorTick:cross catMinorTick:none catLblPos:nextTo catLblOffset:175 catDelete:false val:Revenue valPos:l valCross:max valCrossAt:0 valCrossBetween:between valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorGrid:true valMinorGrid:false valMajorTick:out valMinorTick:in valLblPos:low valDelete:false valDispUnits:hundreds dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorGrid:true catMinorGrid:false catMajorTick:cross catMinorTick:none catLblPos:nextTo catLblOffset:175 catDelete:false val:Revenue valPos:l valCross:max valCrossAt:0 valCrossBetween:between valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorGrid:true valMinorGrid:false valMajorTick:out valMinorTick:in valLblPos:low valDelete:false valDispUnits:hundreds dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
   });
 
   it('parses doughnut-specific chart metadata', async () => {

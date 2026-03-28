@@ -353,6 +353,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const categoryAxisPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'axPos')[0] : undefined;
     const categoryAxisCrossesNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'crosses')[0] : undefined;
     const categoryAxisCrossesAtNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'crossesAt')[0] : undefined;
+    const categoryAxisMajorGridlinesNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'majorGridlines')[0] : undefined;
+    const categoryAxisMinorGridlinesNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'minorGridlines')[0] : undefined;
     const categoryAxisMajorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'majorTickMark')[0] : undefined;
     const categoryAxisMinorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'minorTickMark')[0] : undefined;
     const categoryAxisTickLabelPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'tickLblPos')[0] : undefined;
@@ -441,6 +443,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       categoryAxisPosition: xmlAttr(categoryAxisPositionNode, 'val') ?? undefined,
       categoryAxisCrosses: xmlAttr(categoryAxisCrossesNode, 'val') ?? undefined,
       categoryAxisCrossesAt: (() => { const value = xmlAttr(categoryAxisCrossesAtNode, 'val'); return value ? Number(value) : undefined; })(),
+      categoryAxisMajorGridlines: categoryAxisMajorGridlinesNode ? (xmlAttr(categoryAxisMajorGridlinesNode, 'val') === '0' ? false : true) : undefined,
+      categoryAxisMinorGridlines: categoryAxisMinorGridlinesNode ? (xmlAttr(categoryAxisMinorGridlinesNode, 'val') === '0' ? false : true) : undefined,
       categoryAxisMajorTickMark: xmlAttr(categoryAxisMajorTickMarkNode, 'val') ?? undefined,
       categoryAxisMinorTickMark: xmlAttr(categoryAxisMinorTickMarkNode, 'val') ?? undefined,
       categoryAxisTickLabelPosition: xmlAttr(categoryAxisTickLabelPositionNode, 'val') ?? undefined,

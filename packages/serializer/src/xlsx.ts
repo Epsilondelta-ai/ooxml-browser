@@ -162,6 +162,8 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.categoryAxisPosition !== originalChart?.categoryAxisPosition
       || chart.categoryAxisCrosses !== originalChart?.categoryAxisCrosses
       || chart.categoryAxisCrossesAt !== originalChart?.categoryAxisCrossesAt
+      || chart.categoryAxisMajorGridlines !== originalChart?.categoryAxisMajorGridlines
+      || chart.categoryAxisMinorGridlines !== originalChart?.categoryAxisMinorGridlines
       || chart.categoryAxisMajorTickMark !== originalChart?.categoryAxisMajorTickMark
       || chart.categoryAxisMinorTickMark !== originalChart?.categoryAxisMinorTickMark
       || chart.categoryAxisTickLabelPosition !== originalChart?.categoryAxisTickLabelPosition
@@ -681,6 +683,24 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           occurrence: 0
         });
       }
+      if (chart.categoryAxisMajorGridlines !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:majorGridlines',
+          targetAttr: 'val',
+          newValue: chart.categoryAxisMajorGridlines ? '1' : '0',
+          occurrence: 0
+        });
+      }
+      if (chart.categoryAxisMinorGridlines !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:minorGridlines',
+          targetAttr: 'val',
+          newValue: chart.categoryAxisMinorGridlines ? '1' : '0',
+          occurrence: 0
+        });
+      }
       if (chart.categoryAxisMajorTickMark !== undefined) {
         operations.push({
           op: 'replaceAttribute',
@@ -813,7 +833,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           tagName: 'c:majorGridlines',
           targetAttr: 'val',
           newValue: chart.valueAxisMajorGridlines ? '1' : '0',
-          occurrence: 0
+          occurrence: 1
         });
       }
       if (chart.valueAxisMinorGridlines !== undefined) {
@@ -822,7 +842,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           tagName: 'c:minorGridlines',
           targetAttr: 'val',
           newValue: chart.valueAxisMinorGridlines ? '1' : '0',
-          occurrence: 0
+          occurrence: 1
         });
       }
       if (chart.valueAxisMajorTickMark !== undefined) {
@@ -1006,7 +1026,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
   const plotVisibleOnlyXml = chart.plotVisibleOnly !== undefined ? `<c:plotVisOnly val="${chart.plotVisibleOnly ? '1' : '0'}"/>` : '';
   const displayBlanksAsXml = chart.displayBlanksAs !== undefined ? `<c:dispBlanksAs val="${escapeXml(chart.displayBlanksAs)}"/>` : '';
-  const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition || chart.categoryAxisCrosses || chart.categoryAxisCrossesAt !== undefined || chart.categoryAxisMajorTickMark || chart.categoryAxisMinorTickMark || chart.categoryAxisTickLabelPosition || chart.categoryAxisLabelOffset !== undefined || chart.categoryAxisDeleted !== undefined ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}${chart.categoryAxisCrosses ? `<c:crosses val="${escapeXml(chart.categoryAxisCrosses)}"/>` : ''}${chart.categoryAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.categoryAxisCrossesAt}"/>` : ''}${chart.categoryAxisMajorTickMark ? `<c:majorTickMark val="${escapeXml(chart.categoryAxisMajorTickMark)}"/>` : ''}${chart.categoryAxisMinorTickMark ? `<c:minorTickMark val="${escapeXml(chart.categoryAxisMinorTickMark)}"/>` : ''}${chart.categoryAxisTickLabelPosition ? `<c:tickLblPos val="${escapeXml(chart.categoryAxisTickLabelPosition)}"/>` : ''}${chart.categoryAxisLabelOffset !== undefined ? `<c:lblOffset val="${chart.categoryAxisLabelOffset}"/>` : ''}${chart.categoryAxisDeleted !== undefined ? `<c:delete val="${chart.categoryAxisDeleted ? '1' : '0'}"/>` : ''}</c:catAx>` : '';
+  const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition || chart.categoryAxisCrosses || chart.categoryAxisCrossesAt !== undefined || chart.categoryAxisMajorGridlines !== undefined || chart.categoryAxisMinorGridlines !== undefined || chart.categoryAxisMajorTickMark || chart.categoryAxisMinorTickMark || chart.categoryAxisTickLabelPosition || chart.categoryAxisLabelOffset !== undefined || chart.categoryAxisDeleted !== undefined ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}${chart.categoryAxisCrosses ? `<c:crosses val="${escapeXml(chart.categoryAxisCrosses)}"/>` : ''}${chart.categoryAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.categoryAxisCrossesAt}"/>` : ''}${chart.categoryAxisMajorGridlines !== undefined ? `<c:majorGridlines val="${chart.categoryAxisMajorGridlines ? '1' : '0'}"/>` : ''}${chart.categoryAxisMinorGridlines !== undefined ? `<c:minorGridlines val="${chart.categoryAxisMinorGridlines ? '1' : '0'}"/>` : ''}${chart.categoryAxisMajorTickMark ? `<c:majorTickMark val="${escapeXml(chart.categoryAxisMajorTickMark)}"/>` : ''}${chart.categoryAxisMinorTickMark ? `<c:minorTickMark val="${escapeXml(chart.categoryAxisMinorTickMark)}"/>` : ''}${chart.categoryAxisTickLabelPosition ? `<c:tickLblPos val="${escapeXml(chart.categoryAxisTickLabelPosition)}"/>` : ''}${chart.categoryAxisLabelOffset !== undefined ? `<c:lblOffset val="${chart.categoryAxisLabelOffset}"/>` : ''}${chart.categoryAxisDeleted !== undefined ? `<c:delete val="${chart.categoryAxisDeleted ? '1' : '0'}"/>` : ''}</c:catAx>` : '';
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition || chart.valueAxisCrosses || chart.valueAxisCrossesAt !== undefined || chart.valueAxisCrossBetween || chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined || chart.valueAxisMajorUnit !== undefined || chart.valueAxisMinorUnit !== undefined || chart.valueAxisMajorGridlines !== undefined || chart.valueAxisMinorGridlines !== undefined || chart.valueAxisMajorTickMark || chart.valueAxisMinorTickMark || chart.valueAxisTickLabelPosition || chart.valueAxisDeleted !== undefined || chart.valueAxisDisplayUnits ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisMinimum !== undefined || chart.valueAxisMaximum !== undefined ? `<c:scaling>${chart.valueAxisMinimum !== undefined ? `<c:min val="${chart.valueAxisMinimum}"/>` : ''}${chart.valueAxisMaximum !== undefined ? `<c:max val="${chart.valueAxisMaximum}"/>` : ''}</c:scaling>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}${chart.valueAxisCrosses ? `<c:crosses val="${escapeXml(chart.valueAxisCrosses)}"/>` : ''}${chart.valueAxisCrossesAt !== undefined ? `<c:crossesAt val="${chart.valueAxisCrossesAt}"/>` : ''}${chart.valueAxisCrossBetween ? `<c:crossBetween val="${escapeXml(chart.valueAxisCrossBetween)}"/>` : ''}${chart.valueAxisMajorUnit !== undefined ? `<c:majorUnit val="${chart.valueAxisMajorUnit}"/>` : ''}${chart.valueAxisMinorUnit !== undefined ? `<c:minorUnit val="${chart.valueAxisMinorUnit}"/>` : ''}${chart.valueAxisMajorGridlines !== undefined ? `<c:majorGridlines val="${chart.valueAxisMajorGridlines ? '1' : '0'}"/>` : ''}${chart.valueAxisMinorGridlines !== undefined ? `<c:minorGridlines val="${chart.valueAxisMinorGridlines ? '1' : '0'}"/>` : ''}${chart.valueAxisMajorTickMark ? `<c:majorTickMark val="${escapeXml(chart.valueAxisMajorTickMark)}"/>` : ''}${chart.valueAxisMinorTickMark ? `<c:minorTickMark val="${escapeXml(chart.valueAxisMinorTickMark)}"/>` : ''}${chart.valueAxisTickLabelPosition ? `<c:tickLblPos val="${escapeXml(chart.valueAxisTickLabelPosition)}"/>` : ''}${chart.valueAxisDeleted !== undefined ? `<c:delete val="${chart.valueAxisDeleted ? '1' : '0'}"/>` : ''}${chart.valueAxisDisplayUnits ? `<c:dispUnits val="${escapeXml(chart.valueAxisDisplayUnits)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.separator !== undefined ? `<c:separator>${escapeXml(chart.dataLabels.separator)}</c:separator>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showSeriesName !== undefined ? `<c:showSerName val="${chart.dataLabels.showSeriesName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLegendKey !== undefined ? `<c:showLegendKey val="${chart.dataLabels.showLegendKey ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLeaderLines !== undefined ? `<c:showLeaderLines val="${chart.dataLabels.showLeaderLines ? '1' : '0'}"/>` : ''}${chart.dataLabels.showPercent !== undefined ? `<c:showPercent val="${chart.dataLabels.showPercent ? '1' : '0'}"/>` : ''}${chart.dataLabels.showBubbleSize !== undefined ? `<c:showBubbleSize val="${chart.dataLabels.showBubbleSize ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
