@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OOXML reopen attestation",
+  "type": "object",
+  "required": ["fixtureId"],
+  "properties": {
+    "fixtureId": { "type": "string", "minLength": 1 },
+    "office": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "validatedAt": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "notes": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "libreOffice": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "validatedAt": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "notes": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,6 +1,6 @@
 # Interoperability Matrix
 
-Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-results.json`.
+Generated from `fixtures/manifests/**`, `benchmarks/reports/latest-fixture-results.json`, and `benchmarks/reports/latest-attestation-report.json`.
 
 ## DOCX
 

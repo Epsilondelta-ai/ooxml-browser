@@ -16,6 +16,7 @@
     "dev": "npm run dev --workspace @ooxml/playground",
     "bench": "vite-node benchmarks/run-benchmarks.mjs",
     "quality:fixtures": "vite-node tools/generate-fixture-results.mjs",
+    "quality:attestations": "vite-node tools/generate-attestation-report.mjs",
     "quality:artifacts": "vite-node tools/generate-quality-artifacts.mjs"
   },
   "devDependencies": {

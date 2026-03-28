@@ -5,6 +5,7 @@ const root = process.cwd();
 const manifestsRoot = path.join(root, 'fixtures', 'manifests');
 const benchmarkReportPath = path.join(root, 'benchmarks', 'reports', 'latest-benchmark-results.json');
 const fixtureResultsPath = path.join(root, 'benchmarks', 'reports', 'latest-fixture-results.json');
+const attestationReportPath = path.join(root, 'benchmarks', 'reports', 'latest-attestation-report.json');
 const matrixOutputPath = path.join(root, 'docs', 'quality', 'interop-matrix.md');
 const benchmarkOutputPath = path.join(root, 'docs', 'quality', 'benchmark-baseline.md');
 
@@ -36,7 +37,9 @@ const manifests = await Promise.all(
   }))
 );
 const fixtureResults = await readJson(fixtureResultsPath).catch(() => ({ results: [] }));
+const attestationReport = await readJson(attestationReportPath).catch(() => ({ results: [] }));
 const fixtureResultById = new Map((fixtureResults.results ?? []).map((entry) => [entry.id, entry]));
+const attestationById = new Map((attestationReport.results ?? []).map((entry) => [entry.fixtureId, entry]));
 
 const grouped = manifests.reduce((acc, entry) => {
   const key = entry.manifest.format;
@@ -48,7 +51,7 @@ const grouped = manifests.reduce((acc, entry) => {
 const matrixSections = [
   '# Interoperability Matrix',
   '',
-  'Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-results.json`.',
+  'Generated from `fixtures/manifests/**`, `benchmarks/reports/latest-fixture-results.json`, and `benchmarks/reports/latest-attestation-report.json`.',
   ''
 ];
 for (const format of Object.keys(grouped).sort()) {
@@ -60,12 +63,15 @@ for (const format of Object.keys(grouped).sort()) {
   for (const entry of grouped[format].sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))) {
     const { manifest } = entry;
     const result = fixtureResultById.get(manifest.id) ?? {};
+    const attestation = attestationById.get(manifest.id) ?? {};
     const preservation =
       typeof result.preservedPartCount === 'number' && typeof result.totalOriginalPartCount === 'number'
         ? `${result.preservedPartCount}/${result.totalOriginalPartCount}`
         : '—';
+    const officeStatus = attestation.office?.status ?? result.officeStatus ?? manifest.reopenExpectations?.office ?? '';
+    const libreOfficeStatus = attestation.libreOffice?.status ?? result.libreOfficeStatus ?? manifest.reopenExpectations?.libreoffice ?? '';
     matrixSections.push(
-      `| ${manifest.id} | ${manifest.featureTags.join(', ')} | ${String(result.mutation ?? '—')} | ${String(result.parserOpen ?? '')} | ${String(result.parserRoundTrip ?? '')} | ${String(result.editedRoundTrip ?? '')} | ${preservation} | ${(result.changedParts ?? []).join(', ') || '—'} | ${String(result.officeStatus ?? manifest.reopenExpectations?.office ?? '')} | ${String(result.libreOfficeStatus ?? manifest.reopenExpectations?.libreoffice ?? '')} |`
+      `| ${manifest.id} | ${manifest.featureTags.join(', ')} | ${String(result.mutation ?? '—')} | ${String(result.parserOpen ?? '')} | ${String(result.parserRoundTrip ?? '')} | ${String(result.editedRoundTrip ?? '')} | ${preservation} | ${(result.changedParts ?? []).join(', ') || '—'} | ${String(officeStatus)} | ${String(libreOfficeStatus)} |`
     );
   }
   matrixSections.push('');

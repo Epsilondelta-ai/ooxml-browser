@@ -1,0 +1,271 @@
+{
+  "generatedAt": "2026-03-28T07:15:26.847Z",
+  "results": [
+    {
+      "fixtureId": "docx-basic",
+      "format": "docx",
+      "manifestPath": "fixtures/manifests/docx/basic.json",
+      "attestationPath": null,
+      "office": {
+        "status": "seed-fixture-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "seed-fixture-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "docx-numbered",
+      "format": "docx",
+      "manifestPath": "fixtures/manifests/docx/numbered.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "docx-revisions",
+      "format": "docx",
+      "manifestPath": "fixtures/manifests/docx/revisions.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "docx-sectioned",
+      "format": "docx",
+      "manifestPath": "fixtures/manifests/docx/sectioned.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "docx-styled",
+      "format": "docx",
+      "manifestPath": "fixtures/manifests/docx/styled.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-2-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "pptx-basic",
+      "format": "pptx",
+      "manifestPath": "fixtures/manifests/pptx/basic.json",
+      "attestationPath": null,
+      "office": {
+        "status": "seed-fixture-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "seed-fixture-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "pptx-inherited",
+      "format": "pptx",
+      "manifestPath": "fixtures/manifests/pptx/inherited.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "pptx-media-comments",
+      "format": "pptx",
+      "manifestPath": "fixtures/manifests/pptx/media-comments.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "pptx-timed",
+      "format": "pptx",
+      "manifestPath": "fixtures/manifests/pptx/timed.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "pptx-transformed",
+      "format": "pptx",
+      "manifestPath": "fixtures/manifests/pptx/transformed.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-4-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "xlsx-basic",
+      "format": "xlsx",
+      "manifestPath": "fixtures/manifests/xlsx/basic.json",
+      "attestationPath": null,
+      "office": {
+        "status": "seed-fixture-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "seed-fixture-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "xlsx-commented",
+      "format": "xlsx",
+      "manifestPath": "fixtures/manifests/xlsx/commented.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-3-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-3-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "xlsx-structured",
+      "format": "xlsx",
+      "manifestPath": "fixtures/manifests/xlsx/structured.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-3-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-3-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    },
+    {
+      "fixtureId": "xlsx-styled",
+      "format": "xlsx",
+      "manifestPath": "fixtures/manifests/xlsx/styled.json",
+      "attestationPath": null,
+      "office": {
+        "status": "stage-3-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      },
+      "libreOffice": {
+        "status": "stage-3-attestation-pending",
+        "validatedAt": null,
+        "version": null,
+        "notes": null
+      }
+    }
+  ],
+  "summary": {
+    "office": {
+      "seed-fixture-attestation-pending": 3,
+      "stage-2-attestation-pending": 4,
+      "stage-4-attestation-pending": 4,
+      "stage-3-attestation-pending": 3
+    },
+    "libreOffice": {
+      "seed-fixture-attestation-pending": 3,
+      "stage-2-attestation-pending": 4,
+      "stage-4-attestation-pending": 4,
+      "stage-3-attestation-pending": 3
+    }
+  }
+}
