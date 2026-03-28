@@ -60,3 +60,12 @@ export function setDocxCommentText(editor: OfficeEditor<DocxDocument>, commentId
     }
   });
 }
+
+export function setDocxCommentAuthor(editor: OfficeEditor<DocxDocument>, commentId: string, author: string): DocxDocument {
+  return editor.transaction((draft) => {
+    const comment = draft.comments.find((entry) => entry.id === commentId);
+    if (comment) {
+      comment.author = author;
+    }
+  });
+}

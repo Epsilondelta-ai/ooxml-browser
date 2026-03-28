@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setDocxCommentText } from '@ooxml/editor';
+import { createOfficeEditor, setDocxCommentAuthor, setDocxCommentText } from '@ooxml/editor';
 import { parseDocx, resolveDocxNumbering, resolveDocxStyle } from '@ooxml/docx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -70,6 +70,18 @@ describe('docx patch preservation', () => {
 
     expect(reopenedGraph.parts['/word/document.xml']?.text).toBe(originalGraph.parts['/word/document.xml']?.text);
     expect(reopenedGraph.parts['/word/comments.xml']?.text).toContain('Updated comment');
+  });
+
+  it('persists edited comment authors', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
+    setDocxCommentAuthor(editor, '0', 'Reviewer');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseDocx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.comments[0]?.author).toBe('Reviewer');
+    expect(reopenedGraph.parts['/word/comments.xml']?.text).toContain('w:author="Reviewer"');
   });
 
   it('leaves styles.xml untouched for simple styled paragraph edits', async () => {
