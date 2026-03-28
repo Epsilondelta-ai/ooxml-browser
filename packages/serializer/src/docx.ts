@@ -1,16 +1,21 @@
 import { clonePackageGraph, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
-import type { DocxComment, DocxDocument, DocxParagraph, DocxTable } from '@ooxml/docx';
+import type { DocxComment, DocxDocument, DocxParagraph, DocxSection, DocxStyle, DocxTable } from '@ooxml/docx';
 
 export function serializeDocx(document: DocxDocument): Uint8Array {
   const graph = clonePackageGraph(document.packageGraph);
-  const mainStory = document.stories.find((story) => story.kind === 'document');
 
-  if (mainStory) {
+  for (const story of document.stories) {
+    const contentType = story.kind === 'header'
+      ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml'
+      : story.kind === 'footer'
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml';
+
     updatePackagePartText(
       graph,
-      mainStory.uri,
-      buildDocxStoryXml(mainStory.paragraphs, mainStory.tables),
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml'
+      story.uri,
+      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind),
+      contentType
     );
   }
 
@@ -24,19 +29,70 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
     );
   }
 
+  if (document.numbering.partUri && graph.parts[document.numbering.partUri]) {
+    updatePackagePartText(
+      graph,
+      document.numbering.partUri,
+      buildNumberingXml(document.numbering),
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml'
+    );
+  }
+
+  const stylesUri = graph.parts['/word/styles.xml'] ? '/word/styles.xml' : undefined;
+  if (stylesUri) {
+    updatePackagePartText(
+      graph,
+      stylesUri,
+      buildStylesXml(document.styles),
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml'
+    );
+  }
+
   return serializePackageGraph(graph);
 }
 
-function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[]): string {
-  const paragraphXml = paragraphs.map((paragraph) => `<w:p>${paragraph.styleId ? `<w:pPr><w:pStyle w:val="${escapeXml(paragraph.styleId)}"/></w:pPr>` : ''}${paragraph.runs.map((run) => `<w:r>${run.bold || run.italic ? `<w:rPr>${run.bold ? '<w:b/>' : ''}${run.italic ? '<w:i/>' : ''}</w:rPr>` : ''}<w:t>${escapeXml(run.text)}</w:t></w:r>`).join('')}</w:p>`).join('');
+function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer'): string {
+  const paragraphXml = paragraphs.map((paragraph) => {
+    const paragraphProperties = [
+      paragraph.styleId ? `<w:pStyle w:val="${escapeXml(paragraph.styleId)}"/>` : '',
+      paragraph.numbering ? `<w:numPr><w:ilvl w:val="${paragraph.numbering.level}"/><w:numId w:val="${escapeXml(paragraph.numbering.numId)}"/></w:numPr>` : ''
+    ].join('');
+
+    const runsXml = paragraph.runs.map((run) => `<w:r>${run.bold || run.italic ? `<w:rPr>${run.bold ? '<w:b/>' : ''}${run.italic ? '<w:i/>' : ''}</w:rPr>` : ''}<w:t>${escapeXml(run.text)}</w:t></w:r>`).join('');
+    const revisionsXml = paragraph.revisions.map((revision) => `<w:${revision.kind === 'insertion' ? 'ins' : 'del'}${revision.id ? ` w:id="${escapeXml(revision.id)}"` : ''}${revision.author ? ` w:author="${escapeXml(revision.author)}"` : ''}${revision.date ? ` w:date="${escapeXml(revision.date)}"` : ''}><w:r>${revision.kind === 'deletion' ? `<w:delText>${escapeXml(revision.text)}</w:delText>` : `<w:t>${escapeXml(revision.text)}</w:t>`}</w:r></w:${revision.kind === 'insertion' ? 'ins' : 'del'}>`).join('');
+
+    return `<w:p>${paragraphProperties ? `<w:pPr>${paragraphProperties}</w:pPr>` : ''}${runsXml}${revisionsXml}</w:p>`;
+  }).join('');
   const tableXml = tables.map((table) => `<w:tbl>${table.rows.map((row) => `<w:tr>${row.cells.map((cell) => `<w:tc><w:p><w:r><w:t>${escapeXml(cell.text)}</w:t></w:r></w:p></w:tc>`).join('')}</w:tr>`).join('')}</w:tbl>`).join('');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraphXml}${tableXml}</w:body></w:document>`;
+  const sectionXml = kind === 'document' && section ? buildSectionXml(section) : '';
+  const rootTag = kind === 'header' ? 'w:hdr' : kind === 'footer' ? 'w:ftr' : 'w:document';
+  const bodyXml = kind === 'document' ? `<w:body>${paragraphXml}${tableXml}${sectionXml}</w:body>` : `${paragraphXml}${tableXml}`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<${rootTag} xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${bodyXml}</${rootTag}>`;
+}
+
+function buildSectionXml(section: DocxSection): string {
+  const headerRefs = section.headerReferences.map((reference) => `<w:headerReference w:type="${escapeXml(reference.type)}" r:id="${escapeXml(reference.relationshipId)}"/>`).join('');
+  const footerRefs = section.footerReferences.map((reference) => `<w:footerReference w:type="${escapeXml(reference.type)}" r:id="${escapeXml(reference.relationshipId)}"/>`).join('');
+  const pageSize = section.pageSize ? `<w:pgSz w:w="${section.pageSize.width}" w:h="${section.pageSize.height}"/>` : '';
+  const pageMargins = section.pageMargins ? `<w:pgMar w:top="${section.pageMargins.top}" w:right="${section.pageMargins.right}" w:bottom="${section.pageMargins.bottom}" w:left="${section.pageMargins.left}"/>` : '';
+  return `<w:sectPr>${headerRefs}${footerRefs}${pageSize}${pageMargins}</w:sectPr>`;
 }
 
 function buildCommentsXml(comments: DocxComment[]): string {
   const commentXml = comments.map((comment) => `<w:comment w:id="${escapeXml(comment.id)}"${comment.author ? ` w:author="${escapeXml(comment.author)}"` : ''}><w:p><w:r><w:t>${escapeXml(comment.text)}</w:t></w:r></w:p></w:comment>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<w:comments xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${commentXml}</w:comments>`;
+}
+
+function buildNumberingXml(numbering: DocxDocument['numbering']): string {
+  const abstractNums = Object.values(numbering.abstractNums).map((abstractNum) => `<w:abstractNum w:abstractNumId="${escapeXml(abstractNum.id)}">${Object.values(abstractNum.levels).sort((a, b) => a.level - b.level).map((level) => `<w:lvl w:ilvl="${level.level}"><w:start w:val="${level.start}"/><w:numFmt w:val="${escapeXml(level.format)}"/><w:lvlText w:val="${escapeXml(level.text)}"/></w:lvl>`).join('')}</w:abstractNum>`).join('');
+  const nums = Object.values(numbering.nums).map((num) => `<w:num w:numId="${escapeXml(num.id)}"><w:abstractNumId w:val="${escapeXml(num.abstractNumId)}"/></w:num>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${abstractNums}${nums}</w:numbering>`;
+}
+
+function buildStylesXml(styles: Record<string, DocxStyle>): string {
+  const styleXml = Object.values(styles).map((style) => `<w:style w:type="${escapeXml(style.type)}" w:styleId="${escapeXml(style.id)}"${style.isDefault ? ' w:default="1"' : ''}>${style.name ? `<w:name w:val="${escapeXml(style.name)}"/>` : ''}${style.basedOn ? `<w:basedOn w:val="${escapeXml(style.basedOn)}"/>` : ''}${style.bold || style.italic ? `<w:rPr>${style.bold ? '<w:b/>' : ''}${style.italic ? '<w:i/>' : ''}</w:rPr>` : ''}</w:style>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${styleXml}</w:styles>`;
 }
 
 function escapeXml(value: string): string {
