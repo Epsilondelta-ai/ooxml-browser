@@ -1,4 +1,4 @@
-import { clonePackageGraph, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import { clonePackageGraph, replaceAttributeValue, replaceInnerTextByAttribute, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
 import type { DocxComment, DocxDocument, DocxParagraph, DocxSection, DocxStyle, DocxTable } from '@ooxml/docx';
 
 export function serializeDocx(document: DocxDocument): Uint8Array {
@@ -21,10 +21,12 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
 
   const commentsUri = '/word/comments.xml';
   if (graph.parts[commentsUri]) {
+    const existingSource = graph.parts[commentsUri].text;
+    const nextSource = existingSource ? patchDocxCommentsXml(existingSource, document.comments) : buildCommentsXml(document.comments);
     updatePackagePartText(
       graph,
       commentsUri,
-      buildCommentsXml(document.comments),
+      nextSource,
       'application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml'
     );
   }
@@ -106,4 +108,14 @@ function escapeXml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
+}
+
+
+function patchDocxCommentsXml(source: string, comments: DocxComment[]): string {
+  let next = source;
+  for (const comment of comments) {
+    next = replaceAttributeValue(next, { tagName: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, targetAttr: 'w:author', newValue: comment.author ?? '' });
+    next = replaceInnerTextByAttribute(next, { containerTag: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, textTag: 'w:t', newText: comment.text });
+  }
+  return next;
 }

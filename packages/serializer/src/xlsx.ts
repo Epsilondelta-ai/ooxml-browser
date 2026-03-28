@@ -1,4 +1,4 @@
-import { clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart } from '@ooxml/core';
+import { clonePackageGraph, relationshipsFor, replaceAttributeValue, replaceInnerTextByAttribute, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart } from '@ooxml/core';
 import type { WorkbookSheet, XlsxComment, XlsxDefinedName, XlsxTable, XlsxWorkbook, WorksheetCell } from '@ooxml/xlsx';
 
 export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
@@ -45,7 +45,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
       updatePackagePartText(
         graph,
         commentsRelationship.resolvedTarget,
-        buildCommentsXml(sheet.comments),
+        buildCommentsXml(sheet.comments, graph.parts[commentsRelationship.resolvedTarget]?.text),
         'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
       );
     }
@@ -128,14 +128,32 @@ function buildCellXml(cell: WorksheetCell, sharedStringIndices: Map<string, numb
 
 function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGraph>): string {
   const xml = getParsedXmlPart(graph, table.partUri);
+  const source = xml?.source;
+  if (source) {
+    return replaceAttributeValue(
+      replaceAttributeValue(
+        replaceAttributeValue(source, { tagName: 'table', targetAttr: 'name', newValue: table.name }),
+        { tagName: 'table', targetAttr: 'displayName', newValue: table.name }
+      ),
+      { tagName: 'table', targetAttr: 'ref', newValue: table.range }
+    );
+  }
+
   const root = xml?.document.table as Record<string, unknown> | undefined;
   const tableId = root ? xmlAttr(root, 'id') ?? '1' : '1';
-
   return `<?xml version="1.0" encoding="UTF-8"?>
 <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="${escapeXml(tableId)}" name="${escapeXml(table.name)}" displayName="${escapeXml(table.name)}" ref="${escapeXml(table.range)}"/>`;
 }
 
-function buildCommentsXml(comments: XlsxComment[]): string {
+function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
+  if (existingSource) {
+    let next = existingSource;
+    for (const comment of comments) {
+      next = replaceInnerTextByAttribute(next, { containerTag: 'comment', keyAttr: 'ref', keyValue: comment.reference, textTag: 't', newText: comment.text });
+    }
+    return next;
+  }
+
   const authors = Array.from(new Set(comments.map((comment) => comment.author).filter((author): author is string => Boolean(author))));
   const authorIndex = new Map(authors.map((author, index) => [author, index]));
   const commentsXml = comments.map((comment) => `<comment ref="${escapeXml(comment.reference)}"${comment.author ? ` authorId="${authorIndex.get(comment.author) ?? 0}"` : ''}><text><r><t>${escapeXml(comment.text)}</t></r></text></comment>`).join('');

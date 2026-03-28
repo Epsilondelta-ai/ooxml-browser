@@ -19,3 +19,13 @@ export function replaceDocxParagraphText(editor: OfficeEditor<DocxDocument>, sto
     paragraph.runs = [{ ...paragraph.runs[0], text }];
   });
 }
+
+
+export function setDocxCommentText(editor: OfficeEditor<DocxDocument>, commentId: string, text: string): DocxDocument {
+  return editor.transaction((draft) => {
+    const comment = draft.comments.find((entry) => entry.id === commentId);
+    if (comment) {
+      comment.text = text;
+    }
+  });
+}

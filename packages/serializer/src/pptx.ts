@@ -1,4 +1,4 @@
-import { clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import { clonePackageGraph, relationshipsFor, replaceInnerTextByAttribute, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
 import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTimingNode, SlideShape } from '@ooxml/pptx';
 
 export function serializePptx(presentation: PresentationDocument): Uint8Array {
@@ -27,7 +27,7 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
       updatePackagePartText(
         graph,
         commentsRelationship.resolvedTarget,
-        buildCommentsXml(slide.comments),
+        buildCommentsXml(slide.comments, graph.parts[commentsRelationship.resolvedTarget]?.text),
         'application/vnd.openxmlformats-officedocument.presentationml.comment+xml'
       );
     }
@@ -80,7 +80,15 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
   return `<p:timing><p:tnLst>${body}</p:tnLst></p:timing>`;
 }
 
-function buildCommentsXml(comments: PresentationComment[]): string {
+function buildCommentsXml(comments: PresentationComment[], existingSource?: string): string {
+  if (existingSource) {
+    let next = existingSource;
+    comments.forEach((comment, index) => {
+      next = replaceInnerTextByAttribute(next, { containerTag: 'p:cm', occurrence: index, textTag: 'p:text', newText: comment.text });
+    });
+    return next;
+  }
+
   const body = comments.map((comment) => `<p:cm${comment.author ? ` authorId="${escapeXml(comment.author)}"` : ''}><p:text>${escapeXml(comment.text)}</p:text></p:cm>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <p:cmLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">${body}</p:cmLst>`;
