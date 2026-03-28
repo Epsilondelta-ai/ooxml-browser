@@ -354,6 +354,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
       : undefined;
     const chartTypeNode = chartType && chartRoot ? findElementsByLocalName(chartRoot, chartType)[0] : undefined;
+    const groupingNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'grouping')[0] : undefined;
+    const overlapNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'overlap')[0] : undefined;
     const varyColorsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'varyColors')[0] : undefined;
     const gapWidthNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'gapWidth')[0] : undefined;
     const dataLabelsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'dLbls')[0] : undefined;
@@ -382,6 +384,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
       chartType,
+      grouping: xmlAttr(groupingNode, 'val') ?? undefined,
+      overlap: (() => { const value = xmlAttr(overlapNode, 'val'); return value ? Number(value) : undefined; })(),
       varyColors: xmlAttr(varyColorsNode, 'val') === '1' ? true : xmlAttr(varyColorsNode, 'val') === '0' ? false : undefined,
       gapWidth: (() => { const value = xmlAttr(gapWidthNode, 'val'); return value ? Number(value) : undefined; })(),
       title: chartTitle || undefined,

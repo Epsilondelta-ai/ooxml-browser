@@ -22,8 +22,10 @@ import {
   setWorksheetChartCategoryAxisTitle,
   setWorksheetChartDataLabels,
   setWorksheetChartGapWidth,
+  setWorksheetChartGrouping,
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
+  setWorksheetChartOverlap,
   setWorksheetChartSeriesInvertIfNegative,
   setWorksheetChartSeriesMarker,
   setWorksheetChartSeriesName,
@@ -227,6 +229,8 @@ function renderEditorControls(): void {
       const topMargin = firstSheet?.pageMargins?.top ?? '';
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
+      const firstChartGrouping = firstSheet?.charts[0]?.grouping ?? '';
+      const firstChartOverlap = firstSheet?.charts[0]?.overlap ?? '';
       const firstChartVaryColors = firstSheet?.charts[0]?.varyColors;
       const firstChartGapWidth = firstSheet?.charts[0]?.gapWidth ?? '';
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
@@ -288,6 +292,14 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart type</div>
           <input id="xlsx-chart-type-input" value="${escapeHtml(firstChartType)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Chart grouping</div>
+          <input id="xlsx-chart-grouping-input" value="${escapeHtml(firstChartGrouping)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Chart overlap</div>
+          <input id="xlsx-chart-overlap-input" value="${escapeHtml(String(firstChartOverlap))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Vary colors</div>
@@ -369,6 +381,8 @@ function renderEditorControls(): void {
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
+      const chartGroupingInput = window.document.getElementById('xlsx-chart-grouping-input') as HTMLInputElement;
+      const chartOverlapInput = window.document.getElementById('xlsx-chart-overlap-input') as HTMLInputElement;
       const chartVaryColorsInput = window.document.getElementById('xlsx-chart-vary-colors-input') as HTMLInputElement;
       const chartGapWidthInput = window.document.getElementById('xlsx-chart-gap-width-input') as HTMLInputElement;
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
@@ -475,6 +489,25 @@ function renderEditorControls(): void {
             0,
             chartTypeInput.value
           );
+        }
+        if (chartGroupingInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartGrouping(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartGroupingInput.value
+          );
+        }
+        if (chartOverlapInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          const overlap = Number(chartOverlapInput.value);
+          if (!Number.isNaN(overlap)) {
+            setWorksheetChartOverlap(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              overlap
+            );
+          }
         }
         if (chartVaryColorsInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartVaryColors(
@@ -634,6 +667,8 @@ function renderEditorControls(): void {
       topMarginInput.addEventListener('input', update);
       chartNameInput.addEventListener('input', update);
       chartTypeInput.addEventListener('input', update);
+      chartGroupingInput.addEventListener('input', update);
+      chartOverlapInput.addEventListener('input', update);
       chartVaryColorsInput.addEventListener('input', update);
       chartGapWidthInput.addEventListener('input', update);
       chartTargetInput.addEventListener('input', update);

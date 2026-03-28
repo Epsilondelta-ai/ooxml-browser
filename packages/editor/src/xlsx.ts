@@ -516,6 +516,26 @@ export function setWorksheetChartType(editor: OfficeEditor<XlsxWorkbook>, sheetN
   });
 }
 
+export function setWorksheetChartGrouping(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, grouping: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.grouping = grouping;
+    }
+  });
+}
+
+export function setWorksheetChartOverlap(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, overlap: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.overlap = overlap;
+    }
+  });
+}
+
 export function setWorksheetChartLegendPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, legendPosition: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
