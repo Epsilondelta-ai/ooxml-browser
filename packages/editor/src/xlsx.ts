@@ -666,6 +666,26 @@ export function setWorksheetChartCategoryAxisCrossesAt(editor: OfficeEditor<Xlsx
   });
 }
 
+export function setWorksheetChartCategoryAxisMajorTickMark(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickMark: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisMajorTickMark = tickMark;
+    }
+  });
+}
+
+export function setWorksheetChartCategoryAxisMinorTickMark(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, tickMark: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisMinorTickMark = tickMark;
+    }
+  });
+}
+
 export function setWorksheetChartValueAxisPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, position: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

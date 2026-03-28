@@ -30,6 +30,8 @@ describe('xlsx chart relationships', () => {
       categoryAxisPosition: 'b',
       categoryAxisCrosses: 'autoZero',
       categoryAxisCrossesAt: 1,
+      categoryAxisMajorTickMark: 'cross',
+      categoryAxisMinorTickMark: 'none',
       valueAxisTitle: 'Revenue',
       valueAxisPosition: 'l',
       valueAxisCrosses: 'max',
@@ -53,7 +55,7 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b catCross:autoZero catCrossAt:1 val:Revenue valPos:l valCross:max valCrossAt:0 valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorTick:out valMinorTick:in dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] plotVisibleOnly:true blanks:gap grouping:clustered overlap:0 varyColors:true gapWidth:180 legend:r cat:Region catPos:b catCross:autoZero catCrossAt:1 catMajorTick:cross catMinorTick:none val:Revenue valPos:l valCross:max valCrossAt:0 valMin:0 valMax:250 valMajor:50 valMinor:10 valMajorTick:out valMinorTick:in dLblPos:outEnd dLblSep: ·  showVal:true showCat:false showSeries:true showLegendKey:false showLeaderLines:true showPercent:true showBubble:false {North invert:false marker:circle size:8, South invert:true marker:square size:10} (/xl/charts/chart1.xml)');
   });
 
   it('parses doughnut-specific chart metadata', async () => {

@@ -107,6 +107,8 @@ export interface XlsxChart {
   categoryAxisPosition?: string;
   categoryAxisCrosses?: string;
   categoryAxisCrossesAt?: number;
+  categoryAxisMajorTickMark?: string;
+  categoryAxisMinorTickMark?: string;
   valueAxisTitle?: string;
   valueAxisPosition?: string;
   valueAxisCrosses?: string;

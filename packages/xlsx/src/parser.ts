@@ -353,6 +353,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const categoryAxisPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'axPos')[0] : undefined;
     const categoryAxisCrossesNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'crosses')[0] : undefined;
     const categoryAxisCrossesAtNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'crossesAt')[0] : undefined;
+    const categoryAxisMajorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'majorTickMark')[0] : undefined;
+    const categoryAxisMinorTickMarkNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'minorTickMark')[0] : undefined;
     const valueAxisTitleNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'title')[0] : undefined;
     const valueAxisPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'axPos')[0] : undefined;
     const valueAxisCrossesNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'crosses')[0] : undefined;
@@ -430,6 +432,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       categoryAxisPosition: xmlAttr(categoryAxisPositionNode, 'val') ?? undefined,
       categoryAxisCrosses: xmlAttr(categoryAxisCrossesNode, 'val') ?? undefined,
       categoryAxisCrossesAt: (() => { const value = xmlAttr(categoryAxisCrossesAtNode, 'val'); return value ? Number(value) : undefined; })(),
+      categoryAxisMajorTickMark: xmlAttr(categoryAxisMajorTickMarkNode, 'val') ?? undefined,
+      categoryAxisMinorTickMark: xmlAttr(categoryAxisMinorTickMarkNode, 'val') ?? undefined,
       valueAxisTitle: valueAxisTitleNode ? findElementsByLocalName(valueAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
       valueAxisPosition: xmlAttr(valueAxisPositionNode, 'val') ?? undefined,
       valueAxisCrosses: xmlAttr(valueAxisCrossesNode, 'val') ?? undefined,
