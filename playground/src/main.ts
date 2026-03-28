@@ -20,6 +20,7 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetChartAutoTitleDeleted,
   setWorksheetChartBubbleScale,
   setWorksheetChartCategoryAxisPosition,
   setWorksheetChartCategoryAxisTitle,
@@ -43,8 +44,10 @@ import {
   setWorksheetChartShowNegativeBubbles,
   setWorksheetChartSizeRepresents,
   setWorksheetChartSmooth,
+  setWorksheetChartStyle,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
+  setWorksheetChartTitleOverlay,
   setWorksheetChartBarDirection,
   setWorksheetChartType,
   setWorksheetChartValueAxisPosition,
@@ -253,7 +256,10 @@ function renderEditorControls(): void {
       const pageOrientation = firstSheet?.pageSetup?.orientation ?? '';
       const topMargin = firstSheet?.pageMargins?.top ?? '';
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
+      const firstChartStyle = firstSheet?.charts[0]?.chartStyle ?? '';
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
+      const firstChartAutoTitleDeleted = firstSheet?.charts[0]?.autoTitleDeleted;
+      const firstChartTitleOverlay = firstSheet?.charts[0]?.titleOverlay;
       const firstChartBarDirection = firstSheet?.charts[0]?.barDirection ?? '';
       const firstChartScatterStyle = firstSheet?.charts[0]?.scatterStyle ?? '';
       const firstChartBubbleScale = firstSheet?.charts[0]?.bubbleScale ?? '';
@@ -333,8 +339,20 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-name-input" value="${escapeHtml(firstChartName)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart style</div>
+          <input id="xlsx-chart-style-input" value="${escapeHtml(String(firstChartStyle))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart type</div>
           <input id="xlsx-chart-type-input" value="${escapeHtml(firstChartType)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Auto title deleted</div>
+          <input id="xlsx-chart-auto-title-input" value="${escapeHtml(firstChartAutoTitleDeleted === undefined ? '' : String(firstChartAutoTitleDeleted))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Title overlay</div>
+          <input id="xlsx-chart-title-overlay-input" value="${escapeHtml(firstChartTitleOverlay === undefined ? '' : String(firstChartTitleOverlay))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Bar direction</div>
@@ -495,7 +513,10 @@ function renderEditorControls(): void {
       const orientationInput = window.document.getElementById('xlsx-orientation-input') as HTMLInputElement;
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
+      const chartStyleInput = window.document.getElementById('xlsx-chart-style-input') as HTMLInputElement;
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
+      const chartAutoTitleInput = window.document.getElementById('xlsx-chart-auto-title-input') as HTMLInputElement;
+      const chartTitleOverlayInput = window.document.getElementById('xlsx-chart-title-overlay-input') as HTMLInputElement;
       const chartBarDirectionInput = window.document.getElementById('xlsx-chart-bar-direction-input') as HTMLInputElement;
       const chartScatterStyleInput = window.document.getElementById('xlsx-chart-scatter-style-input') as HTMLInputElement;
       const chartBubbleScaleInput = window.document.getElementById('xlsx-chart-bubble-scale-input') as HTMLInputElement;
@@ -615,12 +636,39 @@ function renderEditorControls(): void {
             chartNameInput.value
           );
         }
+        if (chartStyleInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          const chartStyle = Number(chartStyleInput.value);
+          if (!Number.isNaN(chartStyle)) {
+            setWorksheetChartStyle(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              chartStyle
+            );
+          }
+        }
         if (chartTypeInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartType(
             workbookEditor,
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
             0,
             chartTypeInput.value
+          );
+        }
+        if (chartAutoTitleInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartAutoTitleDeleted(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartAutoTitleInput.value === 'true'
+          );
+        }
+        if (chartTitleOverlayInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartTitleOverlay(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartTitleOverlayInput.value === 'true'
           );
         }
         if (chartBarDirectionInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
@@ -933,7 +981,10 @@ function renderEditorControls(): void {
       orientationInput.addEventListener('input', update);
       topMarginInput.addEventListener('input', update);
       chartNameInput.addEventListener('input', update);
+      chartStyleInput.addEventListener('input', update);
       chartTypeInput.addEventListener('input', update);
+      chartAutoTitleInput.addEventListener('input', update);
+      chartTitleOverlayInput.addEventListener('input', update);
       chartBarDirectionInput.addEventListener('input', update);
       chartScatterStyleInput.addEventListener('input', update);
       chartBubbleScaleInput.addEventListener('input', update);
