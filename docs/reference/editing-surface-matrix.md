@@ -14,6 +14,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Table cell text | `setDocxTableCellText` | Persisted | Story rebuild path handles table mutations. |
 | Comment text | `setDocxCommentText` | Persisted | Comment XML patch path preserves unrelated story parts. |
 | Comment author | `setDocxCommentAuthor` | Persisted | Comment XML patch path updates `w:author`. |
+| Comment create/update | `addDocxComment` | Persisted | Creates a comments part and main-document relationship on demand when missing. |
 | Revision metadata | `setDocxRevisionMetadata` | Persisted | Supports tracked-change id/kind/author/date/text edits through the revision-aware serializer path. |
 | Section page size/margins | `setDocxSectionLayout` | Persisted | Section changes disable paragraph-only patch fast path. |
 | Header/footer reference type | `setDocxSectionReferenceType` | Persisted | Reuses the section rebuild path for `sectPr` reference metadata. |
