@@ -87,6 +87,19 @@ export function setPresentationImageTarget(editor: OfficeEditor<PresentationDocu
   });
 }
 
+export function setPresentationSlideLayout(editor: OfficeEditor<PresentationDocument>, slideIndex: number, layoutUri: string): PresentationDocument {
+  return editor.transaction((draft) => {
+    const slide = draft.slides[slideIndex];
+    if (slide) {
+      slide.layoutUri = layoutUri;
+      slide.layoutName = undefined;
+      slide.masterUri = undefined;
+      slide.masterName = undefined;
+      slide.themeUri = undefined;
+    }
+  });
+}
+
 export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];

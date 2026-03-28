@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createMediaPptxFixture, createPptxFixture, createTimedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createInheritedPptxFixture, createMediaPptxFixture, createPptxFixture, createTimedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx editor round-trips', () => {
   it('persists edited slide comment text', async () => {
@@ -85,6 +85,17 @@ describe('pptx editor round-trips', () => {
     const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.shapes.find((entry) => entry.media?.type === 'image')?.media?.targetUri).toBe('/ppt/media/hero2.png');
     expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../media/hero2.png');
+  });
+
+  it('persists edited slide layout targets', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createInheritedPptxFixture())));
+    setPresentationSlideLayout(editor, 0, '/ppt/slideLayouts/slideLayout2.xml');
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    const reopenedGraph = await openPackage(serializeOfficeDocument(editor.document));
+    expect(reopened.slides[0]?.layoutUri).toBe('/ppt/slideLayouts/slideLayout2.xml');
+    expect(reopened.slides[0]?.layoutName).toBe('Two Content');
+    expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../slideLayouts/slideLayout2.xml');
   });
 
   it('persists edited slide transition metadata', async () => {
