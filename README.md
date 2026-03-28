@@ -2,12 +2,35 @@
 
 Browser-first workspace for parsing, rendering, editing, and serializing OOXML (`.docx`, `.xlsx`, `.pptx`).
 
-## Packages
-- `@ooxml/core` - shared OPC/XML/IR/serialization primitives
-- `@ooxml/docx` - WordprocessingML support
-- `@ooxml/xlsx` - SpreadsheetML support
-- `@ooxml/pptx` - PresentationML support
-- `@ooxml/render` - DOM renderers
-- `@ooxml/editor` - transaction-driven editors
-- `@ooxml/browser` - browser-first facade and worker helpers
-- `@ooxml/devtools` - package/document inspection helpers
+## Package map
+- `@ooxml/core` - shared OPC/XML/package graph primitives and package serialization helpers
+- `@ooxml/docx` - WordprocessingML parsing
+- `@ooxml/xlsx` - SpreadsheetML parsing
+- `@ooxml/pptx` - PresentationML parsing
+- `@ooxml/render` - HTML-first render projections
+- `@ooxml/editor` - transaction-based editing helpers
+- `@ooxml/serializer` - format-specific OOXML writers
+- `@ooxml/browser` - browser session facade for open/render/edit/save flows
+- `@ooxml/devtools` - package/document summary helpers
+
+## Current capability baseline
+- open OOXML archives into a relationship-aware package graph
+- parse representative docx/xlsx/pptx fixtures into typed models
+- render typed models to semantic HTML strings / mounted DOM output
+- perform small transactional edits with undo/redo
+- serialize edited models back into OOXML archives and re-open them through the parser
+
+## Workspace commands
+- `npm test` - unit and round-trip verification
+- `npm run typecheck` - TypeScript project references validation
+- `npm run lint` - ESLint
+- `npm run build` - package + example + playground builds
+- `npm run bench` - micro benchmark harness for open/parse/render/serialize timings
+
+## Examples
+- `examples/basic` - upload and preview an OOXML file
+- `playground` - upload, inspect summaries, apply a small edit, preview, and save
+
+## Documentation
+- `docs/` contains the research/design baseline
+- `.omx/plans/` contains the consensus plan, PRD, test spec, and review artifacts

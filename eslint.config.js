@@ -9,7 +9,8 @@ const sharedGlobals = {
   File: 'readonly',
   HTMLElement: 'readonly',
   console: 'readonly',
-  performance: 'readonly'
+  performance: 'readonly',
+  TextEncoder: 'readonly'
 };
 
 export default [

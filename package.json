@@ -14,7 +14,7 @@
     "test": "vitest run",
     "lint": "eslint .",
     "dev": "npm run dev --workspace @ooxml/playground",
-    "bench": "node benchmarks/run-benchmarks.mjs"
+    "bench": "vite-node benchmarks/run-benchmarks.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

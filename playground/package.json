@@ -8,6 +8,8 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@ooxml/browser": "0.1.0"
+    "@ooxml/browser": "0.1.0",
+    "@ooxml/editor": "0.1.0",
+    "@ooxml/render": "0.1.0"
   }
 }
