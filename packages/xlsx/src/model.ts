@@ -13,12 +13,26 @@ export interface XlsxDefinedName {
   scopeSheetId?: number;
 }
 
+export interface XlsxTable {
+  name: string;
+  range: string;
+  partUri: string;
+}
+
+export interface XlsxComment {
+  reference: string;
+  author?: string;
+  text: string;
+}
+
 export interface WorkbookSheet {
   name: string;
   uri: string;
   rows: WorksheetRow[];
   mergedRanges: string[];
   frozenPane?: XlsxFrozenPane;
+  tables: XlsxTable[];
+  comments: XlsxComment[];
 }
 
 export interface WorksheetRow {

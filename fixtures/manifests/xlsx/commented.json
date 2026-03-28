@@ -1,0 +1,12 @@
+{
+  "id": "xlsx-commented",
+  "sourceApplication": "repo-generated",
+  "format": "xlsx",
+  "featureTags": ["comments", "tables"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "comment and table render"],
+  "reopenExpectations": {"parser": true, "office": "stage-3-attestation-pending", "libreoffice": "stage-3-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

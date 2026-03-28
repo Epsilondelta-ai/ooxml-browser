@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxStyleTable, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -78,7 +78,9 @@ function parseSheet(graph: PackageGraph, uri: string, name: string): WorkbookShe
     uri,
     rows,
     mergedRanges,
-    frozenPane
+    frozenPane,
+    tables: parseSheetTables(graph, uri),
+    comments: parseSheetComments(graph, uri)
   };
 }
 
@@ -212,4 +214,42 @@ export function extractFormulaReferences(formula: string): string[] {
 
 export function resolveDefinedName(workbook: XlsxWorkbook, name: string): XlsxDefinedName | undefined {
   return workbook.definedNames.find((definedName) => definedName.name === name);
+}
+
+function parseSheetTables(graph: PackageGraph, sheetUri: string): XlsxTable[] {
+  return relationshipsFor(graph, sheetUri)
+    .filter((relationship) => relationship.type.includes('/table') && relationship.resolvedTarget)
+    .map((relationship) => {
+      const xml = getParsedXmlPart(graph, relationship.resolvedTarget!);
+      const root = xml?.document.table as Record<string, unknown> | undefined;
+      return {
+        name: (root ? xmlAttr(root, 'displayName') ?? xmlAttr(root, 'name') : undefined) ?? relationship.id,
+        range: (root ? xmlAttr(root, 'ref') : undefined) ?? '',
+        partUri: relationship.resolvedTarget!
+      };
+    });
+}
+
+function parseSheetComments(graph: PackageGraph, sheetUri: string): XlsxComment[] {
+  const commentsRelationship = relationshipsFor(graph, sheetUri).find((relationship) => relationship.type.includes('/comments'));
+  if (!commentsRelationship?.resolvedTarget) {
+    return [];
+  }
+
+  const xml = getParsedXmlPart(graph, commentsRelationship.resolvedTarget);
+  if (!xml) {
+    return [];
+  }
+
+  const commentsRoot = xml.document.comments;
+  const authors = xmlChildren<Record<string, unknown>>(xmlChild<Record<string, unknown>>(commentsRoot, 'authors'), 'author').map((author) => xmlText(author));
+
+  return xmlChildren<Record<string, unknown>>(xmlChild<Record<string, unknown>>(commentsRoot, 'commentList'), 'comment').map((comment) => ({
+    reference: xmlAttr(comment, 'ref') ?? '',
+    author: (() => {
+      const authorId = xmlAttr(comment, 'authorId');
+      return authorId ? authors[Number(authorId)] : undefined;
+    })(),
+    text: xmlChildren<Record<string, unknown>>(comment, 'text').map((textNode) => xmlText(textNode)).join('')
+  }));
 }
