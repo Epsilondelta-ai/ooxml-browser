@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -18,6 +18,18 @@ describe('pptx editor round-trips', () => {
     expect(reopened.slides[0]?.comments[0]?.text).toBe('Updated review');
     expect(reopened.slides[0]?.comments[0]?.author).toBe('Codex');
     expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('authorId="Codex"');
+  });
+
+
+  it('persists edited slide comment authors', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createMediaPptxFixture())));
+    setPresentationCommentAuthor(editor, 0, 0, 'Reviewer');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+    expect(reopened.slides[0]?.comments[0]?.author).toBe('Reviewer');
+    expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('authorId="Reviewer"');
   });
 
   it('patches simple slide and notes text edits without dropping root attributes', async () => {

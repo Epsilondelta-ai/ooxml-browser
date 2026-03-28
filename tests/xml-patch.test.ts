@@ -11,6 +11,15 @@ describe('shared xml patch helpers', () => {
     expect(patched).toContain('custom="keep"');
   });
 
+
+  it('updates matching attributes by occurrence without touching siblings', () => {
+    const source = '<comments><p:cm authorId="A"/><p:cm authorId="B"/></comments>';
+    const patched = replaceAttributeValue(source, { tagName: 'p:cm', targetAttr: 'authorId', newValue: 'C', occurrence: 1 });
+
+    expect(patched).toContain('authorId="A"');
+    expect(patched).toContain('authorId="C"');
+  });
+
   it('updates nested text inside a matching container without dropping siblings', () => {
     const source = '<comments><comment ref="B2"><meta keep="1"/><text><r><t>Old</t></r></text></comment></comments>';
     const patched = replaceInnerTextByAttribute(source, { containerTag: 'comment', keyAttr: 'ref', keyValue: 'B2', textTag: 't', newText: 'Updated' });

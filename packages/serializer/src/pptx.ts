@@ -147,13 +147,22 @@ function buildTimingXml(nodes: PresentationTimingNode[]): string {
 
 function buildCommentsXml(comments: PresentationComment[], existingSource?: string): string {
   if (existingSource) {
-    return applyXmlPatchPlan(existingSource, comments.map((comment, index) => ({
-      op: 'replaceText' as const,
-      containerTag: 'p:cm',
-      occurrence: index,
-      textTag: 'p:text',
-      newText: comment.text
-    })));
+    return applyXmlPatchPlan(existingSource, comments.flatMap((comment, index) => [
+      {
+        op: 'replaceAttribute' as const,
+        tagName: 'p:cm',
+        targetAttr: 'authorId',
+        newValue: comment.author ?? '',
+        occurrence: index
+      },
+      {
+        op: 'replaceText' as const,
+        containerTag: 'p:cm',
+        occurrence: index,
+        textTag: 'p:text',
+        newText: comment.text
+      }
+    ]));
   }
 
   const body = comments.map((comment) => `<p:cm${comment.author ? ` authorId="${escapeXml(comment.author)}"` : ''}><p:text>${escapeXml(comment.text)}</p:text></p:cm>`).join('');

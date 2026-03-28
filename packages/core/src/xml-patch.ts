@@ -1,6 +1,7 @@
-export function replaceAttributeValue(source: string, options: { tagName: string; targetAttr: string; newValue: string; keyAttr?: string; keyValue?: string }): string {
+export function replaceAttributeValue(source: string, options: { tagName: string; targetAttr: string; newValue: string; keyAttr?: string; keyValue?: string; occurrence?: number }): string {
   const openTagPattern = new RegExp(`<${escapeRegExp(options.tagName)}\\b[^>]*>`, 'g');
   let replaced = false;
+  let matchedCount = 0;
 
   const result = source.replace(openTagPattern, (tag) => {
     if (replaced) {
@@ -12,6 +13,11 @@ export function replaceAttributeValue(source: string, options: { tagName: string
       if (!keyMatch || keyMatch[2] !== options.keyValue) {
         return tag;
       }
+    }
+
+    matchedCount += 1;
+    if (options.occurrence !== undefined && matchedCount - 1 !== options.occurrence) {
+      return tag;
     }
 
     replaced = true;

@@ -8,6 +8,7 @@ export type XmlPatchOperation =
       newValue: string;
       keyAttr?: string;
       keyValue?: string;
+      occurrence?: number;
     }
   | {
       op: 'replaceText';
