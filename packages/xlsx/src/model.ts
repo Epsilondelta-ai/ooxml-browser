@@ -74,6 +74,8 @@ export interface XlsxChart {
   targetUri: string;
   name?: string;
   chartType?: string;
+  varyColors?: boolean;
+  gapWidth?: number;
   title?: string;
   legendPosition?: string;
   categoryAxisTitle?: string;

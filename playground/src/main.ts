@@ -21,6 +21,7 @@ import {
   setWorksheetChartCategoryAxisPosition,
   setWorksheetChartCategoryAxisTitle,
   setWorksheetChartDataLabels,
+  setWorksheetChartGapWidth,
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartSeriesName,
@@ -29,6 +30,7 @@ import {
   setWorksheetChartType,
   setWorksheetChartValueAxisPosition,
   setWorksheetChartValueAxisTitle,
+  setWorksheetChartVaryColors,
   setWorksheetMediaTarget,
   setWorksheetPageMargins,
   setWorksheetPageSetup,
@@ -223,6 +225,8 @@ function renderEditorControls(): void {
       const topMargin = firstSheet?.pageMargins?.top ?? '';
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
+      const firstChartVaryColors = firstSheet?.charts[0]?.varyColors;
+      const firstChartGapWidth = firstSheet?.charts[0]?.gapWidth ?? '';
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       const firstChartTitle = firstSheet?.charts[0]?.title ?? '';
       const firstChartLegend = firstSheet?.charts[0]?.legendPosition ?? '';
@@ -280,6 +284,14 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart type</div>
           <input id="xlsx-chart-type-input" value="${escapeHtml(firstChartType)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Vary colors</div>
+          <input id="xlsx-chart-vary-colors-input" value="${escapeHtml(firstChartVaryColors === undefined ? '' : String(firstChartVaryColors))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Gap width</div>
+          <input id="xlsx-chart-gap-width-input" value="${escapeHtml(String(firstChartGapWidth))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart target</div>
@@ -345,6 +357,8 @@ function renderEditorControls(): void {
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
+      const chartVaryColorsInput = window.document.getElementById('xlsx-chart-vary-colors-input') as HTMLInputElement;
+      const chartGapWidthInput = window.document.getElementById('xlsx-chart-gap-width-input') as HTMLInputElement;
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const chartTitleInput = window.document.getElementById('xlsx-chart-title-input') as HTMLInputElement;
       const chartLegendInput = window.document.getElementById('xlsx-chart-legend-input') as HTMLInputElement;
@@ -447,6 +461,25 @@ function renderEditorControls(): void {
             0,
             chartTypeInput.value
           );
+        }
+        if (chartVaryColorsInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartVaryColors(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartVaryColorsInput.value === 'true'
+          );
+        }
+        if (chartGapWidthInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          const gapWidth = Number(chartGapWidthInput.value);
+          if (!Number.isNaN(gapWidth)) {
+            setWorksheetChartGapWidth(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              gapWidth
+            );
+          }
         }
         if (chartTargetInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartTarget(
@@ -566,6 +599,8 @@ function renderEditorControls(): void {
       topMarginInput.addEventListener('input', update);
       chartNameInput.addEventListener('input', update);
       chartTypeInput.addEventListener('input', update);
+      chartVaryColorsInput.addEventListener('input', update);
+      chartGapWidthInput.addEventListener('input', update);
       chartTargetInput.addEventListener('input', update);
       chartTitleInput.addEventListener('input', update);
       chartLegendInput.addEventListener('input', update);

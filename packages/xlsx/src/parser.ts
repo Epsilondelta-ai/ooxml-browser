@@ -354,6 +354,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
       : undefined;
     const chartTypeNode = chartType && chartRoot ? findElementsByLocalName(chartRoot, chartType)[0] : undefined;
+    const varyColorsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'varyColors')[0] : undefined;
+    const gapWidthNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'gapWidth')[0] : undefined;
     const dataLabelsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'dLbls')[0] : undefined;
     const dataLabelPositionNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'dLblPos')[0] : undefined;
     const showValueNode = dataLabelsNode ? findElementsByLocalName(dataLabelsNode, 'showVal')[0] : undefined;
@@ -371,6 +373,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
       chartType,
+      varyColors: xmlAttr(varyColorsNode, 'val') === '1' ? true : xmlAttr(varyColorsNode, 'val') === '0' ? false : undefined,
+      gapWidth: (() => { const value = xmlAttr(gapWidthNode, 'val'); return value ? Number(value) : undefined; })(),
       title: chartTitle || undefined,
       legendPosition: xmlAttr(legendNode, 'val') ?? undefined,
       categoryAxisTitle: categoryAxisTitleNode ? findElementsByLocalName(categoryAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,

@@ -18,6 +18,8 @@ describe('xlsx chart relationships', () => {
       targetUri: '/xl/charts/chart1.xml',
       name: 'Sales Chart',
       chartType: 'barChart',
+      varyColors: true,
+      gapWidth: 180,
       title: 'Primary Chart',
       legendPosition: 'r',
       categoryAxisTitle: 'Region',
@@ -33,6 +35,6 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] legend:r cat:Region catPos:b val:Revenue valPos:l dLblPos:outEnd showVal:true showCat:false {North, South} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] varyColors:true gapWidth:180 legend:r cat:Region catPos:b val:Revenue valPos:l dLblPos:outEnd showVal:true showCat:false {North, South} (/xl/charts/chart1.xml)');
   });
 });

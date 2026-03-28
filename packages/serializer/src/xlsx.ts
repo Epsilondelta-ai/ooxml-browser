@@ -141,6 +141,8 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
     const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
     if (
       chart.chartType !== originalChart?.chartType
+      || chart.varyColors !== originalChart?.varyColors
+      || chart.gapWidth !== originalChart?.gapWidth
       || chart.title !== originalChart?.title
       || chart.legendPosition !== originalChart?.legendPosition
       || chart.categoryAxisTitle !== originalChart?.categoryAxisTitle
@@ -492,6 +494,22 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newText: chart.title
         });
       }
+      if (chart.varyColors !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:varyColors',
+          targetAttr: 'val',
+          newValue: chart.varyColors ? '1' : '0'
+        });
+      }
+      if (chart.gapWidth !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:gapWidth',
+          targetAttr: 'val',
+          newValue: String(chart.gapWidth)
+        });
+      }
       if (chart.legendPosition !== undefined) {
         operations.push({
           op: 'replaceAttribute',
@@ -576,11 +594,13 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
 
   const chartType = chart.chartType ?? 'barChart';
   const seriesXml = chart.seriesNames.map((seriesName, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesName)}</a:t></c:rich></c:tx></c:ser>`).join('');
+  const varyColorsXml = chart.varyColors !== undefined ? `<c:varyColors val="${chart.varyColors ? '1' : '0'}"/>` : '';
+  const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
   const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}${dataLabelsXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {

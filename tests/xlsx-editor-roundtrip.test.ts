@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartGapWidth, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -370,6 +370,21 @@ describe('xlsx editor round-trips', () => {
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('dLblPos val="ctr"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showVal val="0"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showCatName val="1"');
+  });
+
+  it('persists worksheet chart vary-colors and gap-width edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
+    setWorksheetChartVaryColors(editor, 'Sheet1', 0, false);
+    setWorksheetChartGapWidth(editor, 'Sheet1', 0, 90);
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.varyColors).toBe(false);
+    expect(reopened.sheets[0]?.charts[0]?.gapWidth).toBe(90);
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('varyColors val="0"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('gapWidth val="90"');
   });
 
   it('retargets worksheet media relationships through save flows', async () => {

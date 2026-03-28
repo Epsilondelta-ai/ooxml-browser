@@ -575,6 +575,26 @@ export function setWorksheetChartDataLabels(editor: OfficeEditor<XlsxWorkbook>, 
   });
 }
 
+export function setWorksheetChartVaryColors(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, varyColors: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.varyColors = varyColors;
+    }
+  });
+}
+
+export function setWorksheetChartGapWidth(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, gapWidth: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.gapWidth = gapWidth;
+    }
+  });
+}
+
 export function setWorksheetMediaTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mediaIndex: number, targetUri: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
