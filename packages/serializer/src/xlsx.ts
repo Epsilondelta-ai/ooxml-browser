@@ -1,4 +1,4 @@
-import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart } from '@ooxml/core';
+import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, xmlAttr, getParsedXmlPart, upsertRelationship } from '@ooxml/core';
 import { parseXlsx, type WorkbookSheet, type WorksheetCell, type XlsxComment, type XlsxDefinedName, type XlsxTable, type XlsxWorkbook } from '@ooxml/xlsx';
 
 export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
@@ -43,11 +43,15 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
     }
 
     const commentsRelationship = relationshipsFor(graph, sheet.uri).find((relationship) => relationship.type.includes('/comments'));
-    if (commentsRelationship?.resolvedTarget) {
+    if (sheet.comments.length > 0) {
+      const commentsUri = commentsRelationship?.resolvedTarget ?? ensureWorksheetCommentsPart(graph, sheet.uri);
+      if (!commentsUri) {
+        continue;
+      }
       updatePackagePartText(
         graph,
-        commentsRelationship.resolvedTarget,
-        buildCommentsXml(sheet.comments, graph.parts[commentsRelationship.resolvedTarget]?.text),
+        commentsUri,
+        buildCommentsXml(sheet.comments, graph.parts[commentsUri]?.text),
         'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
       );
     }
@@ -279,6 +283,64 @@ function buildCommentsXml(comments: XlsxComment[], existingSource?: string): str
   const commentsXml = comments.map((comment) => `<comment ref="${escapeXml(comment.reference)}"${comment.author ? ` authorId="${authorIndex.get(comment.author) ?? 0}"` : ''}><text><r><t>${escapeXml(comment.text)}</t></r></text></comment>`).join('');
   const authorsXml = authors.length ? `<authors>${authors.map((author) => `<author>${escapeXml(author)}</author>`).join('')}</authors>` : '';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${authorsXml}<commentList>${commentsXml}</commentList></comments>`;
+}
+
+function ensureWorksheetCommentsPart(graph: XlsxWorkbook['packageGraph'], sheetUri: string): string | undefined {
+  const sheetRelationships = relationshipsFor(graph, sheetUri);
+  const existingComments = sheetRelationships.find((relationship) => relationship.type.includes('/comments'));
+  if (existingComments?.resolvedTarget) {
+    return existingComments.resolvedTarget;
+  }
+
+  const commentsUri = nextCommentsUri(graph.parts);
+  const relationshipId = nextRelationshipId(sheetRelationships);
+  updatePackagePartText(
+    graph,
+    commentsUri,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><commentList></commentList></comments>`,
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
+  );
+  upsertRelationship(graph, sheetUri, {
+    id: relationshipId,
+    type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments',
+    target: relativeRelationshipTarget(sheetUri, commentsUri),
+    targetMode: 'Internal'
+  });
+  return commentsUri;
+}
+
+function nextCommentsUri(parts: XlsxWorkbook['packageGraph']['parts']): string {
+  let candidateIndex = 1;
+  let candidate = `/xl/comments${candidateIndex}.xml`;
+  while (parts[candidate]) {
+    candidateIndex += 1;
+    candidate = `/xl/comments${candidateIndex}.xml`;
+  }
+  return candidate;
+}
+
+function nextRelationshipId(relationships: ReturnType<typeof relationshipsFor>): string {
+  let candidateIndex = relationships.length + 1;
+  let candidate = `rId${candidateIndex}`;
+  const existingIds = new Set(relationships.map((relationship) => relationship.id));
+  while (existingIds.has(candidate)) {
+    candidateIndex += 1;
+    candidate = `rId${candidateIndex}`;
+  }
+  return candidate;
+}
+
+function relativeRelationshipTarget(sourceUri: string, targetUri: string): string {
+  const sourceSegments = sourceUri.replace(/^\//, '').split('/');
+  sourceSegments.pop();
+  const targetSegments = targetUri.replace(/^\//, '').split('/');
+
+  while (sourceSegments.length > 0 && targetSegments.length > 0 && sourceSegments[0] === targetSegments[0]) {
+    sourceSegments.shift();
+    targetSegments.shift();
+  }
+
+  return `${sourceSegments.map(() => '..').join('/')}${sourceSegments.length ? '/' : ''}${targetSegments.join('/')}`;
 }
 
 function parseCommentAuthors(existingSource?: string): string[] {

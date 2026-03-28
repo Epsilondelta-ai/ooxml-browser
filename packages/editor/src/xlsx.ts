@@ -159,6 +159,26 @@ export function setWorksheetCommentAuthor(editor: OfficeEditor<XlsxWorkbook>, sh
   });
 }
 
+export function upsertWorksheetComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string, author?: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    const existing = sheet.comments.find((entry) => entry.reference === reference);
+    if (existing) {
+      existing.text = text;
+      if (author !== undefined) {
+        existing.author = author;
+      }
+      return;
+    }
+
+    sheet.comments.push({ reference, text, author });
+  });
+}
+
 export function setWorksheetTableRange(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, tableName: string, range: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
