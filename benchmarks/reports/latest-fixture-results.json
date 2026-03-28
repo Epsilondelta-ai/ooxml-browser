@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T07:10:58.287Z",
+  "generatedAt": "2026-03-28T07:12:49.767Z",
   "results": [
     {
       "id": "docx-basic",
@@ -10,13 +10,12 @@
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/word/comments.xml",
-        "/word/document.xml"
+        "/word/comments.xml"
       ],
       "addedParts": [],
       "removedParts": [],
-      "changedPartCount": 2,
-      "preservedPartCount": 2,
+      "changedPartCount": 1,
+      "preservedPartCount": 3,
       "totalOriginalPartCount": 4,
       "officeStatus": "seed-fixture-attestation-pending",
       "libreOfficeStatus": "seed-fixture-attestation-pending"

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
+import { createOfficeEditor, setDocxCommentText } from '@ooxml/editor';
 import { parseDocx, resolveDocxNumbering, resolveDocxStyle } from '@ooxml/docx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -56,6 +57,19 @@ describe('docx patch preservation', () => {
 
     expect(reopenedGraph.parts['/word/document.xml']?.text).toContain('customAttr="keep"');
     expect(reopenedGraph.parts['/word/document.xml']?.text).toContain('Patched text');
+  });
+
+  it('leaves document.xml untouched for comment-only edits', async () => {
+    const originalBytes = createDocxFixture();
+    const originalGraph = await openPackage(originalBytes);
+    const editor = createOfficeEditor(parseDocx(originalGraph));
+    setDocxCommentText(editor, '0', 'Updated comment');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopenedGraph.parts['/word/document.xml']?.text).toBe(originalGraph.parts['/word/document.xml']?.text);
+    expect(reopenedGraph.parts['/word/comments.xml']?.text).toContain('Updated comment');
   });
 
   it('leaves styles.xml untouched for simple styled paragraph edits', async () => {

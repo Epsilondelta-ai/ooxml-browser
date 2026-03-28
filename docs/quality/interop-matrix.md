@@ -6,7 +6,7 @@ Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-r
 
 | Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| docx-basic | paragraphs, comments, table | comment-text-edit | true | true | true | 2/4 | /word/comments.xml, /word/document.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
+| docx-basic | paragraphs, comments, table | comment-text-edit | true | true | true | 3/4 | /word/comments.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
 | docx-numbered | numbering, list-rendering | paragraph-text-edit | true | true | true | 3/4 | /word/document.xml | stage-2-attestation-pending | stage-2-attestation-pending |
 | docx-revisions | tracked-changes, revisions | paragraph-text-edit | true | true | true | 1/2 | /word/document.xml | stage-2-attestation-pending | stage-2-attestation-pending |
 | docx-sectioned | sections, headers, footers | paragraph-text-edit | true | true | true | 4/5 | /word/document.xml | stage-2-attestation-pending | stage-2-attestation-pending |

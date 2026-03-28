@@ -5,6 +5,8 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   const graph = clonePackageGraph(document.packageGraph);
   const originalDocument = parseDocx(document.packageGraph);
 
+  const originalStoriesByUri = new Map(originalDocument.stories.map((story) => [story.uri, story]));
+
   for (const story of document.stories) {
     const contentType = story.kind === 'header'
       ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml'
@@ -15,7 +17,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
     updatePackagePartText(
       graph,
       story.uri,
-      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks, graph.parts[story.uri]?.text),
+      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks, graph.parts[story.uri]?.text, originalStoriesByUri.get(story.uri)),
       contentType
     );
   }
@@ -54,18 +56,27 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   return serializePackageGraph(graph);
 }
 
-function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string): string {
-  if (existingSource && canPatchDocxStory(kind, blocks)) {
-    let next = existingSource;
+function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string, originalStory?: DocxDocument['stories'][number]): string {
+  if (existingSource && originalStory && canPatchDocxStory(kind, originalStory.blocks, blocks)) {
+    const operations = [];
     let paragraphOccurrence = 0;
+    let originalParagraphIndex = 0;
+
     for (const block of blocks) {
       if (block.kind !== 'paragraph') {
         continue;
       }
-      next = applyXmlPatchPlan(next, [{ op: 'replaceText', containerTag: 'w:p', occurrence: paragraphOccurrence, textTag: 'w:t', newText: block.paragraph.text }]);
+
+      const originalBlock = originalStory.blocks.filter((candidate) => candidate.kind === 'paragraph')[originalParagraphIndex];
+      if (originalBlock?.kind === 'paragraph' && originalBlock.paragraph.text !== block.paragraph.text) {
+        operations.push({ op: 'replaceText' as const, containerTag: 'w:p', occurrence: paragraphOccurrence, textTag: 'w:t', newText: block.paragraph.text });
+      }
+
       paragraphOccurrence += 1;
+      originalParagraphIndex += 1;
     }
-    return next;
+
+    return operations.length > 0 ? applyXmlPatchPlan(existingSource, operations) : existingSource;
   }
 
   const paragraphXmlFor = (paragraph: DocxParagraph) => {
@@ -134,6 +145,28 @@ function patchDocxCommentsXml(source: string, comments: DocxComment[]): string {
 }
 
 
-function canPatchDocxStory(kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks']): boolean {
-  return blocks.every((block) => block.kind === 'paragraph' || block.kind === 'table');
+function canPatchDocxStory(kind: 'document' | 'header' | 'footer', originalBlocks: DocxDocument['stories'][number]['blocks'], blocks: DocxDocument['stories'][number]['blocks']): boolean {
+  if (kind !== 'document' && kind !== 'header' && kind !== 'footer') {
+    return false;
+  }
+
+  if (originalBlocks.length !== blocks.length) {
+    return false;
+  }
+
+  return blocks.every((block, index) => {
+    const originalBlock = originalBlocks[index];
+    if (!originalBlock || block.kind !== originalBlock.kind) {
+      return false;
+    }
+
+    if (block.kind !== 'paragraph' || originalBlock.kind !== 'paragraph') {
+      return block.kind === 'table' && originalBlock.kind === 'table';
+    }
+
+    return block.paragraph.runs.length === 1
+      && originalBlock.paragraph.runs.length === 1
+      && block.paragraph.revisions.length === 0
+      && originalBlock.paragraph.revisions.length === 0;
+  });
 }
