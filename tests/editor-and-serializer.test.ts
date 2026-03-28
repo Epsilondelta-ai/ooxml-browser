@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphStyle, setDocxSectionLayout, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
@@ -67,6 +67,14 @@ describe('editor transactions', () => {
     expect(numberedEditor.document.stories[0]?.paragraphs[0]?.numbering).toEqual({ numId: '7', level: 1 });
   });
 
+
+  it('updates docx run formatting through editor helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createStyledDocxFixture())));
+    setDocxParagraphRunStyle(editor, 'document', 0, 0, 0, { bold: true, italic: false });
+
+    expect(editor.document.stories[0]?.paragraphs[0]?.runs[0]).toMatchObject({ text: 'Styled heading', bold: true, italic: false });
+  });
+
   it('updates docx table cells through story-aware helpers', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createDocxFixture())));
     setDocxTableCellText(editor, 'document', 0, 0, 0, 1, 'Edited cell');
@@ -115,6 +123,15 @@ describe('serializer round-trips', () => {
     setDocxParagraphNumbering(numberedEditor, 'document', 0, 0, { numId: '7', level: 1 });
     const reopenedNumbered = parseDocx(await openPackage(serializeOfficeDocument(numberedEditor.document)));
     expect(reopenedNumbered.stories[0]?.paragraphs[0]?.numbering).toEqual({ numId: '7', level: 1 });
+  });
+
+
+  it('round-trips edited docx run formatting metadata', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createStyledDocxFixture())));
+    setDocxParagraphRunStyle(editor, 'document', 0, 0, 0, { bold: true, italic: false });
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.stories[0]?.paragraphs[0]?.runs[0]).toMatchObject({ text: 'Styled heading', bold: true, italic: false });
   });
 
   it('round-trips edited docx table cell content', async () => {

@@ -66,6 +66,25 @@ export function setDocxParagraphNumbering(
   });
 }
 
+export function setDocxParagraphRunStyle(
+  editor: OfficeEditor<DocxDocument>,
+  storyKind: 'document' | 'header' | 'footer',
+  storyOccurrence: number,
+  paragraphIndex: number,
+  runIndex: number,
+  style: { bold?: boolean; italic?: boolean }
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
+    const paragraph = story?.paragraphs[paragraphIndex];
+    const run = paragraph?.runs[runIndex];
+    if (run) {
+      run.bold = style.bold ?? run.bold;
+      run.italic = style.italic ?? run.italic;
+    }
+  });
+}
+
 export function setDocxTableCellText(
   editor: OfficeEditor<DocxDocument>,
   storyKind: 'document' | 'header' | 'footer',
