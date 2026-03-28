@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createCommentedXlsxFixture, createStructuredXlsxFixture } from './fixture-builders';
+import { createCommentedXlsxFixture, createStructuredXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -37,6 +37,19 @@ describe('xlsx editor round-trips', () => {
     expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('customWorkbookAttr="keep"');
   });
 
+
+
+  it('creates workbook defined names on demand', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createXlsxFixture())));
+    upsertWorkbookDefinedName(editor, 'SalesRange', 'Sheet1!$A$1:$C$5');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.definedNames).toEqual([{ name: 'SalesRange', reference: 'Sheet1!$A$1:$C$5', scopeSheetId: undefined }]);
+    expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('<definedName name="SalesRange">Sheet1!$A$1:$C$5</definedName>');
+  });
 
   it('persists renamed worksheets and updates dependent formula/defined-name references', async () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
