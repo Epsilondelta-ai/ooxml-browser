@@ -29,6 +29,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Cell style index | `setWorkbookCellStyle` | Persisted | Worksheet patch path updates cell `s` attributes. |
 | Row insert | `insertWorkbookRow` | Persisted | Rewrites formulas, defined names, ranges, panes, comments, and tables. |
 | Defined name reference | `setWorkbookDefinedNameReference` | Persisted | Workbook patch path preserves workbook root attributes. |
+| Defined name create/update | `upsertWorkbookDefinedName` | Persisted | Creates workbook defined names when missing and reuses the existing workbook serializer path. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
