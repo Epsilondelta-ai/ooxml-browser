@@ -96,17 +96,21 @@ describe('editor transactions', () => {
   it('updates docx revision metadata through editor helpers', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createRevisionsDocxFixture())));
     setDocxRevisionMetadata(editor, 'document', 0, 0, 0, {
+      id: '99',
       author: 'Reviewer',
       date: '2026-03-29T00:00:00Z',
-      text: 'Inserted revision'
+      text: 'Inserted revision',
+      kind: 'deletion'
     });
 
     expect(editor.document.stories[0]?.paragraphs[0]?.revisions[0]).toMatchObject({
-      kind: 'insertion',
+      id: '99',
+      kind: 'deletion',
       author: 'Reviewer',
       date: '2026-03-29T00:00:00Z',
       text: 'Inserted revision'
     });
+    expect(editor.document.stories[0]?.paragraphs[0]?.text).toBe('Stable text');
   });
 
   it('updates docx table cells through story-aware helpers', async () => {
@@ -191,18 +195,22 @@ describe('serializer round-trips', () => {
   it('round-trips edited docx revision metadata', async () => {
     const editor = createOfficeEditor(parseDocx(await openPackage(createRevisionsDocxFixture())));
     setDocxRevisionMetadata(editor, 'document', 0, 0, 0, {
+      id: '99',
       author: 'Reviewer',
       date: '2026-03-29T00:00:00Z',
-      text: 'Inserted revision'
+      text: 'Inserted revision',
+      kind: 'deletion'
     });
 
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.stories[0]?.paragraphs[0]?.revisions[0]).toMatchObject({
-      kind: 'insertion',
+      id: '99',
+      kind: 'deletion',
       author: 'Reviewer',
       date: '2026-03-29T00:00:00Z',
       text: 'Inserted revision'
     });
+    expect(reopened.stories[0]?.paragraphs[0]?.text).toBe('Stable text');
   });
 
   it('round-trips edited docx table cell content', async () => {

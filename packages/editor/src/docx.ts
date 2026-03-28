@@ -91,7 +91,7 @@ export function setDocxRevisionMetadata(
   storyOccurrence: number,
   paragraphIndex: number,
   revisionIndex: number,
-  patch: { author?: string; date?: string; text?: string }
+  patch: { id?: string; kind?: 'insertion' | 'deletion'; author?: string; date?: string; text?: string }
 ): DocxDocument {
   return editor.transaction((draft) => {
     const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
@@ -107,16 +107,20 @@ export function setDocxRevisionMetadata(
     if (patch.date !== undefined) {
       revision.date = patch.date;
     }
+    if (patch.id !== undefined) {
+      revision.id = patch.id;
+    }
+    if (patch.kind !== undefined) {
+      revision.kind = patch.kind;
+    }
     if (patch.text !== undefined) {
       revision.text = patch.text;
     }
 
-    if (revision.kind === 'insertion') {
-      paragraph.text = [
-        ...paragraph.runs.map((run) => run.text),
-        ...paragraph.revisions.filter((entry) => entry.kind === 'insertion').map((entry) => entry.text)
-      ].join('');
-    }
+    paragraph.text = [
+      ...paragraph.runs.map((run) => run.text),
+      ...paragraph.revisions.filter((entry) => entry.kind === 'insertion').map((entry) => entry.text)
+    ].join('');
   });
 }
 
