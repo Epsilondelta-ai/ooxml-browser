@@ -27,7 +27,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
     updatePackagePartText(
       graph,
       sheet.uri,
-      buildWorksheetXml(sheet, sharedStringPool.indexByValue, hasSharedStringsPart),
+      buildWorksheetXml(sheet, sharedStringPool.indexByValue, hasSharedStringsPart, graph.parts[sheet.uri]?.text),
       'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
     );
 
@@ -94,7 +94,31 @@ function buildSharedStringsXml(values: string[]): string {
 <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${values.length}" uniqueCount="${values.length}">${items}</sst>`;
 }
 
-function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean): string {
+function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean, existingSource?: string): string {
+
+  if (existingSource && canPatchWorksheet(sheet)) {
+    let next = existingSource;
+    for (const row of sheet.rows) {
+      for (const cell of row.cells) {
+        if (cell.formula) {
+          next = replaceInnerTextByAttribute(next, { containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 'f', newText: cell.formula });
+        }
+
+        if (shouldUseSharedString(cell) && !useSharedStrings) {
+          next = replaceInnerTextByAttribute(next, { containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 't', newText: cell.value });
+        } else {
+          next = replaceInnerTextByAttribute(next, { containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 'v', newText: cell.value });
+        }
+      }
+    }
+
+    if (sheet.frozenPane?.topLeftCell) {
+      next = replaceAttributeValue(next, { tagName: 'pane', targetAttr: 'topLeftCell', newValue: sheet.frozenPane.topLeftCell });
+    }
+
+    return next;
+  }
+
   const paneXml = sheet.frozenPane
     ? `<sheetViews><sheetView workbookViewId="0"><pane${sheet.frozenPane.xSplit !== undefined ? ` xSplit="${sheet.frozenPane.xSplit}"` : ''}${sheet.frozenPane.ySplit !== undefined ? ` ySplit="${sheet.frozenPane.ySplit}"` : ''}${sheet.frozenPane.topLeftCell ? ` topLeftCell="${escapeXml(sheet.frozenPane.topLeftCell)}"` : ''}${sheet.frozenPane.state ? ` state="${escapeXml(sheet.frozenPane.state)}"` : ''}/></sheetView></sheetViews>`
     : '';
@@ -177,4 +201,9 @@ function escapeXml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
+}
+
+
+function canPatchWorksheet(sheet: WorkbookSheet): boolean {
+  return sheet.rows.every((row) => row.cells.length > 0);
 }
