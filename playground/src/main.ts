@@ -18,6 +18,7 @@ import {
   setWorkbookCellValue,
   setWorkbookSheetName,
   setWorksheetPrintArea,
+  setWorksheetPrintTitles,
   setWorksheetSelection,
   upsertWorksheetComment,
   type EditableOfficeDocument,
@@ -197,6 +198,7 @@ function renderEditorControls(): void {
       const firstFormulaCell = firstSheet?.rows.flatMap((row) => row.cells).find((cell) => cell.formula);
       const commentB2 = firstSheet?.comments.find((comment) => comment.reference === 'B2');
       const printArea = officeDocument.definedNames.find((entry) => entry.name === '_xlnm.Print_Area' && entry.scopeSheetId === 0)?.reference.split('!')[1] ?? '';
+      const printTitles = officeDocument.definedNames.find((entry) => entry.name === '_xlnm.Print_Titles' && entry.scopeSheetId === 0)?.reference ?? '';
       const selection = firstSheet?.selection;
       editorControls.innerHTML = `
         <label>
@@ -220,6 +222,10 @@ function renderEditorControls(): void {
           <input id="xlsx-print-area-input" value="${escapeHtml(printArea)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Print titles</div>
+          <input id="xlsx-print-titles-input" value="${escapeHtml(printTitles)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Selection sqref</div>
           <input id="xlsx-selection-input" value="${escapeHtml(selection?.sqref ?? selection?.activeCell ?? '')}" style="width: 100%; padding: 8px;" />
         </label>
@@ -233,6 +239,7 @@ function renderEditorControls(): void {
       const sheetInput = window.document.getElementById('xlsx-sheet-input') as HTMLInputElement;
       const formulaInput = firstFormulaCell ? window.document.getElementById('xlsx-formula-input') as HTMLInputElement : null;
       const printAreaInput = window.document.getElementById('xlsx-print-area-input') as HTMLInputElement;
+      const printTitlesInput = window.document.getElementById('xlsx-print-titles-input') as HTMLInputElement;
       const selectionInput = window.document.getElementById('xlsx-selection-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const update = () => {
@@ -268,6 +275,17 @@ function renderEditorControls(): void {
             printAreaInput.value
           );
         }
+        if (printTitlesInput.value) {
+          const [rows, columns] = printTitlesInput.value
+            .split(',')
+            .map((segment) => segment.split('!')[1]?.trim())
+            .filter((value): value is string => Boolean(value));
+          setWorksheetPrintTitles(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            { rows, columns }
+          );
+        }
         if (selectionInput.value) {
           setWorksheetSelection(
             workbookEditor,
@@ -291,6 +309,7 @@ function renderEditorControls(): void {
       sheetInput.addEventListener('input', update);
       formulaInput?.addEventListener('input', update);
       printAreaInput.addEventListener('input', update);
+      printTitlesInput.addEventListener('input', update);
       selectionInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       break;

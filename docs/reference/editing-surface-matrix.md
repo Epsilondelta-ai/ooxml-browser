@@ -34,6 +34,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Defined name scope | `setWorkbookDefinedNameScope` | Persisted | Rebuild path preserves workbook root attributes when scope metadata changes. |
 | Defined name delete | `removeWorkbookDefinedName` | Persisted | Removes named ranges cleanly while preserving workbook-root metadata. |
 | Print area | `setWorksheetPrintArea` | Persisted | Uses the conventional `_xlnm.Print_Area` defined-name representation scoped to the sheet. |
+| Print titles | `setWorksheetPrintTitles` | Persisted | Uses the conventional `_xlnm.Print_Titles` defined-name representation scoped to the sheet. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
