@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T07:02:02.584Z",
+  "generatedAt": "2026-03-28T07:06:26.336Z",
   "results": [
     {
       "id": "docx-basic",
@@ -103,12 +103,12 @@
       "id": "pptx-basic",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/basic.pptx",
-      "mutation": "shape-text-edit",
+      "mutation": "notes-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/ppt/slides/slide1.xml"
+        "/ppt/notesSlides/notesSlide1.xml"
       ],
       "addedParts": [],
       "removedParts": [],
@@ -122,12 +122,12 @@
       "id": "pptx-inherited",
       "format": "pptx",
       "fixturePath": "fixtures/pptx/representative/inherited.pptx",
-      "mutation": "shape-text-edit",
+      "mutation": "notes-text-edit",
       "parserOpen": true,
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/ppt/slides/slide1.xml"
+        "/ppt/notesSlides/notesSlide1.xml"
       ],
       "addedParts": [],
       "removedParts": [],
@@ -146,13 +146,12 @@
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/ppt/comments/comment1.xml",
-        "/ppt/slides/slide1.xml"
+        "/ppt/comments/comment1.xml"
       ],
       "addedParts": [],
       "removedParts": [],
-      "changedPartCount": 2,
-      "preservedPartCount": 5,
+      "changedPartCount": 1,
+      "preservedPartCount": 6,
       "totalOriginalPartCount": 7,
       "officeStatus": "stage-4-attestation-pending",
       "libreOfficeStatus": "stage-4-attestation-pending"

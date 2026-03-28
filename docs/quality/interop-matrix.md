@@ -16,9 +16,9 @@ Generated from `fixtures/manifests/**` plus `benchmarks/reports/latest-fixture-r
 
 | Fixture | Tags | Mutation | Parser open | Parser round-trip | Edited round-trip | Part preservation | Changed parts | Office | LibreOffice |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| pptx-basic | slide, notes, text-shape | shape-text-edit | true | true | true | 5/6 | /ppt/slides/slide1.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
-| pptx-inherited | slide-layout, slide-master, theme, placeholder | shape-text-edit | true | true | true | 10/11 | /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
-| pptx-media-comments | image, comments | comment-text-edit | true | true | true | 5/7 | /ppt/comments/comment1.xml, /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
+| pptx-basic | slide, notes, text-shape | notes-text-edit | true | true | true | 5/6 | /ppt/notesSlides/notesSlide1.xml | seed-fixture-attestation-pending | seed-fixture-attestation-pending |
+| pptx-inherited | slide-layout, slide-master, theme, placeholder | notes-text-edit | true | true | true | 10/11 | /ppt/notesSlides/notesSlide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
+| pptx-media-comments | image, comments | comment-text-edit | true | true | true | 6/7 | /ppt/comments/comment1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
 | pptx-timed | transition, timing | shape-text-edit | true | true | true | 3/4 | /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
 | pptx-transformed | shape-transform, image-transform | shape-text-edit | true | true | true | 5/6 | /ppt/slides/slide1.xml | stage-4-attestation-pending | stage-4-attestation-pending |
 

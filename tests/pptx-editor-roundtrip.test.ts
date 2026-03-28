@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentText, setPresentationShapeText, setPresentationShapeTransform } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createMediaPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createMediaPptxFixture, createPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx editor round-trips', () => {
   it('persists edited slide comment text', async () => {
@@ -18,6 +18,21 @@ describe('pptx editor round-trips', () => {
     expect(reopened.slides[0]?.comments[0]?.text).toBe('Updated review');
     expect(reopened.slides[0]?.comments[0]?.author).toBe('Codex');
     expect(reopenedGraph.parts['/ppt/comments/comment1.xml']?.text).toContain('authorId="Codex"');
+  });
+
+  it('patches simple slide and notes text edits without dropping root attributes', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture())));
+    setPresentationShapeText(editor, 0, 0, 'Updated slide');
+    setPresentationNotesText(editor, 0, 'Updated note');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.slides[0]?.shapes[0]?.text).toBe('Updated slide');
+    expect(reopened.slides[0]?.notesText).toBe('Updated note');
+    expect(reopenedGraph.parts['/ppt/slides/slide1.xml']?.text).toContain('customAttr="keep"');
+    expect(reopenedGraph.parts['/ppt/notesSlides/notesSlide1.xml']?.text).toContain('customNoteAttr="keep"');
   });
 
   it('persists edited shape text and transform metadata', async () => {

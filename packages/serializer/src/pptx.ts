@@ -1,23 +1,33 @@
 import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
-import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTimingNode, SlideShape } from '@ooxml/pptx';
+import { parsePptx, type PresentationComment, type PresentationDocument, type PresentationSlide, type PresentationTimingNode, type SlideShape } from '@ooxml/pptx';
 
 export function serializePptx(presentation: PresentationDocument): Uint8Array {
   const graph = clonePackageGraph(presentation.packageGraph);
+  const originalPresentation = parsePptx(presentation.packageGraph);
+  const originalSlidesByUri = new Map(originalPresentation.slides.map((slide) => [slide.uri, slide]));
 
   for (const slide of presentation.slides) {
+    const originalSlide = originalSlidesByUri.get(slide.uri);
+    const existingSlideSource = graph.parts[slide.uri]?.text;
+    const nextSlideSource =
+      originalSlide && existingSlideSource
+        ? patchSlideXml(existingSlideSource, originalSlide, slide) ?? buildSlideXml(slide, relationshipsFor(graph, slide.uri))
+        : buildSlideXml(slide, relationshipsFor(graph, slide.uri));
+
     updatePackagePartText(
       graph,
       slide.uri,
-      buildSlideXml(slide, relationshipsFor(graph, slide.uri)),
+      nextSlideSource,
       'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
     );
 
     const notesUri = slide.notesUri;
     if (notesUri && graph.parts[notesUri]) {
+      const existingNotesSource = graph.parts[notesUri]?.text;
       updatePackagePartText(
         graph,
         notesUri,
-        buildNotesXml(slide.notesText),
+        existingNotesSource ? patchNotesXml(existingNotesSource, slide.notesText) : buildNotesXml(slide.notesText),
         'application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml'
       );
     }
@@ -34,6 +44,61 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function patchSlideXml(existingSource: string, originalSlide: PresentationSlide, slide: PresentationSlide): string | undefined {
+  if (!canPatchSlideTextOnly(originalSlide, slide)) {
+    return undefined;
+  }
+
+  const currentTextShapes = slide.shapes.filter((shape) => shape.media?.type !== 'image');
+  const originalTextShapes = originalSlide.shapes.filter((shape) => shape.media?.type !== 'image');
+  if (currentTextShapes.length !== originalTextShapes.length) {
+    return undefined;
+  }
+
+  const operations = currentTextShapes.flatMap((shape, index) => {
+    if (shape.text === originalTextShapes[index]?.text) {
+      return [];
+    }
+
+    return [{
+      op: 'replaceText' as const,
+      containerTag: 'p:sp',
+      occurrence: index,
+      textTag: 'a:t',
+      newText: shape.text
+    }];
+  });
+
+  return operations.length > 0 ? applyXmlPatchPlan(existingSource, operations) : existingSource;
+}
+
+function canPatchSlideTextOnly(originalSlide: PresentationSlide, slide: PresentationSlide): boolean {
+  if (slide.shapes.length !== originalSlide.shapes.length) {
+    return false;
+  }
+
+  if (JSON.stringify(slide.transition ?? null) !== JSON.stringify(originalSlide.transition ?? null)) {
+    return false;
+  }
+
+  if (JSON.stringify(slide.timing ?? null) !== JSON.stringify(originalSlide.timing ?? null)) {
+    return false;
+  }
+
+  return slide.shapes.every((shape, index) => {
+    const originalShape = originalSlide.shapes[index];
+    if (!originalShape) {
+      return false;
+    }
+
+    return shape.id === originalShape.id
+      && shape.name === originalShape.name
+      && shape.placeholderType === originalShape.placeholderType
+      && JSON.stringify(shape.media ?? null) === JSON.stringify(originalShape.media ?? null)
+      && JSON.stringify(shape.transform ?? null) === JSON.stringify(originalShape.transform ?? null);
+  });
 }
 
 function buildSlideXml(slide: PresentationSlide, slideRelationships: ReturnType<typeof relationshipsFor>): string {
@@ -94,6 +159,16 @@ function buildCommentsXml(comments: PresentationComment[], existingSource?: stri
   const body = comments.map((comment) => `<p:cm${comment.author ? ` authorId="${escapeXml(comment.author)}"` : ''}><p:text>${escapeXml(comment.text)}</p:text></p:cm>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <p:cmLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">${body}</p:cmLst>`;
+}
+
+function patchNotesXml(existingSource: string, notesText: string): string {
+  return applyXmlPatchPlan(existingSource, [{
+    op: 'replaceText',
+    containerTag: 'p:sp',
+    occurrence: 0,
+    textTag: 'a:t',
+    newText: notesText
+  }]);
 }
 
 function buildNotesXml(notesText: string): string {

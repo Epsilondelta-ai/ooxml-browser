@@ -8,6 +8,7 @@ import {
   replaceDocxParagraphText,
   setDocxCommentText,
   setPresentationCommentText,
+  setPresentationNotesText,
   setPresentationShapeText,
   setWorkbookCellValue,
   setWorksheetCommentText
@@ -111,6 +112,11 @@ function mutateDocument(format, document) {
     if (slide?.comments[0]) {
       setPresentationCommentText(editor, 0, 0, 'Mutated comment');
       return { document: editor.document, mutation: 'comment-text-edit' };
+    }
+
+    if (slide?.notesUri) {
+      setPresentationNotesText(editor, 0, 'Mutated note');
+      return { document: editor.document, mutation: 'notes-text-edit' };
     }
 
     setPresentationShapeText(editor, 0, 0, 'Mutated slide');
