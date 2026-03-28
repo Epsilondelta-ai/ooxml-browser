@@ -736,6 +736,16 @@ export function setWorksheetChartValueAxisCrossesAt(editor: OfficeEditor<XlsxWor
   });
 }
 
+export function setWorksheetChartValueAxisCrossBetween(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, crossBetween: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisCrossBetween = crossBetween;
+    }
+  });
+}
+
 export function setWorksheetChartValueAxisMinimum(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, minimum: number | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

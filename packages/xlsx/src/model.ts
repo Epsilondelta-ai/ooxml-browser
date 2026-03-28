@@ -115,6 +115,7 @@ export interface XlsxChart {
   valueAxisPosition?: string;
   valueAxisCrosses?: string;
   valueAxisCrossesAt?: number;
+  valueAxisCrossBetween?: string;
   valueAxisMinimum?: number;
   valueAxisMaximum?: number;
   valueAxisMajorUnit?: number;
