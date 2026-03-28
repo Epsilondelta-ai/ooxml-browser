@@ -41,7 +41,7 @@ describe('pptx serializer persistence', () => {
     const slide = reopened.slides[0];
 
     expect(slide?.transition).toEqual({ type: 'fade', speed: 'fast', advanceOnClick: true, advanceAfterMs: 7000 });
-    expect(slide?.timing?.nodeCount).toBe(5);
-    expect(slide?.timing?.nodes.map((node) => node.nodeType)).toEqual(['par', 'seq', 'animClr', 'set', 'cmd']);
+    expect(slide?.timing?.nodeCount).toBe(6);
+    expect(slide?.timing?.nodes.map((node) => node.nodeType)).toEqual(['par', 'seq', 'animClr', 'animMotion', 'set', 'cmd']);
   });
 });
