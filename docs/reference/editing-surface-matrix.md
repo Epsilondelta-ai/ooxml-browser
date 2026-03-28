@@ -32,6 +32,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Defined name reference | `setWorkbookDefinedNameReference` | Persisted | Workbook patch path preserves workbook root attributes. |
 | Defined name create/update | `upsertWorkbookDefinedName` | Persisted | Creates workbook defined names when missing and reuses the existing workbook serializer path. |
 | Defined name scope | `setWorkbookDefinedNameScope` | Persisted | Rebuild path preserves workbook root attributes when scope metadata changes. |
+| Defined name delete | `removeWorkbookDefinedName` | Persisted | Removes named ranges cleanly while preserving workbook-root metadata. |
 | Worksheet rename | `setWorkbookSheetName` | Persisted | Also rewrites defined-name and in-sheet formula references. |
 | Comment text | `setWorksheetCommentText` | Persisted | Uses comment-part patch path when author pool is unchanged. |
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |

@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T08:45:38.870Z",
+  "generatedAt": "2026-03-28T08:48:04.115Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.197,
-      "parseMs": 0.424,
-      "renderMs": 0.149,
-      "serializeMs": 6.053,
+      "openMs": 4.48,
+      "parseMs": 0.443,
+      "renderMs": 0.156,
+      "serializeMs": 6.008,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.108,
-      "parseMs": 0.479,
-      "renderMs": 0.09,
-      "serializeMs": 0.65,
+      "openMs": 10.333,
+      "parseMs": 0.475,
+      "renderMs": 0.086,
+      "serializeMs": 0.646,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 10.675,
-      "parseMs": 0.428,
+      "openMs": 10.834,
+      "parseMs": 0.411,
       "renderMs": 0.084,
-      "serializeMs": 0.538,
+      "serializeMs": 0.53,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.306,
-      "parseMs": 0.226,
-      "renderMs": 0.011,
-      "serializeMs": 0.239,
+      "openMs": 0.233,
+      "parseMs": 0.215,
+      "renderMs": 0.008,
+      "serializeMs": 0.228,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.25,
-      "parseMs": 0.261,
-      "renderMs": 0.012,
-      "serializeMs": 0.436,
+      "openMs": 0.346,
+      "parseMs": 0.28,
+      "renderMs": 0.017,
+      "serializeMs": 0.465,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.472,
-      "parseMs": 0.48,
-      "renderMs": 0.012,
-      "serializeMs": 0.587,
+      "openMs": 0.469,
+      "parseMs": 0.477,
+      "renderMs": 0.013,
+      "serializeMs": 0.601,
       "outputBytes": 3931,
       "htmlLength": 659
     }
