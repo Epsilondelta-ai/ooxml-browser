@@ -25,6 +25,7 @@ import {
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartSeriesInvertIfNegative,
+  setWorksheetChartSeriesMarker,
   setWorksheetChartSeriesName,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
@@ -238,6 +239,7 @@ function renderEditorControls(): void {
       const firstChartDataLabelPosition = firstSheet?.charts[0]?.dataLabels?.position ?? '';
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstChartSeriesInvert = firstSheet?.charts[0]?.series[0]?.invertIfNegative;
+      const firstChartSeriesMarker = firstSheet?.charts[0]?.series[0]?.markerSymbol ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
       const firstThreadedComment = firstSheet?.threadedComments[0];
       const firstThreadedCommentText = firstThreadedComment?.text ?? '';
@@ -336,6 +338,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-series-invert-input" value="${escapeHtml(firstChartSeriesInvert === undefined ? '' : String(firstChartSeriesInvert))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Series marker</div>
+          <input id="xlsx-chart-series-marker-input" value="${escapeHtml(firstChartSeriesMarker)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First image target</div>
           <input id="xlsx-media-target-input" value="${escapeHtml(firstMediaTarget)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -375,6 +381,7 @@ function renderEditorControls(): void {
       const chartDataLabelPositionInput = window.document.getElementById('xlsx-chart-dlbl-pos-input') as HTMLInputElement;
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const chartSeriesInvertInput = window.document.getElementById('xlsx-chart-series-invert-input') as HTMLInputElement;
+      const chartSeriesMarkerInput = window.document.getElementById('xlsx-chart-series-marker-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const threadedCommentInput = window.document.getElementById('xlsx-threaded-comment-input') as HTMLInputElement;
@@ -573,6 +580,18 @@ function renderEditorControls(): void {
             chartSeriesInvertInput.value === 'true'
           );
         }
+        if (chartSeriesMarkerInput.value && workbookEditor.document.sheets[0]?.charts[0]?.series[0]) {
+          setWorksheetChartSeriesMarker(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            0,
+            {
+              symbol: chartSeriesMarkerInput.value,
+              size: workbookEditor.document.sheets[0]?.charts[0]?.series[0]?.markerSize
+            }
+          );
+        }
         if (mediaTargetInput.value && workbookEditor.document.sheets[0]?.media[0]) {
           setWorksheetMediaTarget(
             workbookEditor,
@@ -627,6 +646,7 @@ function renderEditorControls(): void {
       chartDataLabelPositionInput.addEventListener('input', update);
       chartSeriesInput.addEventListener('input', update);
       chartSeriesInvertInput.addEventListener('input', update);
+      chartSeriesMarkerInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       threadedCommentInput.addEventListener('input', update);

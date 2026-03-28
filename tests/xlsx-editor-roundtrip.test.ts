@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartGapWidth, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartGapWidth, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -397,11 +397,24 @@ describe('xlsx editor round-trips', () => {
     const reopenedGraph = await openPackage(serialized);
 
     expect(reopened.sheets[0]?.charts[0]?.series).toEqual([
-      { name: 'North', invertIfNegative: true },
-      { name: 'South', invertIfNegative: false }
+      { name: 'North', invertIfNegative: true, markerSymbol: 'circle', markerSize: 8 },
+      { name: 'South', invertIfNegative: false, markerSymbol: 'square', markerSize: 10 }
     ]);
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('invertIfNegative val="1"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('invertIfNegative val="0"');
+  });
+
+  it('persists worksheet chart series-marker edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
+    setWorksheetChartSeriesMarker(editor, 'Sheet1', 0, 0, { symbol: 'triangle', size: 12 });
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.series[0]).toEqual({ name: 'North', invertIfNegative: false, markerSymbol: 'triangle', markerSize: 12 });
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('symbol val="triangle"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('size val="12"');
   });
 
   it('retargets worksheet media relationships through save flows', async () => {

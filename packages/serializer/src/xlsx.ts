@@ -595,6 +595,24 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
             occurrence: seriesIndex
           });
         }
+        if (series.markerSymbol !== undefined) {
+          operations.push({
+            op: 'replaceAttribute',
+            tagName: 'c:symbol',
+            targetAttr: 'val',
+            newValue: series.markerSymbol,
+            occurrence: seriesIndex
+          });
+        }
+        if (series.markerSize !== undefined) {
+          operations.push({
+            op: 'replaceAttribute',
+            tagName: 'c:size',
+            targetAttr: 'val',
+            newValue: String(series.markerSize),
+            occurrence: seriesIndex
+          });
+        }
       }
     if (operations.length > 0) {
       return applyXmlPatchPlan(existingSource, operations);
@@ -602,7 +620,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   }
 
   const chartType = chart.chartType ?? 'barChart';
-  const seriesXml = chart.series.map((seriesEntry, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesEntry.name)}</a:t></c:rich></c:tx>${seriesEntry.invertIfNegative !== undefined ? `<c:invertIfNegative val="${seriesEntry.invertIfNegative ? '1' : '0'}"/>` : ''}</c:ser>`).join('');
+  const seriesXml = chart.series.map((seriesEntry, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesEntry.name)}</a:t></c:rich></c:tx>${seriesEntry.invertIfNegative !== undefined ? `<c:invertIfNegative val="${seriesEntry.invertIfNegative ? '1' : '0'}"/>` : ''}${seriesEntry.markerSymbol !== undefined || seriesEntry.markerSize !== undefined ? `<c:marker>${seriesEntry.markerSymbol !== undefined ? `<c:symbol val="${escapeXml(seriesEntry.markerSymbol)}"/>` : ''}${seriesEntry.markerSize !== undefined ? `<c:size val="${seriesEntry.markerSize}"/>` : ''}</c:marker>` : ''}</c:ser>`).join('');
   const varyColorsXml = chart.varyColors !== undefined ? `<c:varyColors val="${chart.varyColors ? '1' : '0'}"/>` : '';
   const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
   const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';

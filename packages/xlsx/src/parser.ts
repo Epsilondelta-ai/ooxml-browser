@@ -364,9 +364,14 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       ? findElementsByLocalName(chartRoot, 'ser').map((seriesNode) => {
         const textNode = findElementsByLocalName(seriesNode, 'tx')[0];
         const invertIfNegativeNode = findElementsByLocalName(seriesNode, 'invertIfNegative')[0];
+        const markerNode = findElementsByLocalName(seriesNode, 'marker')[0];
+        const markerSymbolNode = markerNode ? findElementsByLocalName(markerNode, 'symbol')[0] : undefined;
+        const markerSizeNode = markerNode ? findElementsByLocalName(markerNode, 'size')[0] : undefined;
         return {
           name: textNode ? findElementsByLocalName(textNode, 't').map((node) => xmlText(node)).join('') : '',
-          invertIfNegative: xmlAttr(invertIfNegativeNode, 'val') === '1' ? true : xmlAttr(invertIfNegativeNode, 'val') === '0' ? false : undefined
+          invertIfNegative: xmlAttr(invertIfNegativeNode, 'val') === '1' ? true : xmlAttr(invertIfNegativeNode, 'val') === '0' ? false : undefined,
+          markerSymbol: xmlAttr(markerSymbolNode, 'val') ?? undefined,
+          markerSize: (() => { const value = xmlAttr(markerSizeNode, 'val'); return value ? Number(value) : undefined; })()
         };
       }).filter((seriesEntry) => Boolean(seriesEntry.name))
       : [];

@@ -70,6 +70,8 @@ export interface XlsxChartDataLabels {
 export interface XlsxChartSeries {
   name: string;
   invertIfNegative?: boolean;
+  markerSymbol?: string;
+  markerSize?: number;
 }
 
 export interface XlsxChart {

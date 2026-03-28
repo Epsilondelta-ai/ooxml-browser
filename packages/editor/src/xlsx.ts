@@ -607,6 +607,18 @@ export function setWorksheetChartSeriesInvertIfNegative(editor: OfficeEditor<Xls
   });
 }
 
+export function setWorksheetChartSeriesMarker(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, seriesIndex: number, marker: { symbol?: string; size?: number } | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    const series = chart?.series[seriesIndex];
+    if (series) {
+      series.markerSymbol = marker?.symbol;
+      series.markerSize = marker?.size;
+    }
+  });
+}
+
 export function setWorksheetMediaTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, mediaIndex: number, targetUri: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
