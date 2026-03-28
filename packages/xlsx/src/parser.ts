@@ -20,7 +20,13 @@ export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
       return [];
     }
 
-    return [parseSheet(graph, relationship.resolvedTarget, xmlAttr(sheet, 'name') ?? 'Sheet')];
+    return [parseSheet(
+      graph,
+      relationship.resolvedTarget,
+      xmlAttr(sheet, 'name') ?? 'Sheet',
+      Number(xmlAttr(sheet, 'sheetId') ?? '0'),
+      relationshipId ?? ''
+    )];
   });
 
   return {
@@ -55,7 +61,7 @@ function parseSharedStrings(graph: PackageGraph, workbookUri: string): string[] 
   });
 }
 
-function parseSheet(graph: PackageGraph, uri: string, name: string): WorkbookSheet {
+function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: number, relationshipId: string): WorkbookSheet {
   const xml = getParsedXmlPart(graph, uri);
   if (!xml) {
     throw new Error(`Worksheet part ${uri} is missing.`);
@@ -76,6 +82,8 @@ function parseSheet(graph: PackageGraph, uri: string, name: string): WorkbookShe
   return {
     name,
     uri,
+    sheetId,
+    relationshipId,
     rows,
     mergedRanges,
     frozenPane,

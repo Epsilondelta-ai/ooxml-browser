@@ -28,6 +28,8 @@ export interface XlsxComment {
 export interface WorkbookSheet {
   name: string;
   uri: string;
+  sheetId: number;
+  relationshipId: string;
   rows: WorksheetRow[];
   mergedRanges: string[];
   frozenPane?: XlsxFrozenPane;

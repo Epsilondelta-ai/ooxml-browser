@@ -52,6 +52,14 @@ export function insertWorkbookRow(editor: OfficeEditor<XlsxWorkbook>, sheetName:
     if (sheet.frozenPane?.topLeftCell) {
       sheet.frozenPane.topLeftCell = shiftCellReferenceRow(sheet.frozenPane.topLeftCell, rowIndex, 1);
     }
+    sheet.tables = sheet.tables.map((table) => ({
+      ...table,
+      range: shiftRangeRows(table.range, rowIndex, 1)
+    }));
+    sheet.comments = sheet.comments.map((comment) => ({
+      ...comment,
+      reference: shiftCellReferenceRow(comment.reference, rowIndex, 1)
+    }));
 
     draft.definedNames = draft.definedNames.map((definedName) => ({
       ...definedName,
