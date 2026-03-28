@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parseDocx, resolveDocxNumbering, resolveDocxStyle } from '@ooxml/docx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createNumberedDocxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture } from './fixture-builders';
+import { createDocxFixture, createNumberedDocxFixture, createRevisionsDocxFixture, createSectionedDocxFixture, createStyledDocxFixture } from './fixture-builders';
 
 describe('docx serializer persistence', () => {
   it('preserves style inheritance metadata through serialize/reopen', async () => {
@@ -42,5 +42,20 @@ describe('docx serializer persistence', () => {
       { kind: 'insertion', id: '10', author: 'Codex', date: '2026-03-28T00:00:00Z', text: 'Inserted text' },
       { kind: 'deletion', id: '11', author: 'Codex', date: '2026-03-28T00:00:01Z', text: 'Deleted text' }
     ]);
+  });
+});
+
+
+describe('docx patch preservation', () => {
+  it('preserves unknown document attributes when patching simple paragraph edits', async () => {
+    const document = parseDocx(await openPackage(createDocxFixture()));
+    document.stories[0].paragraphs[0].text = 'Patched text';
+    document.stories[0].paragraphs[0].runs[0].text = 'Patched text';
+
+    const serialized = serializeOfficeDocument(document);
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopenedGraph.parts['/word/document.xml']?.text).toContain('customAttr="keep"');
+    expect(reopenedGraph.parts['/word/document.xml']?.text).toContain('Patched text');
   });
 });

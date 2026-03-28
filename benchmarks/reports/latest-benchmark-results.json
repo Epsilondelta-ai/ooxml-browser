@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T06:39:56.313Z",
+  "generatedAt": "2026-03-28T06:41:30.479Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.028,
-      "parseMs": 0.418,
-      "renderMs": 0.148,
-      "serializeMs": 5.938,
-      "outputBytes": 917,
+      "openMs": 4.164,
+      "parseMs": 0.455,
+      "renderMs": 0.159,
+      "serializeMs": 6.057,
+      "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 9.846,
-      "parseMs": 0.448,
-      "renderMs": 0.082,
-      "serializeMs": 0.534,
+      "openMs": 10.144,
+      "parseMs": 0.423,
+      "renderMs": 0.092,
+      "serializeMs": 0.467,
       "outputBytes": 1795,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 10.466,
-      "parseMs": 0.41,
-      "renderMs": 0.079,
-      "serializeMs": 0.29,
+      "openMs": 10.678,
+      "parseMs": 0.415,
+      "renderMs": 0.08,
+      "serializeMs": 0.293,
       "outputBytes": 1620,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.246,
-      "parseMs": 0.22,
+      "openMs": 0.242,
+      "parseMs": 0.24,
       "renderMs": 0.009,
-      "serializeMs": 0.254,
-      "outputBytes": 1551,
+      "serializeMs": 0.282,
+      "outputBytes": 1523,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.276,
-      "parseMs": 0.33,
-      "renderMs": 0.016,
-      "serializeMs": 0.602,
+      "openMs": 0.351,
+      "parseMs": 0.294,
+      "renderMs": 0.015,
+      "serializeMs": 0.429,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.579,
-      "parseMs": 0.513,
-      "renderMs": 0.013,
-      "serializeMs": 0.529,
+      "openMs": 0.52,
+      "parseMs": 0.456,
+      "renderMs": 0.012,
+      "serializeMs": 0.51,
       "outputBytes": 3937,
       "htmlLength": 659
     }

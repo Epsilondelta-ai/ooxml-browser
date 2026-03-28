@@ -14,7 +14,7 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
     updatePackagePartText(
       graph,
       story.uri,
-      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks),
+      buildDocxStoryXml(story.paragraphs, story.tables, story.kind === 'document' ? document.sections[0] : undefined, story.kind, story.blocks, graph.parts[story.uri]?.text),
       contentType
     );
   }
@@ -53,7 +53,20 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   return serializePackageGraph(graph);
 }
 
-function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = []): string {
+function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string): string {
+  if (existingSource && canPatchDocxStory(kind, blocks)) {
+    let next = existingSource;
+    let paragraphOccurrence = 0;
+    for (const block of blocks) {
+      if (block.kind !== 'paragraph') {
+        continue;
+      }
+      next = replaceInnerTextByAttribute(next, { containerTag: kind === 'document' ? 'w:p' : kind === 'header' ? 'w:p' : 'w:p', occurrence: paragraphOccurrence, textTag: 'w:t', newText: block.paragraph.text });
+      paragraphOccurrence += 1;
+    }
+    return next;
+  }
+
   const paragraphXmlFor = (paragraph: DocxParagraph) => {
     const paragraphProperties = [
       paragraph.styleId ? `<w:pStyle w:val="${escapeXml(paragraph.styleId)}"/>` : '',
@@ -118,4 +131,9 @@ function patchDocxCommentsXml(source: string, comments: DocxComment[]): string {
     next = replaceInnerTextByAttribute(next, { containerTag: 'w:comment', keyAttr: 'w:id', keyValue: comment.id, textTag: 'w:t', newText: comment.text });
   }
   return next;
+}
+
+
+function canPatchDocxStory(kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks']): boolean {
+  return blocks.every((block) => block.kind === 'paragraph' || block.kind === 'table');
 }
