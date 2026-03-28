@@ -39,6 +39,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Page margins | `setWorksheetPageMargins` | Persisted | Parser/renderer/editor preserve worksheet `pageMargins` metadata for print fidelity. |
 | Page setup | `setWorksheetPageSetup` | Persisted | Preserves worksheet orientation, paper size, scale, and fit-to-page settings. |
 | Chart target URI | `setWorksheetChartTarget` | Persisted | Retargets chart relationships from drawing parts without regenerating worksheet markup. |
+| Chart style | `setWorksheetChartStyle` | Persisted | Preserves chart-space style ids inside chart parts while keeping worksheet and drawing relationships stable. |
 | Chart title | `setWorksheetChartTitle` | Persisted | Updates chart-part title text while keeping the drawing relationship stable. |
 | Chart series name | `setWorksheetChartSeriesName` | Persisted | Updates chart-part series labels without disturbing drawing or worksheet markup. |
 | Chart type | `setWorksheetChartType` | Persisted | Rebuilds the chart part when the chart family changes while preserving the surrounding drawing relationship. |

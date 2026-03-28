@@ -340,6 +340,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const nonVisual = findElementsByLocalName(frame, 'cNvPr')[0];
     const chartXml = getParsedXmlPart(graph, target);
     const chartRoot = chartXml?.document;
+    const chartStyleNode = chartRoot ? findElementsByLocalName(chartRoot, 'style')[0] : undefined;
     const chartTitleNode = chartRoot ? findElementsByLocalName(chartRoot, 'title')[0] : undefined;
     const chartTitle = chartTitleNode ? findElementsByLocalName(chartTitleNode, 't').map((node) => xmlText(node)).join('') : undefined;
     const firstSliceAngleNode = chartRoot ? findElementsByLocalName(chartRoot, 'firstSliceAng')[0] : undefined;
@@ -435,6 +436,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       drawingNameOccurrence,
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
+      chartStyle: (() => { const value = xmlAttr(chartStyleNode, 'val'); return value ? Number(value) : undefined; })(),
       chartType,
       barDirection: xmlAttr(barDirectionNode, 'val') ?? undefined,
       scatterStyle: xmlAttr(scatterStyleNode, 'val') ?? undefined,

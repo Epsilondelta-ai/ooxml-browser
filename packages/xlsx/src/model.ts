@@ -87,6 +87,7 @@ export interface XlsxChart {
   drawingNameOccurrence: number;
   targetUri: string;
   name?: string;
+  chartStyle?: number;
   chartType?: string;
   barDirection?: string;
   scatterStyle?: string;
