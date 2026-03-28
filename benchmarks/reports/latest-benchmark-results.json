@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-28T10:31:01.800Z",
+  "generatedAt": "2026-03-28T10:35:39.574Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.093,
-      "parseMs": 0.418,
-      "renderMs": 0.155,
-      "serializeMs": 5.916,
+      "openMs": 3.907,
+      "parseMs": 0.411,
+      "renderMs": 0.154,
+      "serializeMs": 5.798,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 9.802,
-      "parseMs": 0.506,
-      "renderMs": 0.125,
-      "serializeMs": 0.781,
+      "openMs": 9.575,
+      "parseMs": 0.484,
+      "renderMs": 0.123,
+      "serializeMs": 0.742,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 10.783,
-      "parseMs": 0.426,
-      "renderMs": 0.088,
-      "serializeMs": 0.518,
+      "openMs": 10.481,
+      "parseMs": 0.42,
+      "renderMs": 0.086,
+      "serializeMs": 0.51,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,28 +33,28 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.231,
-      "parseMs": 0.211,
+      "openMs": 0.246,
+      "parseMs": 0.215,
       "renderMs": 0.008,
-      "serializeMs": 0.211,
+      "serializeMs": 0.228,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.339,
-      "parseMs": 0.278,
-      "renderMs": 0.014,
-      "serializeMs": 0.443,
+      "openMs": 0.317,
+      "parseMs": 0.253,
+      "renderMs": 0.02,
+      "serializeMs": 0.422,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "pptx-representative-inherited",
-      "openMs": 0.445,
-      "parseMs": 0.534,
-      "renderMs": 0.013,
-      "serializeMs": 0.604,
+      "openMs": 0.475,
+      "parseMs": 0.523,
+      "renderMs": 0.014,
+      "serializeMs": 0.608,
       "outputBytes": 3931,
       "htmlLength": 659
     }
