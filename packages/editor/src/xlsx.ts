@@ -248,6 +248,12 @@ export function setWorkbookDefinedNameScope(editor: OfficeEditor<XlsxWorkbook>, 
   });
 }
 
+export function removeWorkbookDefinedName(editor: OfficeEditor<XlsxWorkbook>, name: string, scopeSheetId?: number): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    draft.definedNames = draft.definedNames.filter((entry) => !(entry.name === name && entry.scopeSheetId === scopeSheetId));
+  });
+}
+
 export function setWorkbookSheetName(editor: OfficeEditor<XlsxWorkbook>, currentName: string, nextName: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === currentName);
