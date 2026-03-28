@@ -1,7 +1,11 @@
 import { createBrowserSession } from '@ooxml/browser';
 import {
+  addDocxComment,
+  addPresentationComment,
   replaceDocxParagraphText,
+  setDocxCommentText,
   setDocxParagraphStyle,
+  setPresentationCommentText,
   setPresentationNotesText,
   setPresentationShapeText,
   setPresentationSize,
@@ -137,6 +141,7 @@ function renderEditorControls(): void {
     case 'docx': {
       const firstParagraph = officeDocument.stories[0]?.paragraphs[0]?.text ?? '';
       const firstStyle = officeDocument.stories[0]?.paragraphs[0]?.styleId ?? '';
+      const firstComment = officeDocument.comments[0]?.text ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First paragraph</div>
@@ -146,25 +151,39 @@ function renderEditorControls(): void {
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Paragraph style</div>
           <input id="docx-style-input" value="${escapeHtml(firstStyle)}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First comment</div>
+          <input id="docx-comment-input" value="${escapeHtml(firstComment)}" style="width: 100%; padding: 8px;" />
+        </label>
       `;
       const input = window.document.getElementById('docx-input') as HTMLInputElement;
       const styleInput = window.document.getElementById('docx-style-input') as HTMLInputElement;
+      const commentInput = window.document.getElementById('docx-comment-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'docx') {
           return;
         }
-        replaceDocxParagraphText(currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'docx' }>>, 0, 0, input.value);
+        const docxEditor = currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'docx' }>>;
+        replaceDocxParagraphText(docxEditor, 0, 0, input.value);
         setDocxParagraphStyle(
-          currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'docx' }>>,
+          docxEditor,
           'document',
           0,
           0,
           styleInput.value || undefined
         );
+        if (commentInput.value) {
+          if (docxEditor.document.comments[0]) {
+            setDocxCommentText(docxEditor, docxEditor.document.comments[0].id, commentInput.value);
+          } else {
+            addDocxComment(docxEditor, { id: 'playground-comment', author: 'Playground', text: commentInput.value });
+          }
+        }
         renderPreview();
       };
       input.addEventListener('input', update);
       styleInput.addEventListener('input', update);
+      commentInput.addEventListener('input', update);
       break;
     }
     case 'xlsx': {
@@ -247,6 +266,7 @@ function renderEditorControls(): void {
     case 'pptx': {
       const shapeText = officeDocument.slides[0]?.shapes[0]?.text ?? '';
       const notesText = officeDocument.slides[0]?.notesText ?? '';
+      const commentText = officeDocument.slides[0]?.comments[0]?.text ?? '';
       const transitionType = officeDocument.slides[0]?.transition?.type ?? '';
       const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
       const sizeCx = officeDocument.size.cx;
@@ -259,6 +279,10 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Notes</div>
           <textarea id="pptx-notes-input" style="width: 100%; min-height: 96px; padding: 8px;">${escapeHtml(notesText)}</textarea>
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First comment</div>
+          <input id="pptx-comment-input" value="${escapeHtml(commentText)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Transition type</div>
@@ -281,6 +305,7 @@ function renderEditorControls(): void {
       `;
       const shapeInput = window.document.getElementById('pptx-shape-input') as HTMLInputElement;
       const notesInput = window.document.getElementById('pptx-notes-input') as HTMLTextAreaElement;
+      const commentInput = window.document.getElementById('pptx-comment-input') as HTMLInputElement;
       const transitionInput = window.document.getElementById('pptx-transition-input') as HTMLInputElement;
       const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
       const sizeCxInput = window.document.getElementById('pptx-size-cx-input') as HTMLInputElement;
@@ -292,6 +317,13 @@ function renderEditorControls(): void {
         const presentationEditor = currentEditor as OfficeEditor<Extract<EditableOfficeDocument, { kind: 'pptx' }>>;
         setPresentationShapeText(presentationEditor, 0, 0, shapeInput.value);
         setPresentationNotesText(presentationEditor, 0, notesInput.value);
+        if (commentInput.value) {
+          if (presentationEditor.document.slides[0]?.comments[0]) {
+            setPresentationCommentText(presentationEditor, 0, 0, commentInput.value);
+          } else {
+            addPresentationComment(presentationEditor, 0, { author: 'Playground', text: commentInput.value });
+          }
+        }
         setPresentationTransition(presentationEditor, 0, transitionInput.value ? { type: transitionInput.value } : undefined);
         if (layoutInput.value) {
           setPresentationSlideLayout(presentationEditor, 0, layoutInput.value);
@@ -305,6 +337,7 @@ function renderEditorControls(): void {
       };
       shapeInput.addEventListener('input', update);
       notesInput.addEventListener('input', update);
+      commentInput.addEventListener('input', update);
       transitionInput.addEventListener('input', update);
       layoutInput.addEventListener('input', update);
       sizeCxInput.addEventListener('input', update);
