@@ -199,6 +199,8 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
       const commonTiming = xmlChild<Record<string, unknown>>(node, 'p:cTn');
       const startConditionList = xmlChild<Record<string, unknown>>(node, 'p:stCondLst');
       const startCondition = xmlChild<Record<string, unknown>>(startConditionList, 'p:cond');
+      const targetElement = xmlChild<Record<string, unknown>>(node, 'p:tgtEl');
+      const shapeTarget = xmlChild<Record<string, unknown>>(targetElement, 'p:spTgt');
       nodes.push({
         nodeType: nodeType.split(':')[1],
         presetClass: xmlAttr(commonTiming, 'presetClass') ?? xmlAttr(node, 'presetClass') ?? undefined,
@@ -207,7 +209,8 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
         duration: xmlAttr(commonTiming, 'dur') ?? xmlAttr(node, 'dur') ?? undefined,
         repeatCount: xmlAttr(commonTiming, 'repeatCount') ?? xmlAttr(node, 'repeatCount') ?? undefined,
         triggerEvent: xmlAttr(startCondition, 'evt') ?? undefined,
-        triggerDelay: xmlAttr(startCondition, 'delay') ?? undefined
+        triggerDelay: xmlAttr(startCondition, 'delay') ?? undefined,
+        targetShapeId: xmlAttr(shapeTarget, 'spid') ?? undefined
       });
     }
   }
