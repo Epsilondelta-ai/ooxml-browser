@@ -164,6 +164,16 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
         if (cell.formula) {
           operations.push({ op: 'replaceText', containerTag: 'c', keyAttr: 'r', keyValue: cell.reference, textTag: 'f', newText: cell.formula });
         }
+        if (cell.styleIndex !== undefined) {
+          operations.push({
+            op: 'replaceAttribute',
+            tagName: 'c',
+            keyAttr: 'r',
+            keyValue: cell.reference,
+            targetAttr: 's',
+            newValue: String(cell.styleIndex)
+          });
+        }
         operations.push({
           op: 'replaceText',
           containerTag: 'c',

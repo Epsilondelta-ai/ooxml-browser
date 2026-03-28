@@ -44,6 +44,25 @@ export function setWorkbookCellFormula(editor: OfficeEditor<XlsxWorkbook>, sheet
   });
 }
 
+export function setWorkbookCellStyle(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, styleIndex: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    for (const row of sheet.rows) {
+      const cell = row.cells.find((entry) => entry.reference === reference);
+      if (!cell) {
+        continue;
+      }
+
+      cell.styleIndex = styleIndex;
+      return;
+    }
+  });
+}
+
 
 export function insertWorkbookRow(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, rowIndex: number): XlsxWorkbook {
   return editor.transaction((draft) => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setWorkbookCellFormula, setWorkbookDefinedNameReference, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange } from '@ooxml/editor';
+import { createOfficeEditor, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -66,6 +66,19 @@ describe('xlsx editor round-trips', () => {
     expect(reopenedGraph.parts['/xl/comments1.xml']?.text).toContain('authorId="0"');
   });
 
+
+
+  it('persists edited worksheet cell style indices', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
+    setWorkbookCellStyle(editor, 'Sheet1', 'A1', 3);
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.rows[0]?.cells[0]?.styleIndex).toBe(3);
+    expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain(' s="3"');
+  });
 
   it('persists edited worksheet formulas', async () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
