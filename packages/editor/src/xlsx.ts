@@ -726,6 +726,26 @@ export function setWorksheetChartCategoryAxisTickLabelPosition(editor: OfficeEdi
   });
 }
 
+export function setWorksheetChartCategoryAxisLabelAlignment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, labelAlignment: string | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisLabelAlignment = labelAlignment;
+    }
+  });
+}
+
+export function setWorksheetChartCategoryAxisNoMultiLevelLabels(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, noMultiLevelLabels: boolean | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisNoMultiLevelLabels = noMultiLevelLabels;
+    }
+  });
+}
+
 export function setWorksheetChartCategoryAxisLabelOffset(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, labelOffset: number | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
