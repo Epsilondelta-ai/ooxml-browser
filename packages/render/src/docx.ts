@@ -15,7 +15,8 @@ export function renderDocx(document: DocxDocument, options: RenderOptions): stri
 
         const numbering = resolveDocxNumbering(document, paragraph);
         const label = numbering && paragraph.numbering ? renderNumberingLabel(numberingState, paragraph.numbering.numId, numbering) : '';
-        return `<p class="ooxml-docx-paragraph"${paragraph.styleId ? ` data-style-id="${escapeHtml(paragraph.styleId)}"` : ''}${paragraph.numbering ? ` data-num-id="${escapeHtml(paragraph.numbering.numId)}" data-num-level="${paragraph.numbering.level}"` : ''}${styleAttr ? ` style="${styleAttr}"` : ''}>${label ? `<span class="ooxml-docx-numbering">${escapeHtml(label)}</span> ` : ''}${escapeHtml(paragraph.text)}</p>`;
+        const revisionsMarkup = paragraph.revisions.map((revision) => `<span class="ooxml-docx-revision ooxml-docx-revision--${revision.kind}" data-revision-kind="${revision.kind}">${revision.kind === 'insertion' ? '[+' : '[-'}${escapeHtml(revision.text)}]</span>`).join(' ');
+        return `<p class="ooxml-docx-paragraph"${paragraph.styleId ? ` data-style-id="${escapeHtml(paragraph.styleId)}"` : ''}${paragraph.numbering ? ` data-num-id="${escapeHtml(paragraph.numbering.numId)}" data-num-level="${paragraph.numbering.level}"` : ''}${styleAttr ? ` style="${styleAttr}"` : ''}>${label ? `<span class="ooxml-docx-numbering">${escapeHtml(label)}</span> ` : ''}${escapeHtml(paragraph.text)}${revisionsMarkup ? ` <span class="ooxml-docx-revisions">${revisionsMarkup}</span>` : ''}</p>`;
       })
       .join('');
     const tables = story.tables.map((table) => {

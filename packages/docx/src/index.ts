@@ -7,6 +7,7 @@ export type {
   DocxSectionPageSize,
   DocxStyle,
   DocxParagraph,
+  DocxRevision,
   DocxParagraphNumbering,
   DocxRun,
   DocxNumbering,

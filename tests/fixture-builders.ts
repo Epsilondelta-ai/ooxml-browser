@@ -243,3 +243,24 @@ export function createSectionedDocxFixture(): Uint8Array {
 <w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:r><w:t>Footer text</w:t></w:r></w:p></w:ftr>`
   }));
 }
+
+export function createRevisionsDocxFixture(): Uint8Array {
+  return zipSync(encodedEntries({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`,
+    'word/document.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+  <w:p>
+    <w:r><w:t>Stable text</w:t></w:r>
+    <w:ins w:id="10" w:author="Codex" w:date="2026-03-28T00:00:00Z"><w:r><w:t>Inserted text</w:t></w:r></w:ins>
+    <w:del w:id="11" w:author="Codex" w:date="2026-03-28T00:00:01Z"><w:r><w:delText>Deleted text</w:delText></w:r></w:del>
+  </w:p>
+</w:body></w:document>`
+  }));
+}

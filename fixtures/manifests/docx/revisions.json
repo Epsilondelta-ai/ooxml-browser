@@ -1,0 +1,12 @@
+{
+  "id": "docx-revisions",
+  "sourceApplication": "repo-generated",
+  "format": "docx",
+  "featureTags": ["tracked-changes", "revisions"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "revision render"],
+  "reopenExpectations": {"parser": true, "office": "stage-2-attestation-pending", "libreoffice": "stage-2-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

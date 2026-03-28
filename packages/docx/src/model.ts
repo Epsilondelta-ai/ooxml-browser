@@ -11,10 +11,19 @@ export interface DocxParagraphNumbering {
   level: number;
 }
 
+export interface DocxRevision {
+  kind: 'insertion' | 'deletion';
+  id?: string;
+  author?: string;
+  date?: string;
+  text: string;
+}
+
 export interface DocxParagraph {
   text: string;
   styleId?: string;
   numbering?: DocxParagraphNumbering;
+  revisions: DocxRevision[];
   runs: DocxRun[];
 }
 

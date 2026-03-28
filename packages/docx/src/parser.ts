@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { DocxAbstractNumbering, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
+import type { DocxAbstractNumbering, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRevision, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
 
 export function parseDocx(graph: PackageGraph): DocxDocument {
   const mainDocumentUri = graph.rootDocumentUri ?? '/word/document.xml';
@@ -63,19 +63,43 @@ function parseParagraph(node: Record<string, unknown>): DocxParagraph {
   const paragraphProperties = xmlChild<Record<string, unknown>>(node, 'w:pPr');
   const styleNode = xmlChild<Record<string, unknown>>(paragraphProperties, 'w:pStyle');
   const runs = xmlChildren<Record<string, unknown>>(node, 'w:r').map(parseRun);
+  const revisions = [
+    ...xmlChildren<Record<string, unknown>>(node, 'w:ins').map((revision) => parseRevision(revision, 'insertion')),
+    ...xmlChildren<Record<string, unknown>>(node, 'w:del').map((revision) => parseRevision(revision, 'deletion'))
+  ];
 
   const numPr = xmlChild<Record<string, unknown>>(paragraphProperties, 'w:numPr');
   const ilvlNode = xmlChild<Record<string, unknown>>(numPr, 'w:ilvl');
   const numIdNode = xmlChild<Record<string, unknown>>(numPr, 'w:numId');
 
   return {
-    text: runs.map((run) => run.text).join(''),
+    text: [...runs.map((run) => run.text), ...revisions.filter((revision) => revision.kind === 'insertion').map((revision) => revision.text)].join(''),
     styleId: xmlAttr(styleNode, 'w:val') ?? xmlAttr(styleNode, 'val'),
     numbering: numIdNode ? {
       numId: xmlAttr(numIdNode, 'w:val') ?? xmlAttr(numIdNode, 'val') ?? '',
       level: Number(xmlAttr(ilvlNode, 'w:val') ?? xmlAttr(ilvlNode, 'val') ?? '0')
     } : undefined,
+    revisions,
     runs
+  };
+}
+
+
+function parseRevision(node: Record<string, unknown>, kind: DocxRevision['kind']): DocxRevision {
+  const runs = xmlChildren<Record<string, unknown>>(node, 'w:r').map((run) => {
+    const textNodes = [
+      ...xmlChildren<Record<string, unknown>>(run, 'w:t').map((entry) => xmlText(entry)),
+      ...xmlChildren<Record<string, unknown>>(run, 'w:delText').map((entry) => xmlText(entry))
+    ];
+    return textNodes.join('');
+  });
+
+  return {
+    kind,
+    id: xmlAttr(node, 'w:id') ?? xmlAttr(node, 'id'),
+    author: xmlAttr(node, 'w:author') ?? xmlAttr(node, 'author'),
+    date: xmlAttr(node, 'w:date') ?? xmlAttr(node, 'date'),
+    text: runs.join('')
   };
 }
 
