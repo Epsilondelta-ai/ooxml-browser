@@ -23,12 +23,15 @@ import {
   setWorksheetChartDataLabels,
   setWorksheetChartDataLabelVisibility,
   setWorksheetChartDisplayBlanksAs,
+  setWorksheetChartFirstSliceAngle,
   setWorksheetChartGapWidth,
   setWorksheetChartGrouping,
+  setWorksheetChartHoleSize,
   setWorksheetChartLegendPosition,
   setWorksheetChartName,
   setWorksheetChartOverlap,
   setWorksheetChartPlotVisibleOnly,
+  setWorksheetChartSeriesExplosion,
   setWorksheetChartSeriesInvertIfNegative,
   setWorksheetChartSeriesMarker,
   setWorksheetChartSeriesName,
@@ -242,6 +245,8 @@ function renderEditorControls(): void {
       const firstChartGapWidth = firstSheet?.charts[0]?.gapWidth ?? '';
       const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       const firstChartTitle = firstSheet?.charts[0]?.title ?? '';
+      const firstChartFirstSlice = firstSheet?.charts[0]?.firstSliceAngle ?? '';
+      const firstChartHoleSize = firstSheet?.charts[0]?.holeSize ?? '';
       const firstChartLegend = firstSheet?.charts[0]?.legendPosition ?? '';
       const firstChartCategoryAxisTitle = firstSheet?.charts[0]?.categoryAxisTitle ?? '';
       const firstChartCategoryAxisPosition = firstSheet?.charts[0]?.categoryAxisPosition ?? '';
@@ -254,6 +259,7 @@ function renderEditorControls(): void {
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstChartSeriesInvert = firstSheet?.charts[0]?.series[0]?.invertIfNegative;
       const firstChartSeriesMarker = firstSheet?.charts[0]?.series[0]?.markerSymbol ?? '';
+      const firstChartSeriesExplosion = firstSheet?.charts[0]?.series[0]?.explosion ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
       const firstThreadedComment = firstSheet?.threadedComments[0];
       const firstThreadedCommentText = firstThreadedComment?.text ?? '';
@@ -340,6 +346,14 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-title-input" value="${escapeHtml(firstChartTitle)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First slice angle</div>
+          <input id="xlsx-chart-first-slice-input" value="${escapeHtml(String(firstChartFirstSlice))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Hole size</div>
+          <input id="xlsx-chart-hole-size-input" value="${escapeHtml(String(firstChartHoleSize))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart legend</div>
           <input id="xlsx-chart-legend-input" value="${escapeHtml(firstChartLegend)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -388,6 +402,10 @@ function renderEditorControls(): void {
           <input id="xlsx-chart-series-marker-input" value="${escapeHtml(firstChartSeriesMarker)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Series explosion</div>
+          <input id="xlsx-chart-series-explosion-input" value="${escapeHtml(String(firstChartSeriesExplosion))}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First image target</div>
           <input id="xlsx-media-target-input" value="${escapeHtml(firstMediaTarget)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -424,6 +442,8 @@ function renderEditorControls(): void {
       const chartGapWidthInput = window.document.getElementById('xlsx-chart-gap-width-input') as HTMLInputElement;
       const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const chartTitleInput = window.document.getElementById('xlsx-chart-title-input') as HTMLInputElement;
+      const chartFirstSliceInput = window.document.getElementById('xlsx-chart-first-slice-input') as HTMLInputElement;
+      const chartHoleSizeInput = window.document.getElementById('xlsx-chart-hole-size-input') as HTMLInputElement;
       const chartLegendInput = window.document.getElementById('xlsx-chart-legend-input') as HTMLInputElement;
       const chartCategoryAxisInput = window.document.getElementById('xlsx-chart-cat-axis-input') as HTMLInputElement;
       const chartCategoryAxisPositionInput = window.document.getElementById('xlsx-chart-cat-axis-pos-input') as HTMLInputElement;
@@ -436,6 +456,7 @@ function renderEditorControls(): void {
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const chartSeriesInvertInput = window.document.getElementById('xlsx-chart-series-invert-input') as HTMLInputElement;
       const chartSeriesMarkerInput = window.document.getElementById('xlsx-chart-series-marker-input') as HTMLInputElement;
+      const chartSeriesExplosionInput = window.document.getElementById('xlsx-chart-series-explosion-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const threadedCommentInput = window.document.getElementById('xlsx-threaded-comment-input') as HTMLInputElement;
@@ -608,6 +629,28 @@ function renderEditorControls(): void {
             chartTitleInput.value
           );
         }
+        if (chartFirstSliceInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          const angle = Number(chartFirstSliceInput.value);
+          if (!Number.isNaN(angle)) {
+            setWorksheetChartFirstSliceAngle(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              angle
+            );
+          }
+        }
+        if (chartHoleSizeInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          const holeSize = Number(chartHoleSizeInput.value);
+          if (!Number.isNaN(holeSize)) {
+            setWorksheetChartHoleSize(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              holeSize
+            );
+          }
+        }
         if (chartLegendInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
           setWorksheetChartLegendPosition(
             workbookEditor,
@@ -701,6 +744,18 @@ function renderEditorControls(): void {
             }
           );
         }
+        if (chartSeriesExplosionInput.value && workbookEditor.document.sheets[0]?.charts[0]?.series[0]) {
+          const explosion = Number(chartSeriesExplosionInput.value);
+          if (!Number.isNaN(explosion)) {
+            setWorksheetChartSeriesExplosion(
+              workbookEditor,
+              workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+              0,
+              0,
+              explosion
+            );
+          }
+        }
         if (mediaTargetInput.value && workbookEditor.document.sheets[0]?.media[0]) {
           setWorksheetMediaTarget(
             workbookEditor,
@@ -752,6 +807,8 @@ function renderEditorControls(): void {
       chartGapWidthInput.addEventListener('input', update);
       chartTargetInput.addEventListener('input', update);
       chartTitleInput.addEventListener('input', update);
+      chartFirstSliceInput.addEventListener('input', update);
+      chartHoleSizeInput.addEventListener('input', update);
       chartLegendInput.addEventListener('input', update);
       chartCategoryAxisInput.addEventListener('input', update);
       chartCategoryAxisPositionInput.addEventListener('input', update);
@@ -764,6 +821,7 @@ function renderEditorControls(): void {
       chartSeriesInput.addEventListener('input', update);
       chartSeriesInvertInput.addEventListener('input', update);
       chartSeriesMarkerInput.addEventListener('input', update);
+      chartSeriesExplosionInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       threadedCommentInput.addEventListener('input', update);
