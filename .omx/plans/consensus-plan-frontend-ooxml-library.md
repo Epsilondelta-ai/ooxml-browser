@@ -214,6 +214,44 @@ It best satisfies browser-first, multi-format, fidelity, and extensibility requi
 - docs site, playground, examples, and benchmark harness are wired into CI/release workflow
 - public API docs and compatibility matrix are published in-repo
 
+
+## Stage exit criteria
+
+### Stage A exit criteria
+- workspace build/test/lint/typecheck commands succeed
+- package boundaries exist with documented ownership
+- placeholder examples/playground/bench apps boot
+
+### Stage B exit criteria
+- OPC/XML/IR foundation passes unit tests
+- representative packaging/security fixtures parse with diagnostics
+- serializer can round-trip raw XML/token tape for targeted fixtures
+
+### Stage C exit criteria
+- representative docx/xlsx/pptx fixtures parse into normalized IR
+- no-op round-trip integration tests exist for each format
+- parser diagnostics and degraded-open paths are covered
+
+### Stage D exit criteria
+- browser examples render representative document/page/grid/slide fixtures
+- visual snapshot baselines exist for each format
+- perf telemetry captures first render metrics
+
+### Stage E exit criteria
+- semantic transactions, selection models, and undo/redo work for core format actions
+- browser E2E edit flows pass for each format
+- serializer patch invalidation paths are exercised by edit tests
+
+### Stage F exit criteria
+- minimal-edit round-trip tests pass for each format
+- interop matrix includes Office/LibreOffice reopen checks for representative fixtures
+- unsupported/unknown markup preservation tests are green
+
+### Stage G exit criteria
+- docs/examples/playground/devtools/bench surfaces are usable end-to-end
+- compatibility matrix and benchmark baselines are published in repo
+- final architect + verifier sign-off evidence is captured
+
 ## Parallelizable task decomposition
 
 ### Lane 1 — Core/package/XML
@@ -259,6 +297,21 @@ It best satisfies browser-first, multi-format, fidelity, and extensibility requi
 - Use shared ownership boundaries by package directory to avoid merge conflicts.
 - Team -> Ralph verification path: team builds isolated lanes, then Ralph consolidates, runs end-to-end verification, closes gaps, and performs final architect/verifier sign-off.
 
+
+## Reasoning and launch guidance
+
+### Suggested reasoning levels by lane
+- Core/package/XML: **high**
+- Format parsing lanes: **high**
+- Rendering lanes: **medium -> high** depending on layout complexity
+- Editing/serialization lanes: **high**
+- Verification/perf lanes: **medium** for routine evidence, **high** for regressions
+
+### Concrete team launch hints
+- `omx team --help` followed by a lane split across Core, DOCX, XLSX, PPTX, Verification once Stage A is merged
+- `$team frontend ooxml core/xml/opc lane + docx lane + xlsx lane + pptx lane + verification lane`
+- Ralph remains the preferred final consolidation path after any team burst
+
 ## Verification criteria
 
 - build/lint/typecheck clean
@@ -288,3 +341,18 @@ The plan is complete when the repo contains a working browser-first OOXML librar
 - Parallel team path once scaffolding is stable: `omx team` or `$team` with lanes mapped to Core, DOCX, XLSX, PPTX, and Verification.
 - Team staffing hint: start with 4-5 workers only after Stage A foundations exist and shared package boundaries are fixed.
 - Verification consolidation path: after team delivery, hand back to Ralph for end-to-end lint/typecheck/test/e2e/round-trip/architect-verifier review and final cleanup.
+
+
+## Architect review (iteration 1)
+
+- **Steelman antithesis:** a single shared-core architecture can become an abstraction trap, forcing unlike formats into weak common models and delaying delivery of format-specific fidelity.
+- **Tradeoff tension:** unified IR and serializer consistency vs. format-specific semantic richness; browser-first performance budgets vs. high-fidelity layout ambitions.
+- **Synthesis:** keep the shared core limited to truly shared mechanics (OPC, XML, diagnostics, shared primitives, transaction infrastructure) and preserve explicit format-specific escape hatches in docx/xlsx/pptx layers. Pair every shared abstraction with fixture-backed format validations.
+- **Verdict:** APPROVE
+
+## Critic review (iteration 1)
+
+- Plan includes principles, drivers, viable options, deliberate-mode pre-mortem, expanded test plan, architecture, staged execution, staffing lanes, verification criteria, and a definition of done.
+- Risks are concrete and mitigated through stage exit criteria, corpus strategy, and round-trip-first verification.
+- Acceptance criteria are testable at both stage and feature-slice levels via the PRD/test spec and verification gates.
+- **Verdict:** APPROVE
