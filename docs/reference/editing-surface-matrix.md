@@ -41,6 +41,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment delete | `removeWorksheetComment` | Persisted | Persists an empty comments part when the last worksheet comment is removed. |
 | Table name | `setWorksheetTableName` | Persisted | Table-part serializer keeps `name`/`displayName` aligned. |
 | Table range | `setWorksheetTableRange` | Persisted | Table-part patch updates `ref`. |
+| Table delete | `removeWorksheetTable` | Persisted | Removes table relationships so deleted tables no longer reopen from worksheet rels. |
 | Frozen pane | `setWorksheetFrozenPane` | Persisted | Worksheet patch path updates pane attributes. |
 | Selection state | `setWorksheetSelection` | Persisted | Parser/renderer/editor preserve active-cell and sqref metadata inside `sheetViews`. |
 | Merged ranges | `setWorksheetMergedRanges` | Persisted | May force worksheet rebuild; rebuild path preserves worksheet root attrs. |
