@@ -1,0 +1,12 @@
+{
+  "id": "xlsx-styled",
+  "sourceApplication": "repo-generated",
+  "format": "xlsx",
+  "featureTags": ["styles", "number-formats"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "styled numeric render"],
+  "reopenExpectations": {"parser": true, "office": "stage-3-attestation-pending", "libreoffice": "stage-3-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

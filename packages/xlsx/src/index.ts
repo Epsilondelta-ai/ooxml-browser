@@ -1,7 +1,10 @@
 export type {
   WorkbookSheet,
   WorksheetCell,
+  XlsxCellFormat,
+  XlsxNumberFormat,
+  XlsxStyleTable,
   WorksheetRow,
   XlsxWorkbook
 } from './model';
-export { parseXlsx } from './parser';
+export { formatXlsxCellValue, parseXlsx, resolveXlsxCellFormat } from './parser';

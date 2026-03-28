@@ -1,4 +1,4 @@
-import type { XlsxWorkbook } from '@ooxml/xlsx';
+import { formatXlsxCellValue, type XlsxWorkbook } from '@ooxml/xlsx';
 
 import type { RenderOptions } from './types';
 
@@ -11,7 +11,10 @@ export function renderWorkbook(workbook: XlsxWorkbook, options: RenderOptions): 
   }
 
   const rows = sheet.rows.map((row) => {
-    const cells = row.cells.map((cell) => `<td data-ref="${escapeHtml(cell.reference)}">${escapeHtml(cell.value)}</td>`).join('');
+    const cells = row.cells.map((cell) => {
+      const displayValue = formatXlsxCellValue(workbook, cell);
+      return `<td data-ref="${escapeHtml(cell.reference)}"${cell.styleIndex !== undefined ? ` data-style-index="${cell.styleIndex}"` : ''}>${escapeHtml(displayValue)}</td>`;
+    }).join('');
     return `<tr><th scope="row">${row.index}</th>${cells}</tr>`;
   }).join('');
 

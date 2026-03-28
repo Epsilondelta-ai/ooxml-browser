@@ -11,6 +11,22 @@ export interface WorksheetRow {
   cells: WorksheetCell[];
 }
 
+export interface XlsxNumberFormat {
+  id: number;
+  code: string;
+}
+
+export interface XlsxCellFormat {
+  id: number;
+  numFmtId: number;
+}
+
+export interface XlsxStyleTable {
+  partUri?: string;
+  numberFormats: Record<number, XlsxNumberFormat>;
+  cellFormats: Record<number, XlsxCellFormat>;
+}
+
 export interface WorksheetCell {
   reference: string;
   type: string;
@@ -24,4 +40,5 @@ export interface XlsxWorkbook {
   packageGraph: PackageGraph;
   sheets: WorkbookSheet[];
   sharedStrings: string[];
+  styles: XlsxStyleTable;
 }

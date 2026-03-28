@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxNumberFormat, XlsxStyleTable, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -27,7 +27,8 @@ export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
     kind: 'xlsx',
     packageGraph: graph,
     sheets,
-    sharedStrings
+    sharedStrings,
+    styles: parseStyles(graph, workbookUri)
   };
 }
 
@@ -98,4 +99,73 @@ function parseCell(cell: Record<string, unknown>, graph: PackageGraph): Workshee
     formula,
     styleIndex
   };
+}
+
+function parseStyles(graph: PackageGraph, workbookUri: string): XlsxStyleTable {
+  const stylesRelationship = relationshipsFor(graph, workbookUri).find((relationship) => relationship.type.includes('/styles'));
+  const partUri = stylesRelationship?.resolvedTarget ?? (graph.parts['/xl/styles.xml'] ? '/xl/styles.xml' : undefined);
+  if (!partUri) {
+    return { numberFormats: {}, cellFormats: {} };
+  }
+
+  const xml = getParsedXmlPart(graph, partUri);
+  if (!xml) {
+    return { partUri, numberFormats: {}, cellFormats: {} };
+  }
+
+  const root = xml.document.styleSheet;
+  const numberFormats = Object.fromEntries(
+    xmlChildren<Record<string, unknown>>(xmlChild<Record<string, unknown>>(root, 'numFmts'), 'numFmt').map((numFmtNode) => {
+      const id = Number(xmlAttr(numFmtNode, 'numFmtId') ?? '0');
+      const item: XlsxNumberFormat = {
+        id,
+        code: xmlAttr(numFmtNode, 'formatCode') ?? ''
+      };
+      return [id, item] satisfies [number, XlsxNumberFormat];
+    })
+  );
+
+  const cellFormats = Object.fromEntries(
+    xmlChildren<Record<string, unknown>>(xmlChild<Record<string, unknown>>(root, 'cellXfs'), 'xf').map((xfNode, index) => {
+      const item: XlsxCellFormat = {
+        id: index,
+        numFmtId: Number(xmlAttr(xfNode, 'numFmtId') ?? '0')
+      };
+      return [index, item] satisfies [number, XlsxCellFormat];
+    })
+  );
+
+  return { partUri, numberFormats, cellFormats };
+}
+
+export function resolveXlsxCellFormat(workbook: XlsxWorkbook, cell: WorksheetCell): XlsxCellFormat | undefined {
+  if (cell.styleIndex === undefined) {
+    return undefined;
+  }
+
+  return workbook.styles.cellFormats[cell.styleIndex];
+}
+
+export function formatXlsxCellValue(workbook: XlsxWorkbook, cell: WorksheetCell): string {
+  const style = resolveXlsxCellFormat(workbook, cell);
+  const numberFormat = style ? workbook.styles.numberFormats[style.numFmtId] : undefined;
+
+  if (!numberFormat) {
+    return cell.value;
+  }
+
+  const numericValue = Number(cell.value);
+  if (Number.isNaN(numericValue)) {
+    return cell.value;
+  }
+
+  if (numberFormat.code === '0.00%') {
+    return `${(numericValue * 100).toFixed(2)}%`;
+  }
+
+  if (numberFormat.code === '0%') {
+    return `${Math.round(numericValue * 100)}%`;
+  }
+
+  return cell.value;
 }
