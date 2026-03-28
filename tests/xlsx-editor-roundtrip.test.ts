@@ -360,18 +360,19 @@ describe('xlsx editor round-trips', () => {
 
   it('persists worksheet chart data-label edits through save flows', async () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
-    setWorksheetChartDataLabels(editor, 'Sheet1', 0, { position: 'ctr', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true });
+    setWorksheetChartDataLabels(editor, 'Sheet1', 0, { position: 'ctr', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true, showLeaderLines: false });
 
     const serialized = serializeOfficeDocument(editor.document);
     const reopened = parseXlsx(await openPackage(serialized));
     const reopenedGraph = await openPackage(serialized);
 
-    expect(reopened.sheets[0]?.charts[0]?.dataLabels).toEqual({ position: 'ctr', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true });
+    expect(reopened.sheets[0]?.charts[0]?.dataLabels).toEqual({ position: 'ctr', showValue: false, showCategoryName: true, showSeriesName: true, showLegendKey: true, showLeaderLines: false });
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('dLblPos val="ctr"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showVal val="0"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showCatName val="1"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showSerName val="1"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showLegendKey val="1"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('showLeaderLines val="0"');
   });
 
   it('persists worksheet chart vary-colors and gap-width edits through save flows', async () => {

@@ -67,6 +67,7 @@ export interface XlsxChartDataLabels {
   showCategoryName?: boolean;
   showSeriesName?: boolean;
   showLegendKey?: boolean;
+  showLeaderLines?: boolean;
 }
 
 export interface XlsxChartSeries {
