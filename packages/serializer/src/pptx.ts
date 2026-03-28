@@ -1,4 +1,4 @@
-import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, updatePackagePartText, upsertRelationship } from '@ooxml/core';
 import { parsePptx, type PresentationComment, type PresentationDocument, type PresentationSlide, type PresentationTimingNode, type SlideShape } from '@ooxml/pptx';
 
 export function serializePptx(presentation: PresentationDocument): Uint8Array {
@@ -19,6 +19,7 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
 
   for (const slide of presentation.slides) {
     const originalSlide = originalSlidesByUri.get(slide.uri);
+    syncSlideImageRelationships(graph, slide.uri, originalSlide, slide);
     const existingSlideSource = graph.parts[slide.uri]?.text;
     const nextSlideSource =
       originalSlide && existingSlideSource
@@ -55,6 +56,37 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function syncSlideImageRelationships(graph: PresentationDocument['packageGraph'], slideUri: string, originalSlide: PresentationSlide | undefined, slide: PresentationSlide): void {
+  const slideRelationships = relationshipsFor(graph, slideUri);
+  const imageRelationships = slideRelationships.filter((relationship) => relationship.type.includes('/image'));
+  let imageRelationshipIndex = 0;
+
+  for (const [shapeIndex, shape] of slide.shapes.entries()) {
+    if (shape.media?.type !== 'image' || !shape.media.targetUri) {
+      continue;
+    }
+
+    const originalShape = originalSlide?.shapes[shapeIndex];
+    const relationship =
+      (originalShape?.media?.targetUri
+        ? imageRelationships.find((entry) => entry.resolvedTarget === originalShape.media?.targetUri)
+        : undefined)
+      ?? imageRelationships[imageRelationshipIndex];
+
+    imageRelationshipIndex += 1;
+    if (!relationship || relationship.resolvedTarget === shape.media.targetUri) {
+      continue;
+    }
+
+    upsertRelationship(graph, slideUri, {
+      id: relationship.id,
+      type: relationship.type,
+      target: relativeRelationshipTarget(slideUri, shape.media.targetUri),
+      targetMode: 'Internal'
+    });
+  }
 }
 
 function buildPresentationXml(presentation: PresentationDocument): string {
@@ -216,4 +248,17 @@ function escapeXml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
+}
+
+function relativeRelationshipTarget(sourceUri: string, targetUri: string): string {
+  const sourceSegments = sourceUri.replace(/^\//, '').split('/');
+  sourceSegments.pop();
+  const targetSegments = targetUri.replace(/^\//, '').split('/');
+
+  while (sourceSegments.length > 0 && targetSegments.length > 0 && sourceSegments[0] === targetSegments[0]) {
+    sourceSegments.shift();
+    targetSegments.shift();
+  }
+
+  return `${sourceSegments.map(() => '..').join('/')}${sourceSegments.length ? '/' : ''}${targetSegments.join('/')}`;
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -74,6 +74,17 @@ describe('pptx editor round-trips', () => {
 
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.slides[0]?.shapes.find((entry) => entry.name === 'Renamed Body')?.text).toBe('Transformed text');
+  });
+
+  it('persists edited image relationship targets', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createMediaPptxFixture())));
+    setPresentationImageTarget(editor, 0, 1, '/ppt/media/hero2.png');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+    expect(reopened.slides[0]?.shapes.find((entry) => entry.media?.type === 'image')?.media?.targetUri).toBe('/ppt/media/hero2.png');
+    expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../media/hero2.png');
   });
 
   it('persists edited slide transition metadata', async () => {

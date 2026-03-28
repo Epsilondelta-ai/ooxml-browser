@@ -73,6 +73,18 @@ export function setPresentationShapeName(editor: OfficeEditor<PresentationDocume
   });
 }
 
+export function setPresentationImageTarget(editor: OfficeEditor<PresentationDocument>, slideIndex: number, shapeIndex: number, targetUri: string): PresentationDocument {
+  return editor.transaction((draft) => {
+    const shape = draft.slides[slideIndex]?.shapes[shapeIndex];
+    if (shape?.media?.type === 'image') {
+      shape.media = {
+        ...shape.media,
+        targetUri
+      };
+    }
+  });
+}
+
 export function setPresentationTransition(editor: OfficeEditor<PresentationDocument>, slideIndex: number, transition: { type?: string; speed?: string } | undefined): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];
