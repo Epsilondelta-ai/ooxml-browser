@@ -17,6 +17,7 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetSelection,
   upsertWorksheetComment,
   type EditableOfficeDocument,
   type OfficeEditor
@@ -194,6 +195,7 @@ function renderEditorControls(): void {
       const firstCellStyle = firstSheet?.rows[0]?.cells[0]?.styleIndex ?? '';
       const firstFormulaCell = firstSheet?.rows.flatMap((row) => row.cells).find((cell) => cell.formula);
       const commentB2 = firstSheet?.comments.find((comment) => comment.reference === 'B2');
+      const selection = firstSheet?.selection;
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1</div>
@@ -212,6 +214,10 @@ function renderEditorControls(): void {
           <input id="xlsx-formula-input" value="${escapeHtml(firstFormulaCell.formula ?? '')}" style="width: 100%; padding: 8px;" />
         </label>` : ''}
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Selection sqref</div>
+          <input id="xlsx-selection-input" value="${escapeHtml(selection?.sqref ?? selection?.activeCell ?? '')}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!B2 comment</div>
           <input id="xlsx-comment-input" value="${escapeHtml(commentB2?.text ?? '')}" style="width: 100%; padding: 8px;" />
         </label>
@@ -220,6 +226,7 @@ function renderEditorControls(): void {
       const styleInput = window.document.getElementById('xlsx-style-input') as HTMLInputElement;
       const sheetInput = window.document.getElementById('xlsx-sheet-input') as HTMLInputElement;
       const formulaInput = firstFormulaCell ? window.document.getElementById('xlsx-formula-input') as HTMLInputElement : null;
+      const selectionInput = window.document.getElementById('xlsx-selection-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'xlsx') {
@@ -247,6 +254,13 @@ function renderEditorControls(): void {
             firstFormulaCell.value
           );
         }
+        if (selectionInput.value) {
+          setWorksheetSelection(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            { activeCell: selectionInput.value.split(':')[0], sqref: selectionInput.value }
+          );
+        }
         if (commentInput.value) {
           upsertWorksheetComment(
             workbookEditor,
@@ -262,6 +276,7 @@ function renderEditorControls(): void {
       styleInput.addEventListener('input', update);
       sheetInput.addEventListener('input', update);
       formulaInput?.addEventListener('input', update);
+      selectionInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       break;
     }

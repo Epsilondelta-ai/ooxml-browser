@@ -67,7 +67,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 
 ## Gaps that remain outside the public editing surface
 
-- XLSX chart/comment-threaded extensions, print settings, selection state, and relationship-backed media/chart retargeting
+- XLSX chart/comment-threaded extensions, print settings, and relationship-backed media/chart retargeting
 - PPTX richer animation graph editing beyond flat timing nodes
 - Relationship-safe embedded-object retargeting across all formats
 
