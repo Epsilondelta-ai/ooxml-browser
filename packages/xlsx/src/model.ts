@@ -71,7 +71,9 @@ export interface XlsxChart {
   title?: string;
   legendPosition?: string;
   categoryAxisTitle?: string;
+  categoryAxisPosition?: string;
   valueAxisTitle?: string;
+  valueAxisPosition?: string;
   seriesNames: string[];
 }
 

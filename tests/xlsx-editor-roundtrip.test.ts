@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisTitle, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -341,6 +341,21 @@ describe('xlsx editor round-trips', () => {
     expect(reopened.sheets[0]?.charts[0]?.valueAxisTitle).toBe('Pipeline');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('Market');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('Pipeline');
+  });
+
+  it('persists worksheet chart axis-position edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
+    setWorksheetChartCategoryAxisPosition(editor, 'Sheet1', 0, 'l');
+    setWorksheetChartValueAxisPosition(editor, 'Sheet1', 0, 'r');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.categoryAxisPosition).toBe('l');
+    expect(reopened.sheets[0]?.charts[0]?.valueAxisPosition).toBe('r');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('axPos val="l"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('axPos val="r"');
   });
 
   it('retargets worksheet media relationships through save flows', async () => {

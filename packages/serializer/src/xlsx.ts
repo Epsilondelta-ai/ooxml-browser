@@ -144,7 +144,9 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.title !== originalChart?.title
       || chart.legendPosition !== originalChart?.legendPosition
       || chart.categoryAxisTitle !== originalChart?.categoryAxisTitle
+      || chart.categoryAxisPosition !== originalChart?.categoryAxisPosition
       || chart.valueAxisTitle !== originalChart?.valueAxisTitle
+      || chart.valueAxisPosition !== originalChart?.valueAxisPosition
       || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])
     ) {
       const existingSource = chart.chartType === originalChart?.chartType ? graph.parts[chart.targetUri]?.text : undefined;
@@ -506,6 +508,15 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newText: chart.categoryAxisTitle
         });
       }
+      if (chart.categoryAxisPosition !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:axPos',
+          targetAttr: 'val',
+          newValue: chart.categoryAxisPosition,
+          occurrence: 0
+        });
+      }
       if (chart.valueAxisTitle !== undefined) {
         operations.push({
           op: 'replaceText',
@@ -513,6 +524,15 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           occurrence: 0,
           textTag: 'a:t',
           newText: chart.valueAxisTitle
+        });
+      }
+      if (chart.valueAxisPosition !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:axPos',
+          targetAttr: 'val',
+          newValue: chart.valueAxisPosition,
+          occurrence: 1
         });
       }
       for (const [seriesIndex, seriesName] of chart.seriesNames.entries()) {
@@ -531,8 +551,8 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
 
   const chartType = chart.chartType ?? 'barChart';
   const seriesXml = chart.seriesNames.map((seriesName, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesName)}</a:t></c:rich></c:tx></c:ser>`).join('');
-  const categoryAxisXml = chart.categoryAxisTitle ? `<c:catAx><c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title></c:catAx>` : '';
-  const valueAxisXml = chart.valueAxisTitle ? `<c:valAx><c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title></c:valAx>` : '';
+  const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';
+  const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${seriesXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
 }

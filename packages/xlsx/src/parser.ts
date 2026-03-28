@@ -346,7 +346,9 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const categoryAxisNode = chartRoot ? findElementsByLocalName(chartRoot, 'catAx')[0] : undefined;
     const valueAxisNode = chartRoot ? findElementsByLocalName(chartRoot, 'valAx')[0] : undefined;
     const categoryAxisTitleNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'title')[0] : undefined;
+    const categoryAxisPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'axPos')[0] : undefined;
     const valueAxisTitleNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'title')[0] : undefined;
+    const valueAxisPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'axPos')[0] : undefined;
     const chartType = chartRoot
       ? ['barChart', 'lineChart', 'pieChart', 'areaChart', 'scatterChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
@@ -367,7 +369,9 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       title: chartTitle || undefined,
       legendPosition: xmlAttr(legendNode, 'val') ?? undefined,
       categoryAxisTitle: categoryAxisTitleNode ? findElementsByLocalName(categoryAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
+      categoryAxisPosition: xmlAttr(categoryAxisPositionNode, 'val') ?? undefined,
       valueAxisTitle: valueAxisTitleNode ? findElementsByLocalName(valueAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
+      valueAxisPosition: xmlAttr(valueAxisPositionNode, 'val') ?? undefined,
       seriesNames
     }];
   });

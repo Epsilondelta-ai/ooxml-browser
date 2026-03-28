@@ -21,7 +21,9 @@ describe('xlsx chart relationships', () => {
       title: 'Primary Chart',
       legendPosition: 'r',
       categoryAxisTitle: 'Region',
+      categoryAxisPosition: 'b',
       valueAxisTitle: 'Revenue',
+      valueAxisPosition: 'l',
       seriesNames: ['North', 'South']
     });
   });
@@ -30,6 +32,6 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] legend:r cat:Region val:Revenue {North, South} (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart <barChart> [Primary Chart] legend:r cat:Region catPos:b val:Revenue valPos:l {North, South} (/xl/charts/chart1.xml)');
   });
 });
