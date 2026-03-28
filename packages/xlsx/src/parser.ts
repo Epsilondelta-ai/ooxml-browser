@@ -352,9 +352,11 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const categoryAxisTitleNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'title')[0] : undefined;
     const categoryAxisPositionNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'axPos')[0] : undefined;
     const categoryAxisCrossesNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'crosses')[0] : undefined;
+    const categoryAxisCrossesAtNode = categoryAxisNode ? findElementsByLocalName(categoryAxisNode, 'crossesAt')[0] : undefined;
     const valueAxisTitleNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'title')[0] : undefined;
     const valueAxisPositionNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'axPos')[0] : undefined;
     const valueAxisCrossesNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'crosses')[0] : undefined;
+    const valueAxisCrossesAtNode = valueAxisNode ? findElementsByLocalName(valueAxisNode, 'crossesAt')[0] : undefined;
     const chartType = chartRoot
       ? ['barChart', 'lineChart', 'pieChart', 'doughnutChart', 'areaChart', 'scatterChart', 'bubbleChart']
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
@@ -420,9 +422,11 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       categoryAxisTitle: categoryAxisTitleNode ? findElementsByLocalName(categoryAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
       categoryAxisPosition: xmlAttr(categoryAxisPositionNode, 'val') ?? undefined,
       categoryAxisCrosses: xmlAttr(categoryAxisCrossesNode, 'val') ?? undefined,
+      categoryAxisCrossesAt: (() => { const value = xmlAttr(categoryAxisCrossesAtNode, 'val'); return value ? Number(value) : undefined; })(),
       valueAxisTitle: valueAxisTitleNode ? findElementsByLocalName(valueAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
       valueAxisPosition: xmlAttr(valueAxisPositionNode, 'val') ?? undefined,
       valueAxisCrosses: xmlAttr(valueAxisCrossesNode, 'val') ?? undefined,
+      valueAxisCrossesAt: (() => { const value = xmlAttr(valueAxisCrossesAtNode, 'val'); return value ? Number(value) : undefined; })(),
       dataLabels: dataLabelsNode ? {
         position: xmlAttr(dataLabelPositionNode, 'val') ?? undefined,
         separator: dataLabelSeparatorNode ? xmlText(dataLabelSeparatorNode) || undefined : undefined,

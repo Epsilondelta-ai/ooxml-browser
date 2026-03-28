@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartBubbleScale, setWorksheetChartCategoryAxisCrosses, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartFirstSliceAngle, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartHoleSize, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartScatterStyle, setWorksheetChartSeriesExplosion, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartShowNegativeBubbles, setWorksheetChartSizeRepresents, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisCrosses, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartBubbleScale, setWorksheetChartCategoryAxisCrosses, setWorksheetChartCategoryAxisCrossesAt, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartFirstSliceAngle, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartHoleSize, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartScatterStyle, setWorksheetChartSeriesExplosion, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartShowNegativeBubbles, setWorksheetChartSizeRepresents, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisCrosses, setWorksheetChartValueAxisCrossesAt, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -333,16 +333,22 @@ describe('xlsx editor round-trips', () => {
   it('persists worksheet chart axis-crossing edits through save flows', async () => {
     const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
     setWorksheetChartCategoryAxisCrosses(editor, 'Sheet1', 0, 'min');
+    setWorksheetChartCategoryAxisCrossesAt(editor, 'Sheet1', 0, 2);
     setWorksheetChartValueAxisCrosses(editor, 'Sheet1', 0, 'autoZero');
+    setWorksheetChartValueAxisCrossesAt(editor, 'Sheet1', 0, 10);
 
     const serialized = serializeOfficeDocument(editor.document);
     const reopened = parseXlsx(await openPackage(serialized));
     const reopenedGraph = await openPackage(serialized);
 
     expect(reopened.sheets[0]?.charts[0]?.categoryAxisCrosses).toBe('min');
+    expect(reopened.sheets[0]?.charts[0]?.categoryAxisCrossesAt).toBe(2);
     expect(reopened.sheets[0]?.charts[0]?.valueAxisCrosses).toBe('autoZero');
+    expect(reopened.sheets[0]?.charts[0]?.valueAxisCrossesAt).toBe(10);
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('crosses val="min"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('crossesAt val="2"');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('crosses val="autoZero"');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('crossesAt val="10"');
   });
 
   it('persists worksheet chart legend-position edits through save flows', async () => {

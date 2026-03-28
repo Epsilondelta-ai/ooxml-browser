@@ -656,6 +656,16 @@ export function setWorksheetChartCategoryAxisCrosses(editor: OfficeEditor<XlsxWo
   });
 }
 
+export function setWorksheetChartCategoryAxisCrossesAt(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, crossesAt: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.categoryAxisCrossesAt = crossesAt;
+    }
+  });
+}
+
 export function setWorksheetChartValueAxisPosition(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, position: string | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
@@ -672,6 +682,16 @@ export function setWorksheetChartValueAxisCrosses(editor: OfficeEditor<XlsxWorkb
     const chart = sheet?.charts[chartIndex];
     if (chart) {
       chart.valueAxisCrosses = crosses;
+    }
+  });
+}
+
+export function setWorksheetChartValueAxisCrossesAt(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, crossesAt: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.valueAxisCrossesAt = crossesAt;
     }
   });
 }
