@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setWorkbookCellFormula, setWorkbookDefinedNameReference, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange } from '@ooxml/editor';
+import { createOfficeEditor, setWorkbookCellFormula, setWorkbookDefinedNameReference, setWorkbookSheetName, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -35,6 +35,20 @@ describe('xlsx editor round-trips', () => {
 
     expect(reopened.definedNames[0]?.reference).toBe('Sheet1!$A$1:$B$9');
     expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('customWorkbookAttr="keep"');
+  });
+
+
+  it('persists renamed worksheets and updates defined-name references', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
+    setWorkbookSheetName(editor, 'Sheet1', 'Summary');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.name).toBe('Summary');
+    expect(reopened.definedNames[0]?.reference).toBe('Summary!$A$1:$B$2');
+    expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('name="Summary"');
   });
 
   it('persists edited worksheet comment authors', async () => {

@@ -177,6 +177,23 @@ export function setWorkbookDefinedNameReference(editor: OfficeEditor<XlsxWorkboo
   });
 }
 
+export function setWorkbookSheetName(editor: OfficeEditor<XlsxWorkbook>, currentName: string, nextName: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === currentName);
+    if (!sheet) {
+      return;
+    }
+
+    sheet.name = nextName;
+    const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(^|[^A-Za-z0-9_])${escapedCurrent}!`, 'g');
+    draft.definedNames = draft.definedNames.map((definedName) => ({
+      ...definedName,
+      reference: definedName.reference.replace(pattern, (match, prefix) => `${prefix}${nextName}!`)
+    }));
+  });
+}
+
 export function setWorksheetFrozenPane(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, frozenPane: { xSplit?: number; ySplit?: number; topLeftCell?: string; state?: string } | undefined): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);
