@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setWorkbookDefinedNameReference, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange } from '@ooxml/editor';
+import { createOfficeEditor, setWorkbookDefinedNameReference, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMergedRanges, setWorksheetTableName, setWorksheetTableRange } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -35,6 +35,19 @@ describe('xlsx editor round-trips', () => {
 
     expect(reopened.definedNames[0]?.reference).toBe('Sheet1!$A$1:$B$9');
     expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('customWorkbookAttr="keep"');
+  });
+
+  it('persists edited worksheet comment authors', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createCommentedXlsxFixture())));
+    setWorksheetCommentAuthor(editor, 'Sheet1', 'B2', 'Reviewer');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.comments).toEqual([{ reference: 'B2', author: 'Reviewer', text: 'Review this value' }]);
+    expect(reopenedGraph.parts['/xl/comments1.xml']?.text).toContain('<author>Reviewer</author>');
+    expect(reopenedGraph.parts['/xl/comments1.xml']?.text).toContain('authorId="0"');
   });
 
   it('persists edited worksheet frozen pane metadata', async () => {

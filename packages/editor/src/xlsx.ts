@@ -105,6 +105,20 @@ export function setWorksheetCommentText(editor: OfficeEditor<XlsxWorkbook>, shee
   });
 }
 
+export function setWorksheetCommentAuthor(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, author: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    const comment = sheet.comments.find((entry) => entry.reference === reference);
+    if (comment) {
+      comment.author = author;
+    }
+  });
+}
+
 export function setWorksheetTableRange(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, tableName: string, range: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

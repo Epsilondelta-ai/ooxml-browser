@@ -250,7 +250,10 @@ function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGr
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
-  if (existingSource) {
+  const normalizedAuthors = comments.map((comment) => comment.author ?? '');
+  const authorSetChanged = JSON.stringify(normalizedAuthors) !== JSON.stringify(parseCommentAuthors(existingSource));
+
+  if (existingSource && !authorSetChanged) {
     return applyXmlPatchPlan(existingSource, comments.map((comment) => ({
       op: 'replaceText' as const,
       containerTag: 'comment',
@@ -266,6 +269,30 @@ function buildCommentsXml(comments: XlsxComment[], existingSource?: string): str
   const commentsXml = comments.map((comment) => `<comment ref="${escapeXml(comment.reference)}"${comment.author ? ` authorId="${authorIndex.get(comment.author) ?? 0}"` : ''}><text><r><t>${escapeXml(comment.text)}</t></r></text></comment>`).join('');
   const authorsXml = authors.length ? `<authors>${authors.map((author) => `<author>${escapeXml(author)}</author>`).join('')}</authors>` : '';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${authorsXml}<commentList>${commentsXml}</commentList></comments>`;
+}
+
+function parseCommentAuthors(existingSource?: string): string[] {
+  if (!existingSource) {
+    return [];
+  }
+
+  const authorPattern = /<comment\b[^>]*?(?:authorId="(\d+)")?[^>]*>/g;
+  const authorsRoot = existingSource.match(/<authors>([\s\S]*?)<\/authors>/)?.[1] ?? '';
+  const authorValues = [...authorsRoot.matchAll(/<author>([\s\S]*?)<\/author>/g)].map((match) => decodeXml(match[1] ?? ''));
+
+  return [...existingSource.matchAll(authorPattern)].map((match) => {
+    const index = match[1] !== undefined ? Number(match[1]) : undefined;
+    return index !== undefined && authorValues[index] !== undefined ? authorValues[index] : '';
+  });
+}
+
+function decodeXml(value: string): string {
+  return value
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'")
+    .replaceAll('&amp;', '&');
 }
 
 function canPatchWorksheet(sheet: WorkbookSheet, originalSheet: WorkbookSheet): boolean {
