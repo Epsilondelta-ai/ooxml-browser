@@ -94,8 +94,12 @@ function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sh
 function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSheet: WorkbookSheet | undefined, sheet: WorkbookSheet): void {
   for (const chart of sheet.charts) {
     const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
-    if (chart.title !== originalChart?.title || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])) {
-      const existingSource = graph.parts[chart.targetUri]?.text;
+    if (
+      chart.chartType !== originalChart?.chartType
+      || chart.title !== originalChart?.title
+      || JSON.stringify(chart.seriesNames) !== JSON.stringify(originalChart?.seriesNames ?? [])
+    ) {
+      const existingSource = chart.chartType === originalChart?.chartType ? graph.parts[chart.targetUri]?.text : undefined;
       updatePackagePartText(
         graph,
         chart.targetUri,
