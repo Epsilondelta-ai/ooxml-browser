@@ -66,6 +66,10 @@ export interface PresentationTimingNode {
   endTriggerDelay?: string;
   endTriggerShapeId?: string;
   targetShapeId?: string;
+  colorSpace?: string;
+  colorDirection?: string;
+  motionOrigin?: string;
+  motionPath?: string;
 }
 
 export interface PresentationTiming {

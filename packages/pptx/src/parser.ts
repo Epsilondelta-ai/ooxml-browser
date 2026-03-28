@@ -257,7 +257,11 @@ function parseTiming(slide: Record<string, unknown>): PresentationTiming | undef
         endTriggerEvent: xmlAttr(endCondition, 'evt') ?? undefined,
         endTriggerDelay: xmlAttr(endCondition, 'delay') ?? undefined,
         endTriggerShapeId: xmlAttr(endShapeTarget, 'spid') ?? undefined,
-        targetShapeId: xmlAttr(shapeTarget, 'spid') ?? undefined
+        targetShapeId: xmlAttr(shapeTarget, 'spid') ?? undefined,
+        colorSpace: xmlAttr(node, 'clrSpc') ?? undefined,
+        colorDirection: xmlAttr(node, 'dir') ?? undefined,
+        motionOrigin: xmlAttr(node, 'origin') ?? undefined,
+        motionPath: xmlAttr(node, 'path') ?? undefined
       });
     }
   }

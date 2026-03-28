@@ -91,7 +91,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment create/update | `addPresentationComment` | Persisted | Creates a comments part and slide relationship on demand when missing. |
 | Comment delete | `removePresentationComment` | Persisted | Deletes comments from the slide model and persists an empty comments part when needed. |
 | Transition | `setPresentationTransition` | Persisted | Slide metadata rebuild path including speed and auto-advance policy. |
-| Timing nodes | `setPresentationTimingNodes` | Persisted | Parser/editor/serializer preserve core `p:cTn` metadata plus sequence-node concurrency/next-action/previous-action semantics, additional animation node families (`animClr`, `animMotion`, `set`, `cmd`), repeat duration/auto-reverse, restart/fill policy, accel/decel timing curves, start/end-condition trigger event/delay fields, trigger-shape bindings, and target shape IDs. |
+| Timing nodes | `setPresentationTimingNodes` | Persisted | Parser/editor/serializer preserve core `p:cTn` metadata plus sequence-node concurrency/next-action/previous-action semantics, additional animation node families (`animClr`, `animMotion`, `set`, `cmd`), color-space/direction and motion origin/path payload attrs, repeat duration/auto-reverse, restart/fill policy, accel/decel timing curves, start/end-condition trigger event/delay fields, trigger-shape bindings, and target shape IDs. |
 | Presentation size | `setPresentationSize` | Persisted | Serializer patches `p:sldSz` in `presentation.xml`. |
 
 ## Gaps that remain outside the public editing surface
