@@ -1,9 +1,10 @@
-import { applyXmlPatchPlan, clonePackageGraph, serializePackageGraph, updatePackagePartText } from '@ooxml/core';
+import { applyXmlPatchPlan, clonePackageGraph, serializePackageGraph, updatePackagePartText, upsertRelationship } from '@ooxml/core';
 import { parseDocx, type DocxComment, type DocxDocument, type DocxParagraph, type DocxSection, type DocxStyle, type DocxTable } from '@ooxml/docx';
 
 export function serializeDocx(document: DocxDocument): Uint8Array {
   const graph = clonePackageGraph(document.packageGraph);
   const originalDocument = parseDocx(document.packageGraph);
+  syncSectionReferenceRelationships(graph, originalDocument.sections[0], document.sections[0]);
 
   const originalStoriesByUri = new Map(originalDocument.stories.map((story) => [story.uri, story]));
 
@@ -54,6 +55,36 @@ export function serializeDocx(document: DocxDocument): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function syncSectionReferenceRelationships(graph: DocxDocument['packageGraph'], originalSection: DocxSection | undefined, section: DocxSection | undefined): void {
+  if (!section) {
+    return;
+  }
+
+  syncReferenceGroup(graph, originalSection?.headerReferences ?? [], section.headerReferences, '/header');
+  syncReferenceGroup(graph, originalSection?.footerReferences ?? [], section.footerReferences, '/footer');
+}
+
+function syncReferenceGroup(
+  graph: DocxDocument['packageGraph'],
+  originalReferences: DocxSection['headerReferences'],
+  references: DocxSection['headerReferences'],
+  typeFragment: '/header' | '/footer'
+): void {
+  for (const reference of references) {
+    const originalReference = originalReferences.find((entry) => entry.relationshipId === reference.relationshipId);
+    if (!reference.targetUri || reference.targetUri === originalReference?.targetUri) {
+      continue;
+    }
+
+    upsertRelationship(graph, '/word/document.xml', {
+      id: reference.relationshipId,
+      type: `http://schemas.openxmlformats.org/officeDocument/2006/relationships${typeFragment}`,
+      target: relativeRelationshipTarget('/word/document.xml', reference.targetUri),
+      targetMode: 'Internal'
+    });
+  }
 }
 
 function buildDocxStoryXml(paragraphs: DocxParagraph[], tables: DocxTable[], section: DocxSection | undefined, kind: 'document' | 'header' | 'footer', blocks: DocxDocument['stories'][number]['blocks'] = [], existingSource?: string, originalStory?: DocxDocument['stories'][number], originalSection?: DocxSection): string {
@@ -133,6 +164,19 @@ function escapeXml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
+}
+
+function relativeRelationshipTarget(sourceUri: string, targetUri: string): string {
+  const sourceSegments = sourceUri.replace(/^\//, '').split('/');
+  sourceSegments.pop();
+  const targetSegments = targetUri.replace(/^\//, '').split('/');
+
+  while (sourceSegments.length > 0 && targetSegments.length > 0 && sourceSegments[0] === targetSegments[0]) {
+    sourceSegments.shift();
+    targetSegments.shift();
+  }
+
+  return `${sourceSegments.map(() => '..').join('/')}${sourceSegments.length ? '/' : ''}${targetSegments.join('/')}`;
 }
 
 

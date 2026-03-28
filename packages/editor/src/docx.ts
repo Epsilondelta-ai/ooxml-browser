@@ -152,3 +152,19 @@ export function setDocxSectionReferenceType(
     }
   });
 }
+
+export function setDocxSectionReferenceTarget(
+  editor: OfficeEditor<DocxDocument>,
+  sectionIndex: number,
+  referenceKind: 'header' | 'footer',
+  referenceIndex: number,
+  targetUri: string
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const section = draft.sections[sectionIndex];
+    const reference = (referenceKind === 'header' ? section?.headerReferences : section?.footerReferences)?.[referenceIndex];
+    if (reference) {
+      reference.targetUri = targetUri;
+    }
+  });
+}

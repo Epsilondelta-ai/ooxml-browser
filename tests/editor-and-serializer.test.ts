@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, replaceDocxStoryParagraphText, setDocxCommentText, setDocxParagraphNumbering, setDocxParagraphRunStyle, setDocxParagraphStyle, setDocxSectionLayout, setDocxSectionReferenceTarget, setDocxSectionReferenceType, setDocxTableCellText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
@@ -64,6 +64,15 @@ describe('editor transactions', () => {
 
     expect(editor.document.sections[0]?.headerReferences[0]?.type).toBe('first');
     expect(editor.document.sections[0]?.footerReferences[0]?.type).toBe('even');
+  });
+
+  it('updates docx header/footer reference targets through editor helpers', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    setDocxSectionReferenceTarget(editor, 0, 'header', 0, '/word/header2.xml');
+    setDocxSectionReferenceTarget(editor, 0, 'footer', 0, '/word/footer2.xml');
+
+    expect(editor.document.sections[0]?.headerReferences[0]?.targetUri).toBe('/word/header2.xml');
+    expect(editor.document.sections[0]?.footerReferences[0]?.targetUri).toBe('/word/footer2.xml');
   });
 
   it('updates docx paragraph style and numbering through editor helpers', async () => {
@@ -130,6 +139,16 @@ describe('serializer round-trips', () => {
     const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.sections[0]?.headerReferences[0]?.type).toBe('first');
     expect(reopened.sections[0]?.footerReferences[0]?.type).toBe('even');
+  });
+
+  it('round-trips edited docx header/footer reference targets', async () => {
+    const editor = createOfficeEditor(parseDocx(await openPackage(createSectionedDocxFixture())));
+    setDocxSectionReferenceTarget(editor, 0, 'header', 0, '/word/header2.xml');
+    setDocxSectionReferenceTarget(editor, 0, 'footer', 0, '/word/footer2.xml');
+
+    const reopened = parseDocx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.sections[0]?.headerReferences[0]?.targetUri).toBe('/word/header2.xml');
+    expect(reopened.sections[0]?.footerReferences[0]?.targetUri).toBe('/word/footer2.xml');
   });
 
   it('round-trips edited docx paragraph style and numbering metadata', async () => {
