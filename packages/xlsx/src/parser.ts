@@ -342,6 +342,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     const chartRoot = chartXml?.document;
     const chartTitleNode = chartRoot ? findElementsByLocalName(chartRoot, 'title')[0] : undefined;
     const chartTitle = chartTitleNode ? findElementsByLocalName(chartTitleNode, 't').map((node) => xmlText(node)).join('') : undefined;
+    const plotVisibleOnlyNode = chartRoot ? findElementsByLocalName(chartRoot, 'plotVisOnly')[0] : undefined;
+    const displayBlanksAsNode = chartRoot ? findElementsByLocalName(chartRoot, 'dispBlanksAs')[0] : undefined;
     const legendNode = chartRoot ? findElementsByLocalName(chartRoot, 'legendPos')[0] : undefined;
     const categoryAxisNode = chartRoot ? findElementsByLocalName(chartRoot, 'catAx')[0] : undefined;
     const valueAxisNode = chartRoot ? findElementsByLocalName(chartRoot, 'valAx')[0] : undefined;
@@ -389,6 +391,8 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       varyColors: xmlAttr(varyColorsNode, 'val') === '1' ? true : xmlAttr(varyColorsNode, 'val') === '0' ? false : undefined,
       gapWidth: (() => { const value = xmlAttr(gapWidthNode, 'val'); return value ? Number(value) : undefined; })(),
       title: chartTitle || undefined,
+      plotVisibleOnly: xmlAttr(plotVisibleOnlyNode, 'val') === '1' ? true : xmlAttr(plotVisibleOnlyNode, 'val') === '0' ? false : undefined,
+      displayBlanksAs: xmlAttr(displayBlanksAsNode, 'val') ?? undefined,
       legendPosition: xmlAttr(legendNode, 'val') ?? undefined,
       categoryAxisTitle: categoryAxisTitleNode ? findElementsByLocalName(categoryAxisTitleNode, 't').map((node) => xmlText(node)).join('') || undefined : undefined,
       categoryAxisPosition: xmlAttr(categoryAxisPositionNode, 'val') ?? undefined,

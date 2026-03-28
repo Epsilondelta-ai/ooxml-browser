@@ -145,6 +145,8 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
       || chart.overlap !== originalChart?.overlap
       || chart.varyColors !== originalChart?.varyColors
       || chart.gapWidth !== originalChart?.gapWidth
+      || chart.plotVisibleOnly !== originalChart?.plotVisibleOnly
+      || chart.displayBlanksAs !== originalChart?.displayBlanksAs
       || chart.title !== originalChart?.title
       || chart.legendPosition !== originalChart?.legendPosition
       || chart.categoryAxisTitle !== originalChart?.categoryAxisTitle
@@ -528,6 +530,22 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newValue: String(chart.gapWidth)
         });
       }
+      if (chart.plotVisibleOnly !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:plotVisOnly',
+          targetAttr: 'val',
+          newValue: chart.plotVisibleOnly ? '1' : '0'
+        });
+      }
+      if (chart.displayBlanksAs !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:dispBlanksAs',
+          targetAttr: 'val',
+          newValue: chart.displayBlanksAs
+        });
+      }
       if (chart.legendPosition !== undefined) {
         operations.push({
           op: 'replaceAttribute',
@@ -643,11 +661,13 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const groupingXml = chart.grouping !== undefined ? `<c:grouping val="${escapeXml(chart.grouping)}"/>` : '';
   const overlapXml = chart.overlap !== undefined ? `<c:overlap val="${chart.overlap}"/>` : '';
   const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
+  const plotVisibleOnlyXml = chart.plotVisibleOnly !== undefined ? `<c:plotVisOnly val="${chart.plotVisibleOnly ? '1' : '0'}"/>` : '';
+  const displayBlanksAsXml = chart.displayBlanksAs !== undefined ? `<c:dispBlanksAs val="${escapeXml(chart.displayBlanksAs)}"/>` : '';
   const categoryAxisXml = chart.categoryAxisTitle || chart.categoryAxisPosition ? `<c:catAx>${chart.categoryAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.categoryAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.categoryAxisPosition ? `<c:axPos val="${escapeXml(chart.categoryAxisPosition)}"/>` : ''}</c:catAx>` : '';
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}</c:chart></c:chartSpace>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {

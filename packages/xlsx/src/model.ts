@@ -86,6 +86,8 @@ export interface XlsxChart {
   varyColors?: boolean;
   gapWidth?: number;
   title?: string;
+  plotVisibleOnly?: boolean;
+  displayBlanksAs?: string;
   legendPosition?: string;
   categoryAxisTitle?: string;
   categoryAxisPosition?: string;
