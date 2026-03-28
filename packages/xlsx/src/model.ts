@@ -52,6 +52,7 @@ export interface XlsxChart {
   drawingUri: string;
   targetUri: string;
   name?: string;
+  title?: string;
 }
 
 export interface XlsxMedia {

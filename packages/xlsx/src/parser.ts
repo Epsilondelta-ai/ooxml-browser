@@ -317,11 +317,14 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
     }
 
     const nonVisual = findElementsByLocalName(frame, 'cNvPr')[0];
+    const chartXml = getParsedXmlPart(graph, target);
+    const chartTitle = chartXml ? findElementsByLocalName(chartXml.document, 't').map((node) => xmlText(node)).join('') : undefined;
     return [{
       relationshipId,
       drawingUri,
       targetUri: target,
-      name: xmlAttr(nonVisual, 'name')
+      name: xmlAttr(nonVisual, 'name'),
+      title: chartTitle || undefined
     }];
   });
 }

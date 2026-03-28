@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartTarget, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -266,6 +266,18 @@ describe('xlsx editor round-trips', () => {
     expect(reopened.sheets[0]?.charts[0]?.targetUri).toBe('/xl/charts/chart2.xml');
     expect(reopenedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toContain('../charts/chart2.xml');
     expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
+  });
+
+  it('persists worksheet chart title edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
+    setWorksheetChartTitle(editor, 'Sheet1', 0, 'Quarterly Revenue');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.title).toBe('Quarterly Revenue');
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('Quarterly Revenue');
   });
 
   it('retargets worksheet media relationships through save flows', async () => {

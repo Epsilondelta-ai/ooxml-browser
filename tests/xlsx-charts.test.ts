@@ -15,7 +15,8 @@ describe('xlsx chart relationships', () => {
       relationshipId: 'rIdChart1',
       drawingUri: '/xl/drawings/drawing1.xml',
       targetUri: '/xl/charts/chart1.xml',
-      name: 'Sales Chart'
+      name: 'Sales Chart',
+      title: 'Primary Chart'
     });
   });
 
@@ -23,6 +24,6 @@ describe('xlsx chart relationships', () => {
     const workbook = parseXlsx(await openPackage(createChartedXlsxFixture()));
     const html = renderOfficeDocumentToHtml(workbook);
 
-    expect(html).toContain('Charts: Sales Chart (/xl/charts/chart1.xml)');
+    expect(html).toContain('Charts: Sales Chart [Primary Chart] (/xl/charts/chart1.xml)');
   });
 });

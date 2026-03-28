@@ -28,6 +28,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
     const originalSheet = originalWorkbook.sheets.find((entry) => entry.uri === sheet.uri);
     syncWorksheetTableRelationships(graph, originalSheet, sheet);
     syncWorksheetChartRelationships(graph, sheet);
+    syncWorksheetChartParts(graph, originalSheet, sheet);
     updatePackagePartText(
       graph,
       sheet.uri,
@@ -87,6 +88,23 @@ function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sh
       target: relativeRelationshipTarget(media.drawingUri, media.targetUri),
       targetMode: 'Internal'
     });
+  }
+}
+
+function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSheet: WorkbookSheet | undefined, sheet: WorkbookSheet): void {
+  for (const chart of sheet.charts) {
+    const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
+    if (chart.title === originalChart?.title) {
+      continue;
+    }
+
+    const existingSource = graph.parts[chart.targetUri]?.text;
+    updatePackagePartText(
+      graph,
+      chart.targetUri,
+      buildChartXml(chart, existingSource),
+      'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
+    );
   }
 }
 
@@ -388,6 +406,22 @@ function buildTableXml(table: XlsxTable, graph: ReturnType<typeof clonePackageGr
   const root = xml?.document.table as Record<string, unknown> | undefined;
   const tableId = root ? xmlAttr(root, 'id') ?? '1' : '1';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="${escapeXml(tableId)}" name="${escapeXml(table.name)}" displayName="${escapeXml(table.name)}" ref="${escapeXml(table.range)}"/>`;
+}
+
+function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: string): string {
+  if (existingSource && chart.title !== undefined) {
+    return applyXmlPatchPlan(existingSource, [
+      {
+        op: 'replaceText',
+        containerTag: 'c:title',
+        occurrence: 0,
+        textTag: 'a:t',
+        newText: chart.title
+      }
+    ]);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title></c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {
