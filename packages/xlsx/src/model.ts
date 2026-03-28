@@ -108,6 +108,7 @@ export interface XlsxChart {
   plotVisibleOnly?: boolean;
   displayBlanksAs?: string;
   showDataLabelsOverMax?: boolean;
+  roundedCorners?: boolean;
   legendPosition?: string;
   legendOverlay?: boolean;
   categoryAxisTitle?: string;
