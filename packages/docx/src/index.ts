@@ -3,10 +3,15 @@ export type {
   DocxDocument,
   DocxStyle,
   DocxParagraph,
+  DocxParagraphNumbering,
   DocxRun,
+  DocxNumbering,
+  DocxNumberingLevel,
+  DocxNumberingInstance,
+  DocxAbstractNumbering,
   DocxStory,
   DocxTable,
   DocxTableCell,
   DocxTableRow
 } from './model';
-export { parseDocx, resolveDocxStyle } from './parser';
+export { parseDocx, resolveDocxNumbering, resolveDocxStyle } from './parser';

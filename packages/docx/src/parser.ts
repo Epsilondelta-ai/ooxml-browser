@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { DocxComment, DocxDocument, DocxParagraph, DocxRun, DocxStory, DocxStyle, DocxTable } from './model';
+import type { DocxAbstractNumbering, DocxComment, DocxDocument, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRun, DocxStory, DocxStyle, DocxTable } from './model';
 
 export function parseDocx(graph: PackageGraph): DocxDocument {
   const mainDocumentUri = graph.rootDocumentUri ?? '/word/document.xml';
@@ -36,7 +36,8 @@ export function parseDocx(graph: PackageGraph): DocxDocument {
     packageGraph: graph,
     stories,
     comments: parseComments(graph, mainDocumentUri),
-    styles: parseStyles(graph, mainDocumentUri)
+    styles: parseStyles(graph, mainDocumentUri),
+    numbering: parseNumbering(graph, mainDocumentUri)
   };
 }
 
@@ -62,9 +63,17 @@ function parseParagraph(node: Record<string, unknown>): DocxParagraph {
   const styleNode = xmlChild<Record<string, unknown>>(paragraphProperties, 'w:pStyle');
   const runs = xmlChildren<Record<string, unknown>>(node, 'w:r').map(parseRun);
 
+  const numPr = xmlChild<Record<string, unknown>>(paragraphProperties, 'w:numPr');
+  const ilvlNode = xmlChild<Record<string, unknown>>(numPr, 'w:ilvl');
+  const numIdNode = xmlChild<Record<string, unknown>>(numPr, 'w:numId');
+
   return {
     text: runs.map((run) => run.text).join(''),
     styleId: xmlAttr(styleNode, 'w:val') ?? xmlAttr(styleNode, 'val'),
+    numbering: numIdNode ? {
+      numId: xmlAttr(numIdNode, 'w:val') ?? xmlAttr(numIdNode, 'val') ?? '',
+      level: Number(xmlAttr(ilvlNode, 'w:val') ?? xmlAttr(ilvlNode, 'val') ?? '0')
+    } : undefined,
     runs
   };
 }
@@ -165,4 +174,68 @@ export function resolveDocxStyle(document: DocxDocument, styleId?: string): Docx
     bold: style.bold ?? parent?.bold,
     italic: style.italic ?? parent?.italic
   };
+}
+
+function parseNumbering(graph: PackageGraph, mainDocumentUri: string): DocxNumbering {
+  const numberingRelationship = relationshipsFor(graph, mainDocumentUri).find((relationship) => relationship.type.includes('/numbering'));
+  const partUri = numberingRelationship?.resolvedTarget ?? (graph.parts['/word/numbering.xml'] ? '/word/numbering.xml' : undefined);
+  if (!partUri) {
+    return { abstractNums: {}, nums: {} };
+  }
+
+  const xml = getParsedXmlPart(graph, partUri);
+  if (!xml) {
+    return { partUri, abstractNums: {}, nums: {} };
+  }
+
+  const root = xml.document['w:numbering'];
+  const abstractNums = Object.fromEntries(
+    xmlChildren<Record<string, unknown>>(root, 'w:abstractNum').map((abstractNode) => {
+      const id = xmlAttr(abstractNode, 'w:abstractNumId') ?? xmlAttr(abstractNode, 'abstractNumId') ?? '';
+      const levels = Object.fromEntries(
+        xmlChildren<Record<string, unknown>>(abstractNode, 'w:lvl').map((levelNode) => {
+          const level = Number(xmlAttr(levelNode, 'w:ilvl') ?? xmlAttr(levelNode, 'ilvl') ?? '0');
+          const numFmtNode = xmlChild<Record<string, unknown>>(levelNode, 'w:numFmt');
+          const lvlTextNode = xmlChild<Record<string, unknown>>(levelNode, 'w:lvlText');
+          const startNode = xmlChild<Record<string, unknown>>(levelNode, 'w:start');
+          const item: DocxNumberingLevel = {
+            level,
+            format: xmlAttr(numFmtNode, 'w:val') ?? xmlAttr(numFmtNode, 'val') ?? 'decimal',
+            text: xmlAttr(lvlTextNode, 'w:val') ?? xmlAttr(lvlTextNode, 'val') ?? '%1.',
+            start: Number(xmlAttr(startNode, 'w:val') ?? xmlAttr(startNode, 'val') ?? '1')
+          };
+          return [level, item] satisfies [number, DocxNumberingLevel];
+        })
+      );
+      const item: DocxAbstractNumbering = { id, levels };
+      return [id, item] satisfies [string, DocxAbstractNumbering];
+    })
+  );
+
+  const nums = Object.fromEntries(
+    xmlChildren<Record<string, unknown>>(root, 'w:num').map((numNode) => {
+      const id = xmlAttr(numNode, 'w:numId') ?? xmlAttr(numNode, 'numId') ?? '';
+      const abstractNumIdNode = xmlChild<Record<string, unknown>>(numNode, 'w:abstractNumId');
+      const item: DocxNumberingInstance = {
+        id,
+        abstractNumId: xmlAttr(abstractNumIdNode, 'w:val') ?? xmlAttr(abstractNumIdNode, 'val') ?? ''
+      };
+      return [id, item] satisfies [string, DocxNumberingInstance];
+    })
+  );
+
+  return { partUri, abstractNums, nums };
+}
+
+export function resolveDocxNumbering(document: DocxDocument, paragraph: DocxParagraph): DocxNumberingLevel | undefined {
+  if (!paragraph.numbering) {
+    return undefined;
+  }
+
+  const num = document.numbering.nums[paragraph.numbering.numId];
+  if (!num) {
+    return undefined;
+  }
+
+  return document.numbering.abstractNums[num.abstractNumId]?.levels[paragraph.numbering.level];
 }

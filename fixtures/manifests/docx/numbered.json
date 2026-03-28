@@ -1,0 +1,12 @@
+{
+  "id": "docx-numbered",
+  "sourceApplication": "repo-generated",
+  "format": "docx",
+  "featureTags": ["numbering", "list-rendering"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "numbered paragraph render"],
+  "reopenExpectations": {"parser": true, "office": "stage-2-attestation-pending", "libreoffice": "stage-2-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}
