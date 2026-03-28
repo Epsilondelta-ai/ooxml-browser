@@ -19,6 +19,7 @@ export function renderWorkbook(workbook: XlsxWorkbook, options: RenderOptions): 
   const mediaMarkup = sheet.media.length ? `<p class="ooxml-xlsx-media">Media: ${sheet.media.map((asset) => `${escapeHtml(asset.name ?? asset.relationshipId)} (${escapeHtml(asset.targetUri)})`).join(', ')}</p>` : '';
   const tablesMarkup = sheet.tables.length ? `<p class="ooxml-xlsx-tables">Tables: ${sheet.tables.map((table) => `${escapeHtml(table.name)} (${escapeHtml(table.range)})`).join(', ')}</p>` : '';
   const commentsMarkup = sheet.comments.length ? `<ul class="ooxml-xlsx-comments">${sheet.comments.map((comment) => `<li data-ref="${escapeHtml(comment.reference)}">${escapeHtml(comment.reference)}: ${escapeHtml(comment.text)}${comment.author ? ` — ${escapeHtml(comment.author)}` : ''}</li>`).join('')}</ul>` : '';
+  const threadedCommentsMarkup = sheet.threadedComments.length ? `<ul class="ooxml-xlsx-threaded-comments">${sheet.threadedComments.map((comment) => `<li data-threaded-ref="${escapeHtml(comment.reference)}">${escapeHtml(comment.reference)}: ${escapeHtml(comment.text)}${comment.author ? ` — ${escapeHtml(comment.author)}` : ''}</li>`).join('')}</ul>` : '';
 
   const rows = sheet.rows.map((row) => {
     const cells = row.cells.map((cell) => {
@@ -28,7 +29,7 @@ export function renderWorkbook(workbook: XlsxWorkbook, options: RenderOptions): 
     return `<tr><th scope="row">${row.index}</th>${cells}</tr>`;
   }).join('');
 
-  return `<section class="ooxml-render ooxml-render--xlsx"><h2>${escapeHtml(sheet.name)}</h2>${frozenPaneMarkup}${selectionMarkup}${pageMarginsMarkup}${pageSetupMarkup}${mergedRangesMarkup}${chartsMarkup}${mediaMarkup}${tablesMarkup}${commentsMarkup}<table class="ooxml-xlsx-grid"><tbody>${rows}</tbody></table></section>`;
+  return `<section class="ooxml-render ooxml-render--xlsx"><h2>${escapeHtml(sheet.name)}</h2>${frozenPaneMarkup}${selectionMarkup}${pageMarginsMarkup}${pageSetupMarkup}${mergedRangesMarkup}${chartsMarkup}${mediaMarkup}${tablesMarkup}${commentsMarkup}${threadedCommentsMarkup}<table class="ooxml-xlsx-grid"><tbody>${rows}</tbody></table></section>`;
 }
 
 function escapeHtml(value: string): string {

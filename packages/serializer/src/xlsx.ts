@@ -1,5 +1,5 @@
 import { applyXmlPatchPlan, clonePackageGraph, relationshipsFor, serializePackageGraph, setRelationshipsForSource, updatePackagePartText, xmlAttr, getParsedXmlPart, upsertRelationship } from '@ooxml/core';
-import { parseXlsx, type WorkbookSheet, type WorksheetCell, type XlsxComment, type XlsxDefinedName, type XlsxTable, type XlsxWorkbook } from '@ooxml/xlsx';
+import { parseXlsx, type WorkbookSheet, type WorksheetCell, type XlsxComment, type XlsxDefinedName, type XlsxTable, type XlsxThreadedComment, type XlsxThreadedCommentPerson, type XlsxWorkbook } from '@ooxml/xlsx';
 
 export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   const graph = clonePackageGraph(workbook.packageGraph);
@@ -14,6 +14,8 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
     patchWorkbookXml(graph.parts['/xl/workbook.xml']?.text, originalWorkbook, workbook) ?? buildWorkbookXml(workbook, graph.parts['/xl/workbook.xml']?.text),
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
   );
+
+  syncWorkbookThreadedCommentPersons(graph, workbook);
 
   if (hasSharedStringsPart && shouldRewriteSharedStrings(originalWorkbook, workbook)) {
     updatePackagePartText(
@@ -66,9 +68,52 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
       );
     }
+
+    const threadedCommentsRelationship = relationshipsFor(graph, sheet.uri).find((relationship) => relationship.type.includes('/threadedComment'));
+    if (sheet.threadedComments.length > 0) {
+      const threadedCommentsUri = threadedCommentsRelationship?.resolvedTarget ?? ensureWorksheetThreadedCommentsPart(graph, sheet.uri);
+      if (!threadedCommentsUri) {
+        continue;
+      }
+      updatePackagePartText(
+        graph,
+        threadedCommentsUri,
+        buildThreadedCommentsXml(sheet.threadedComments),
+        'application/vnd.ms-excel.threadedcomments+xml'
+      );
+    }
+    if (sheet.threadedComments.length === 0 && threadedCommentsRelationship?.resolvedTarget) {
+      updatePackagePartText(
+        graph,
+        threadedCommentsRelationship.resolvedTarget,
+        buildThreadedCommentsXml([]),
+        'application/vnd.ms-excel.threadedcomments+xml'
+      );
+    }
   }
 
   return serializePackageGraph(graph);
+}
+
+function syncWorkbookThreadedCommentPersons(graph: XlsxWorkbook['packageGraph'], workbook: XlsxWorkbook): void {
+  const workbookUri = workbook.packageGraph.rootDocumentUri ?? '/xl/workbook.xml';
+  const workbookRelationships = relationshipsFor(graph, workbookUri);
+  const peopleRelationship = workbookRelationships.find((relationship) => relationship.type.includes('/person'));
+  if (workbook.threadedCommentPersons.length === 0 && !peopleRelationship) {
+    return;
+  }
+
+  const peopleUri = peopleRelationship?.resolvedTarget ?? ensureWorkbookThreadedCommentPersonsPart(graph, workbookUri);
+  if (!peopleUri) {
+    return;
+  }
+
+  updatePackagePartText(
+    graph,
+    peopleUri,
+    buildThreadedCommentPersonsXml(workbook.threadedCommentPersons),
+    'application/vnd.ms-excel.person+xml'
+  );
 }
 
 function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sheet: WorkbookSheet): void {
@@ -518,6 +563,16 @@ function buildCommentsXml(comments: XlsxComment[], existingSource?: string): str
   return `<?xml version="1.0" encoding="UTF-8"?>\n<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${authorsXml}<commentList>${commentsXml}</commentList></comments>`;
 }
 
+function buildThreadedCommentsXml(comments: XlsxThreadedComment[]): string {
+  const commentsXml = comments.map((comment) => `<threadedComment ref="${escapeXml(comment.reference)}" personId="${escapeXml(comment.personId)}" id="${escapeXml(comment.id)}"><text>${escapeXml(comment.text)}</text></threadedComment>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<ThreadedComments xmlns="http://schemas.microsoft.com/office/spreadsheetml/2018/threadedcomments">${commentsXml}</ThreadedComments>`;
+}
+
+function buildThreadedCommentPersonsXml(persons: XlsxThreadedCommentPerson[]): string {
+  const body = persons.map((person) => `<person id="${escapeXml(person.id)}" displayName="${escapeXml(person.displayName)}"/>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<personList xmlns="http://schemas.microsoft.com/office/spreadsheetml/2018/person">${body}</personList>`;
+}
+
 function ensureWorksheetCommentsPart(graph: XlsxWorkbook['packageGraph'], sheetUri: string): string | undefined {
   const sheetRelationships = relationshipsFor(graph, sheetUri);
   const existingComments = sheetRelationships.find((relationship) => relationship.type.includes('/comments'));
@@ -542,12 +597,80 @@ function ensureWorksheetCommentsPart(graph: XlsxWorkbook['packageGraph'], sheetU
   return commentsUri;
 }
 
+function ensureWorksheetThreadedCommentsPart(graph: XlsxWorkbook['packageGraph'], sheetUri: string): string | undefined {
+  const sheetRelationships = relationshipsFor(graph, sheetUri);
+  const existingThreadedComments = sheetRelationships.find((relationship) => relationship.type.includes('/threadedComment'));
+  if (existingThreadedComments?.resolvedTarget) {
+    return existingThreadedComments.resolvedTarget;
+  }
+
+  const threadedCommentsUri = nextThreadedCommentsUri(graph.parts);
+  const relationshipId = nextRelationshipId(sheetRelationships);
+  updatePackagePartText(
+    graph,
+    threadedCommentsUri,
+    buildThreadedCommentsXml([]),
+    'application/vnd.ms-excel.threadedcomments+xml'
+  );
+  upsertRelationship(graph, sheetUri, {
+    id: relationshipId,
+    type: 'http://schemas.microsoft.com/office/2017/10/relationships/threadedComment',
+    target: relativeRelationshipTarget(sheetUri, threadedCommentsUri),
+    targetMode: 'Internal'
+  });
+  return threadedCommentsUri;
+}
+
+function ensureWorkbookThreadedCommentPersonsPart(graph: XlsxWorkbook['packageGraph'], workbookUri: string): string | undefined {
+  const workbookRelationships = relationshipsFor(graph, workbookUri);
+  const existingPeople = workbookRelationships.find((relationship) => relationship.type.includes('/person'));
+  if (existingPeople?.resolvedTarget) {
+    return existingPeople.resolvedTarget;
+  }
+
+  const peopleUri = nextThreadedCommentPersonsUri(graph.parts);
+  const relationshipId = nextRelationshipId(workbookRelationships);
+  updatePackagePartText(
+    graph,
+    peopleUri,
+    buildThreadedCommentPersonsXml([]),
+    'application/vnd.ms-excel.person+xml'
+  );
+  upsertRelationship(graph, workbookUri, {
+    id: relationshipId,
+    type: 'http://schemas.microsoft.com/office/2017/10/relationships/person',
+    target: relativeRelationshipTarget(workbookUri, peopleUri),
+    targetMode: 'Internal'
+  });
+  return peopleUri;
+}
+
 function nextCommentsUri(parts: XlsxWorkbook['packageGraph']['parts']): string {
   let candidateIndex = 1;
   let candidate = `/xl/comments${candidateIndex}.xml`;
   while (parts[candidate]) {
     candidateIndex += 1;
     candidate = `/xl/comments${candidateIndex}.xml`;
+  }
+  return candidate;
+}
+
+function nextThreadedCommentsUri(parts: XlsxWorkbook['packageGraph']['parts']): string {
+  let candidateIndex = 1;
+  let candidate = `/xl/threadedComments/threadedComment${candidateIndex}.xml`;
+  while (parts[candidate]) {
+    candidateIndex += 1;
+    candidate = `/xl/threadedComments/threadedComment${candidateIndex}.xml`;
+  }
+  return candidate;
+}
+
+function nextThreadedCommentPersonsUri(parts: XlsxWorkbook['packageGraph']['parts']): string {
+  let candidateIndex = 1;
+  let candidate = `/xl/persons/person${candidateIndex}.xml`;
+  while (parts[candidate]) {
+    candidateIndex += 1;
+    candidate = `/xl/persons/person${candidateIndex}.xml`;
   }
   return candidate;
 }

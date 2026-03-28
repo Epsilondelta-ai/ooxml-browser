@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisTitle, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, upsertWorkbookDefinedName, upsertWorksheetComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisTitle, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisTitle, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createStructuredXlsxFixture, createXlsxFixture } from './fixture-builders';
+import { createChartedXlsxFixture, createCommentedXlsxFixture, createMediaXlsxFixture, createStructuredXlsxFixture, createThreadedXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx editor round-trips', () => {
   it('persists edited worksheet comments and table ranges', async () => {
@@ -354,6 +354,46 @@ describe('xlsx editor round-trips', () => {
     expect(reopened.sheets[0]?.media[0]?.targetUri).toBe('/xl/media/image2.png');
     expect(reopenedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toContain('../media/image2.png');
     expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
+  });
+
+  it('persists threaded comment text and person metadata through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createThreadedXlsxFixture())));
+    upsertWorkbookThreadedCommentPerson(editor, 'person-2', 'Blair');
+    setWorksheetThreadedCommentText(editor, 'Sheet1', 'A1', 'Updated threaded note');
+    setWorksheetThreadedCommentPerson(editor, 'Sheet1', 'A1', 'person-2');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.threadedCommentPersons).toEqual([
+      { id: 'person-1', displayName: 'Avery' },
+      { id: 'person-2', displayName: 'Blair' }
+    ]);
+    expect(reopened.sheets[0]?.threadedComments).toEqual([
+      { id: 'thread-1', reference: 'A1', personId: 'person-2', text: 'Updated threaded note', author: 'Blair' }
+    ]);
+    expect(reopenedGraph.parts['/xl/persons/person1.xml']?.text).toContain('displayName="Blair"');
+    expect(reopenedGraph.parts['/xl/threadedComments/threadedComment1.xml']?.text).toContain('Updated threaded note');
+  });
+
+  it('creates and removes worksheet threaded comments through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createXlsxFixture())));
+    upsertWorkbookThreadedCommentPerson(editor, 'person-1', 'Avery');
+    upsertWorksheetThreadedComment(editor, 'Sheet1', 'A1', 'Brand new thread', 'person-1');
+    removeWorksheetThreadedComment(editor, 'Sheet1', 'A1');
+    upsertWorksheetThreadedComment(editor, 'Sheet1', 'B2', 'Escalate follow-up', 'person-1');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.threadedCommentPersons).toEqual([{ id: 'person-1', displayName: 'Avery' }]);
+    expect(reopened.sheets[0]?.threadedComments).toEqual([
+      { id: 'threaded-b2', reference: 'B2', personId: 'person-1', text: 'Escalate follow-up', author: 'Avery' }
+    ]);
+    expect(reopenedGraph.parts['/xl/worksheets/_rels/sheet1.xml.rels']?.text).toContain('/threadedComment');
+    expect(reopenedGraph.parts['/xl/threadedComments/threadedComment1.xml']?.text).toContain('Escalate follow-up');
   });
 });
 

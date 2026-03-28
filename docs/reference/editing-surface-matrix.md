@@ -49,6 +49,10 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Comment author | `setWorksheetCommentAuthor` | Persisted | Rebuilds comment author pool when needed. |
 | Comment create/update | `upsertWorksheetComment` | Persisted | Creates a comments part and worksheet relationship on demand when missing. |
 | Comment delete | `removeWorksheetComment` | Persisted | Persists an empty comments part when the last worksheet comment is removed. |
+| Threaded comment person | `upsertWorkbookThreadedCommentPerson` | Persisted | Preserves workbook-level modern comment people metadata. |
+| Threaded comment text/person | `setWorksheetThreadedCommentText`, `setWorksheetThreadedCommentPerson` | Persisted | Rewrites threaded comment part entries while resolving person display names from workbook people metadata. |
+| Threaded comment create/update | `upsertWorksheetThreadedComment` | Persisted | Creates a threaded comments part and sheet relationship on demand when missing. |
+| Threaded comment delete | `removeWorksheetThreadedComment` | Persisted | Persists an empty threaded-comments part when the last threaded comment is removed. |
 | Table name | `setWorksheetTableName` | Persisted | Table-part serializer keeps `name`/`displayName` aligned. |
 | Table range | `setWorksheetTableRange` | Persisted | Table-part patch updates `ref`. |
 | Table delete | `removeWorksheetTable` | Persisted | Removes table relationships so deleted tables no longer reopen from worksheet rels. |
@@ -79,7 +83,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 
 ## Gaps that remain outside the public editing surface
 
-- XLSX chart/comment-threaded extensions
+- XLSX deeper chart internals and threaded-comment reply metadata
 - PPTX richer animation graph editing beyond core timing/start-condition/target metadata
 - Relationship-safe embedded-object retargeting across all formats
 

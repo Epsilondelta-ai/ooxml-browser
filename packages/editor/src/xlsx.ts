@@ -190,6 +190,81 @@ export function upsertWorksheetComment(editor: OfficeEditor<XlsxWorkbook>, sheet
   });
 }
 
+export function upsertWorkbookThreadedCommentPerson(editor: OfficeEditor<XlsxWorkbook>, id: string, displayName: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const existing = draft.threadedCommentPersons.find((entry) => entry.id === id);
+    if (existing) {
+      existing.displayName = displayName;
+    } else {
+      draft.threadedCommentPersons.push({ id, displayName });
+    }
+
+    for (const sheet of draft.sheets) {
+      for (const comment of sheet.threadedComments) {
+        if (comment.personId === id) {
+          comment.author = displayName;
+        }
+      }
+    }
+  });
+}
+
+export function upsertWorksheetThreadedComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string, personId: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (!sheet) {
+      return;
+    }
+
+    const author = draft.threadedCommentPersons.find((entry) => entry.id === personId)?.displayName;
+    const existing = sheet.threadedComments.find((entry) => entry.reference === reference);
+    if (existing) {
+      existing.text = text;
+      existing.personId = personId;
+      existing.author = author;
+      return;
+    }
+
+    sheet.threadedComments.push({
+      id: `threaded-${reference.toLowerCase()}`,
+      reference,
+      personId,
+      text,
+      author
+    });
+  });
+}
+
+export function setWorksheetThreadedCommentText(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, text: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const comment = sheet?.threadedComments.find((entry) => entry.reference === reference);
+    if (comment) {
+      comment.text = text;
+    }
+  });
+}
+
+export function setWorksheetThreadedCommentPerson(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string, personId: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const comment = sheet?.threadedComments.find((entry) => entry.reference === reference);
+    if (comment) {
+      comment.personId = personId;
+      comment.author = draft.threadedCommentPersons.find((entry) => entry.id === personId)?.displayName;
+    }
+  });
+}
+
+export function removeWorksheetThreadedComment(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, reference: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (sheet) {
+      sheet.threadedComments = sheet.threadedComments.filter((entry) => entry.reference !== reference);
+    }
+  });
+}
+
 export function setWorksheetTableRange(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, tableName: string, range: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === sheetName);

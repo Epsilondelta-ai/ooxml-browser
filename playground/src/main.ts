@@ -32,7 +32,11 @@ import {
   setWorksheetPrintArea,
   setWorksheetPrintTitles,
   setWorksheetSelection,
+  setWorksheetThreadedCommentPerson,
+  setWorksheetThreadedCommentText,
+  upsertWorkbookThreadedCommentPerson,
   upsertWorksheetComment,
+  upsertWorksheetThreadedComment,
   type EditableOfficeDocument,
   type OfficeEditor
 } from '@ooxml/editor';
@@ -223,6 +227,9 @@ function renderEditorControls(): void {
       const firstChartValueAxisTitle = firstSheet?.charts[0]?.valueAxisTitle ?? '';
       const firstChartSeriesName = firstSheet?.charts[0]?.seriesNames[0] ?? '';
       const firstMediaTarget = firstSheet?.media[0]?.targetUri ?? '';
+      const firstThreadedComment = firstSheet?.threadedComments[0];
+      const firstThreadedCommentText = firstThreadedComment?.text ?? '';
+      const firstThreadedCommentPerson = firstThreadedComment?.personId ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1</div>
@@ -300,6 +307,14 @@ function renderEditorControls(): void {
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!B2 comment</div>
           <input id="xlsx-comment-input" value="${escapeHtml(commentB2?.text ?? '')}" style="width: 100%; padding: 8px;" />
         </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Threaded comment text</div>
+          <input id="xlsx-threaded-comment-input" value="${escapeHtml(firstThreadedCommentText)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Threaded person ID</div>
+          <input id="xlsx-threaded-person-input" value="${escapeHtml(firstThreadedCommentPerson)}" style="width: 100%; padding: 8px;" />
+        </label>
       `;
       const input = window.document.getElementById('xlsx-input') as HTMLInputElement;
       const styleInput = window.document.getElementById('xlsx-style-input') as HTMLInputElement;
@@ -320,6 +335,8 @@ function renderEditorControls(): void {
       const chartSeriesInput = window.document.getElementById('xlsx-chart-series-input') as HTMLInputElement;
       const mediaTargetInput = window.document.getElementById('xlsx-media-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
+      const threadedCommentInput = window.document.getElementById('xlsx-threaded-comment-input') as HTMLInputElement;
+      const threadedPersonInput = window.document.getElementById('xlsx-threaded-person-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'xlsx') {
           return;
@@ -476,6 +493,18 @@ function renderEditorControls(): void {
             'Playground'
           );
         }
+        if (threadedPersonInput.value) {
+          upsertWorkbookThreadedCommentPerson(workbookEditor, threadedPersonInput.value, threadedPersonInput.value);
+        }
+        if (threadedCommentInput.value && threadedPersonInput.value) {
+          const sheetName = workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1';
+          if (workbookEditor.document.sheets[0]?.threadedComments[0]) {
+            setWorksheetThreadedCommentText(workbookEditor, sheetName, workbookEditor.document.sheets[0].threadedComments[0].reference, threadedCommentInput.value);
+            setWorksheetThreadedCommentPerson(workbookEditor, sheetName, workbookEditor.document.sheets[0].threadedComments[0].reference, threadedPersonInput.value);
+          } else {
+            upsertWorksheetThreadedComment(workbookEditor, sheetName, 'A1', threadedCommentInput.value, threadedPersonInput.value);
+          }
+        }
         renderPreview();
       };
       input.addEventListener('input', update);
@@ -497,6 +526,8 @@ function renderEditorControls(): void {
       chartSeriesInput.addEventListener('input', update);
       mediaTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
+      threadedCommentInput.addEventListener('input', update);
+      threadedPersonInput.addEventListener('input', update);
       break;
     }
     case 'pptx': {

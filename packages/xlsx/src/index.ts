@@ -3,6 +3,8 @@ export type {
   XlsxChart,
   XlsxComment,
   XlsxMedia,
+  XlsxThreadedComment,
+  XlsxThreadedCommentPerson,
   WorksheetCell,
   WorksheetRow,
   XlsxCellFormat,

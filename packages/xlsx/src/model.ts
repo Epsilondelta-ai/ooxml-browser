@@ -47,6 +47,19 @@ export interface XlsxComment {
   text: string;
 }
 
+export interface XlsxThreadedCommentPerson {
+  id: string;
+  displayName: string;
+}
+
+export interface XlsxThreadedComment {
+  id: string;
+  reference: string;
+  personId: string;
+  text: string;
+  author?: string;
+}
+
 export interface XlsxChart {
   relationshipId: string;
   drawingUri: string;
@@ -84,6 +97,7 @@ export interface WorkbookSheet {
   media: XlsxMedia[];
   tables: XlsxTable[];
   comments: XlsxComment[];
+  threadedComments: XlsxThreadedComment[];
 }
 
 export interface WorksheetRow {
@@ -122,4 +136,5 @@ export interface XlsxWorkbook {
   sharedStrings: string[];
   styles: XlsxStyleTable;
   definedNames: XlsxDefinedName[];
+  threadedCommentPersons: XlsxThreadedCommentPerson[];
 }

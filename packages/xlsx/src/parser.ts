@@ -1,6 +1,6 @@
 import { findElementsByLocalName, getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxChart, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxMedia, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxChart, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxMedia, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxThreadedComment, XlsxThreadedCommentPerson, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -10,6 +10,7 @@ export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   }
 
   const sharedStrings = parseSharedStrings(graph, workbookUri);
+  const threadedCommentPersons = parseThreadedCommentPersons(graph, workbookUri);
   const workbook = workbookXml.document.workbook;
   const sheetsRoot = xmlChild<Record<string, unknown>>(workbook, 'sheets');
 
@@ -25,7 +26,8 @@ export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
       relationship.resolvedTarget,
       xmlAttr(sheet, 'name') ?? 'Sheet',
       Number(xmlAttr(sheet, 'sheetId') ?? '0'),
-      relationshipId ?? ''
+      relationshipId ?? '',
+      threadedCommentPersons
     )];
   });
 
@@ -35,7 +37,8 @@ export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
     sheets,
     sharedStrings,
     styles: parseStyles(graph, workbookUri),
-    definedNames: parseDefinedNames(workbook as Record<string, unknown>)
+    definedNames: parseDefinedNames(workbook as Record<string, unknown>),
+    threadedCommentPersons
   };
 }
 
@@ -61,7 +64,7 @@ function parseSharedStrings(graph: PackageGraph, workbookUri: string): string[] 
   });
 }
 
-function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: number, relationshipId: string): WorkbookSheet {
+function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: number, relationshipId: string, threadedCommentPersons: XlsxThreadedCommentPerson[]): WorkbookSheet {
   const xml = getParsedXmlPart(graph, uri);
   if (!xml) {
     throw new Error(`Worksheet part ${uri} is missing.`);
@@ -96,8 +99,26 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
     charts: parseSheetCharts(graph, uri),
     media: parseSheetMedia(graph, uri),
     tables: parseSheetTables(graph, uri),
-    comments: parseSheetComments(graph, uri)
+    comments: parseSheetComments(graph, uri),
+    threadedComments: parseSheetThreadedComments(graph, uri, threadedCommentPersons)
   };
+}
+
+function parseThreadedCommentPersons(graph: PackageGraph, workbookUri: string): XlsxThreadedCommentPerson[] {
+  const peopleRelationship = relationshipsFor(graph, workbookUri).find((relationship) => relationship.type.includes('/person'));
+  if (!peopleRelationship?.resolvedTarget) {
+    return [];
+  }
+
+  const xml = getParsedXmlPart(graph, peopleRelationship.resolvedTarget);
+  if (!xml) {
+    return [];
+  }
+
+  return findElementsByLocalName(xml.document, 'person').map((personNode) => ({
+    id: xmlAttr(personNode, 'id') ?? '',
+    displayName: xmlAttr(personNode, 'displayName') ?? ''
+  })).filter((person) => person.id);
 }
 
 function parseCell(cell: Record<string, unknown>, graph: PackageGraph): WorksheetCell {
@@ -407,4 +428,27 @@ function parseSheetComments(graph: PackageGraph, sheetUri: string): XlsxComment[
     })(),
     text: xmlChildren<Record<string, unknown>>(comment, 'text').map((textNode) => xmlText(textNode)).join('')
   }));
+}
+
+function parseSheetThreadedComments(graph: PackageGraph, sheetUri: string, threadedCommentPersons: XlsxThreadedCommentPerson[]): XlsxThreadedComment[] {
+  const threadedRelationship = relationshipsFor(graph, sheetUri).find((relationship) => relationship.type.includes('/threadedComment'));
+  if (!threadedRelationship?.resolvedTarget) {
+    return [];
+  }
+
+  const xml = getParsedXmlPart(graph, threadedRelationship.resolvedTarget);
+  if (!xml) {
+    return [];
+  }
+
+  return findElementsByLocalName(xml.document, 'threadedComment').map((commentNode, index) => {
+    const personId = xmlAttr(commentNode, 'personId') ?? '';
+    return {
+      id: xmlAttr(commentNode, 'id') ?? `threaded-${index}`,
+      reference: xmlAttr(commentNode, 'ref') ?? '',
+      personId,
+      text: findElementsByLocalName(commentNode, 'text').map((node) => xmlText(node)).join(''),
+      author: threadedCommentPersons.find((person) => person.id === personId)?.displayName
+    };
+  });
 }
