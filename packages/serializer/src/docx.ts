@@ -161,7 +161,9 @@ function canPatchDocxStory(kind: 'document' | 'header' | 'footer', originalBlock
     }
 
     if (block.kind !== 'paragraph' || originalBlock.kind !== 'paragraph') {
-      return block.kind === 'table' && originalBlock.kind === 'table';
+      return block.kind === 'table'
+        && originalBlock.kind === 'table'
+        && JSON.stringify(block.table) === JSON.stringify(originalBlock.table);
     }
 
     return block.paragraph.runs.length === 1

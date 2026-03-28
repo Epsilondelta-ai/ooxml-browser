@@ -34,6 +34,24 @@ export function replaceDocxStoryParagraphText(
   });
 }
 
+export function setDocxTableCellText(
+  editor: OfficeEditor<DocxDocument>,
+  storyKind: 'document' | 'header' | 'footer',
+  storyOccurrence: number,
+  tableIndex: number,
+  rowIndex: number,
+  cellIndex: number,
+  text: string
+): DocxDocument {
+  return editor.transaction((draft) => {
+    const story = draft.stories.filter((entry) => entry.kind === storyKind)[storyOccurrence];
+    const cell = story?.tables[tableIndex]?.rows[rowIndex]?.cells[cellIndex];
+    if (cell) {
+      cell.text = text;
+    }
+  });
+}
+
 export function setDocxCommentText(editor: OfficeEditor<DocxDocument>, commentId: string, text: string): DocxDocument {
   return editor.transaction((draft) => {
     const comment = draft.comments.find((entry) => entry.id === commentId);
