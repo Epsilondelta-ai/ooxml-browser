@@ -41,6 +41,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Chart title | `setWorksheetChartTitle` | Persisted | Updates chart-part title text while keeping the drawing relationship stable. |
 | Chart series name | `setWorksheetChartSeriesName` | Persisted | Updates chart-part series labels without disturbing drawing or worksheet markup. |
 | Chart type | `setWorksheetChartType` | Persisted | Rebuilds the chart part when the chart family changes while preserving the surrounding drawing relationship. |
+| Chart smooth line mode | `setWorksheetChartSmooth` | Persisted | Preserves line-chart smoothing metadata inside chart parts. |
 | Chart legend position | `setWorksheetChartLegendPosition` | Persisted | Preserves legend placement inside the chart part while keeping the worksheet/drawing graph stable. |
 | Chart axis titles | `setWorksheetChartCategoryAxisTitle`, `setWorksheetChartValueAxisTitle` | Persisted | Updates chart-part category/value axis title text while preserving worksheet and drawing metadata. |
 | Chart axis positions | `setWorksheetChartCategoryAxisPosition`, `setWorksheetChartValueAxisPosition` | Persisted | Preserves axis-position metadata inside the chart part while keeping chart relationships stable. |

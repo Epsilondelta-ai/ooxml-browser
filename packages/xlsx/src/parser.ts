@@ -356,6 +356,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
         .find((candidate) => findElementsByLocalName(chartRoot, candidate).length > 0)
       : undefined;
     const chartTypeNode = chartType && chartRoot ? findElementsByLocalName(chartRoot, chartType)[0] : undefined;
+    const smoothNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'smooth')[0] : undefined;
     const groupingNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'grouping')[0] : undefined;
     const overlapNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'overlap')[0] : undefined;
     const varyColorsNode = chartTypeNode ? findElementsByLocalName(chartTypeNode, 'varyColors')[0] : undefined;
@@ -389,6 +390,7 @@ function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[
       targetUri: target,
       name: xmlAttr(nonVisual, 'name'),
       chartType,
+      smooth: xmlAttr(smoothNode, 'val') === '1' ? true : xmlAttr(smoothNode, 'val') === '0' ? false : undefined,
       grouping: xmlAttr(groupingNode, 'val') ?? undefined,
       overlap: (() => { const value = xmlAttr(overlapNode, 'val'); return value ? Number(value) : undefined; })(),
       varyColors: xmlAttr(varyColorsNode, 'val') === '1' ? true : xmlAttr(varyColorsNode, 'val') === '0' ? false : undefined,

@@ -84,6 +84,7 @@ export interface XlsxChart {
   targetUri: string;
   name?: string;
   chartType?: string;
+  smooth?: boolean;
   grouping?: string;
   overlap?: number;
   varyColors?: boolean;

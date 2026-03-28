@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
+import { createOfficeEditor, removeWorkbookDefinedName, removeWorksheetComment, removeWorksheetTable, removeWorksheetThreadedComment, setWorkbookCellFormula, setWorkbookCellStyle, setWorkbookDefinedNameReference, setWorkbookDefinedNameScope, setWorkbookSheetName, setWorksheetChartCategoryAxisPosition, setWorksheetChartCategoryAxisTitle, setWorksheetChartDataLabels, setWorksheetChartDisplayBlanksAs, setWorksheetChartGapWidth, setWorksheetChartGrouping, setWorksheetChartLegendPosition, setWorksheetChartName, setWorksheetChartOverlap, setWorksheetChartPlotVisibleOnly, setWorksheetChartSeriesInvertIfNegative, setWorksheetChartSeriesMarker, setWorksheetChartSeriesName, setWorksheetChartSmooth, setWorksheetChartTarget, setWorksheetChartTitle, setWorksheetChartType, setWorksheetChartValueAxisPosition, setWorksheetChartValueAxisTitle, setWorksheetChartVaryColors, setWorksheetCommentAuthor, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetMediaTarget, setWorksheetMergedRanges, setWorksheetPageMargins, setWorksheetPageSetup, setWorksheetPrintArea, setWorksheetPrintTitles, setWorksheetSelection, setWorksheetTableName, setWorksheetTableRange, setWorksheetThreadedCommentParentById, setWorksheetThreadedCommentPerson, setWorksheetThreadedCommentText, setWorksheetThreadedCommentTextById, upsertWorkbookDefinedName, upsertWorkbookThreadedCommentPerson, upsertWorksheetComment, upsertWorksheetThreadedComment } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -314,6 +314,20 @@ describe('xlsx editor round-trips', () => {
 
     expect(reopened.sheets[0]?.charts[0]?.chartType).toBe('lineChart');
     expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('<c:lineChart>');
+  });
+
+  it('persists worksheet chart smoothing edits through save flows', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createChartedXlsxFixture())));
+    setWorksheetChartType(editor, 'Sheet1', 0, 'lineChart');
+    setWorksheetChartSmooth(editor, 'Sheet1', 0, true);
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.charts[0]?.chartType).toBe('lineChart');
+    expect(reopened.sheets[0]?.charts[0]?.smooth).toBe(true);
+    expect(reopenedGraph.parts['/xl/charts/chart1.xml']?.text).toContain('smooth val="1"');
   });
 
   it('persists worksheet chart legend-position edits through save flows', async () => {

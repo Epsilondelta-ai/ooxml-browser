@@ -141,6 +141,7 @@ function syncWorksheetChartParts(graph: XlsxWorkbook['packageGraph'], originalSh
     const originalChart = originalSheet?.charts.find((entry) => entry.relationshipId === chart.relationshipId && entry.drawingUri === chart.drawingUri);
     if (
       chart.chartType !== originalChart?.chartType
+      || chart.smooth !== originalChart?.smooth
       || chart.grouping !== originalChart?.grouping
       || chart.overlap !== originalChart?.overlap
       || chart.varyColors !== originalChart?.varyColors
@@ -514,6 +515,14 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
           newValue: chart.grouping
         });
       }
+      if (chart.smooth !== undefined) {
+        operations.push({
+          op: 'replaceAttribute',
+          tagName: 'c:smooth',
+          targetAttr: 'val',
+          newValue: chart.smooth ? '1' : '0'
+        });
+      }
       if (chart.overlap !== undefined) {
         operations.push({
           op: 'replaceAttribute',
@@ -683,6 +692,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const seriesXml = chart.series.map((seriesEntry, index) => `<c:ser><c:idx val="${index}"/><c:order val="${index}"/><c:tx><c:rich><a:t>${escapeXml(seriesEntry.name)}</a:t></c:rich></c:tx>${seriesEntry.invertIfNegative !== undefined ? `<c:invertIfNegative val="${seriesEntry.invertIfNegative ? '1' : '0'}"/>` : ''}${seriesEntry.markerSymbol !== undefined || seriesEntry.markerSize !== undefined ? `<c:marker>${seriesEntry.markerSymbol !== undefined ? `<c:symbol val="${escapeXml(seriesEntry.markerSymbol)}"/>` : ''}${seriesEntry.markerSize !== undefined ? `<c:size val="${seriesEntry.markerSize}"/>` : ''}</c:marker>` : ''}</c:ser>`).join('');
   const varyColorsXml = chart.varyColors !== undefined ? `<c:varyColors val="${chart.varyColors ? '1' : '0'}"/>` : '';
   const groupingXml = chart.grouping !== undefined ? `<c:grouping val="${escapeXml(chart.grouping)}"/>` : '';
+  const smoothXml = chart.smooth !== undefined ? `<c:smooth val="${chart.smooth ? '1' : '0'}"/>` : '';
   const overlapXml = chart.overlap !== undefined ? `<c:overlap val="${chart.overlap}"/>` : '';
   const gapWidthXml = chart.gapWidth !== undefined ? `<c:gapWidth val="${chart.gapWidth}"/>` : '';
   const plotVisibleOnlyXml = chart.plotVisibleOnly !== undefined ? `<c:plotVisOnly val="${chart.plotVisibleOnly ? '1' : '0'}"/>` : '';
@@ -691,7 +701,7 @@ function buildChartXml(chart: WorkbookSheet['charts'][number], existingSource?: 
   const valueAxisXml = chart.valueAxisTitle || chart.valueAxisPosition ? `<c:valAx>${chart.valueAxisTitle ? `<c:title><c:tx><c:rich><a:t>${escapeXml(chart.valueAxisTitle)}</a:t></c:rich></c:tx></c:title>` : ''}${chart.valueAxisPosition ? `<c:axPos val="${escapeXml(chart.valueAxisPosition)}"/>` : ''}</c:valAx>` : '';
   const dataLabelsXml = chart.dataLabels ? `<c:dLbls>${chart.dataLabels.position ? `<c:dLblPos val="${escapeXml(chart.dataLabels.position)}"/>` : ''}${chart.dataLabels.showValue !== undefined ? `<c:showVal val="${chart.dataLabels.showValue ? '1' : '0'}"/>` : ''}${chart.dataLabels.showCategoryName !== undefined ? `<c:showCatName val="${chart.dataLabels.showCategoryName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showSeriesName !== undefined ? `<c:showSerName val="${chart.dataLabels.showSeriesName ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLegendKey !== undefined ? `<c:showLegendKey val="${chart.dataLabels.showLegendKey ? '1' : '0'}"/>` : ''}${chart.dataLabels.showLeaderLines !== undefined ? `<c:showLeaderLines val="${chart.dataLabels.showLeaderLines ? '1' : '0'}"/>` : ''}</c:dLbls>` : '';
   const legendXml = chart.legendPosition ? `<c:legend><c:legendPos val="${escapeXml(chart.legendPosition)}"/></c:legend>` : '';
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><c:chart><c:title><c:tx><c:rich><a:t>${escapeXml(chart.title ?? '')}</a:t></c:rich></c:tx></c:title><c:plotArea><c:${chartType}>${groupingXml}${smoothXml}${varyColorsXml}${seriesXml}${dataLabelsXml}${gapWidthXml}${overlapXml}</c:${chartType}>${categoryAxisXml}${valueAxisXml}</c:plotArea>${legendXml}${plotVisibleOnlyXml}${displayBlanksAsXml}</c:chart></c:chartSpace>`;
 }
 
 function buildCommentsXml(comments: XlsxComment[], existingSource?: string): string {

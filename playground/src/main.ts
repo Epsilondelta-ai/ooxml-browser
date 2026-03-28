@@ -32,6 +32,7 @@ import {
   setWorksheetChartSeriesInvertIfNegative,
   setWorksheetChartSeriesMarker,
   setWorksheetChartSeriesName,
+  setWorksheetChartSmooth,
   setWorksheetChartTarget,
   setWorksheetChartTitle,
   setWorksheetChartType,
@@ -232,6 +233,7 @@ function renderEditorControls(): void {
       const topMargin = firstSheet?.pageMargins?.top ?? '';
       const firstChartName = firstSheet?.charts[0]?.name ?? '';
       const firstChartType = firstSheet?.charts[0]?.chartType ?? '';
+      const firstChartSmooth = firstSheet?.charts[0]?.smooth;
       const firstChartPlotVisibleOnly = firstSheet?.charts[0]?.plotVisibleOnly;
       const firstChartDisplayBlanksAs = firstSheet?.charts[0]?.displayBlanksAs ?? '';
       const firstChartGrouping = firstSheet?.charts[0]?.grouping ?? '';
@@ -300,6 +302,10 @@ function renderEditorControls(): void {
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart type</div>
           <input id="xlsx-chart-type-input" value="${escapeHtml(firstChartType)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Smooth line</div>
+          <input id="xlsx-chart-smooth-input" value="${escapeHtml(firstChartSmooth === undefined ? '' : String(firstChartSmooth))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Plot visible only</div>
@@ -409,6 +415,7 @@ function renderEditorControls(): void {
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
       const chartNameInput = window.document.getElementById('xlsx-chart-name-input') as HTMLInputElement;
       const chartTypeInput = window.document.getElementById('xlsx-chart-type-input') as HTMLInputElement;
+      const chartSmoothInput = window.document.getElementById('xlsx-chart-smooth-input') as HTMLInputElement;
       const chartPlotVisibleInput = window.document.getElementById('xlsx-chart-plot-visible-input') as HTMLInputElement;
       const chartDisplayBlanksInput = window.document.getElementById('xlsx-chart-display-blanks-input') as HTMLInputElement;
       const chartGroupingInput = window.document.getElementById('xlsx-chart-grouping-input') as HTMLInputElement;
@@ -521,6 +528,14 @@ function renderEditorControls(): void {
             workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
             0,
             chartTypeInput.value
+          );
+        }
+        if (chartSmoothInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartSmooth(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartSmoothInput.value === 'true'
           );
         }
         if (chartPlotVisibleInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
@@ -728,6 +743,7 @@ function renderEditorControls(): void {
       topMarginInput.addEventListener('input', update);
       chartNameInput.addEventListener('input', update);
       chartTypeInput.addEventListener('input', update);
+      chartSmoothInput.addEventListener('input', update);
       chartPlotVisibleInput.addEventListener('input', update);
       chartDisplayBlanksInput.addEventListener('input', update);
       chartGroupingInput.addEventListener('input', update);
