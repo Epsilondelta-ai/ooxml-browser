@@ -1,6 +1,6 @@
-import { getParsedXmlPart, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
+import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { DocxAbstractNumbering, DocxComment, DocxDocument, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRun, DocxStory, DocxStyle, DocxTable } from './model';
+import type { DocxAbstractNumbering, DocxComment, DocxDocument, DocxHeaderFooterReference, DocxNumbering, DocxNumberingInstance, DocxNumberingLevel, DocxParagraph, DocxRun, DocxSection, DocxStory, DocxStyle, DocxTable } from './model';
 
 export function parseDocx(graph: PackageGraph): DocxDocument {
   const mainDocumentUri = graph.rootDocumentUri ?? '/word/document.xml';
@@ -37,7 +37,8 @@ export function parseDocx(graph: PackageGraph): DocxDocument {
     stories,
     comments: parseComments(graph, mainDocumentUri),
     styles: parseStyles(graph, mainDocumentUri),
-    numbering: parseNumbering(graph, mainDocumentUri)
+    numbering: parseNumbering(graph, mainDocumentUri),
+    sections: parseSections(graph, mainDocumentUri)
   };
 }
 
@@ -238,4 +239,67 @@ export function resolveDocxNumbering(document: DocxDocument, paragraph: DocxPara
   }
 
   return document.numbering.abstractNums[num.abstractNumId]?.levels[paragraph.numbering.level];
+}
+
+function parseSections(graph: PackageGraph, mainDocumentUri: string): DocxSection[] {
+  const xml = getParsedXmlPart(graph, mainDocumentUri);
+  if (!xml) {
+    return [];
+  }
+
+  const root = xml.document['w:document'];
+  const body = xmlChild<Record<string, unknown>>(root, 'w:body');
+  if (!body) {
+    return [];
+  }
+
+  const sections: DocxSection[] = [];
+  const bodySectPr = xmlChild<Record<string, unknown>>(body, 'w:sectPr');
+  if (bodySectPr) {
+    sections.push(parseSectionNode(graph, mainDocumentUri, bodySectPr, 'body'));
+  }
+
+  for (const paragraph of xmlChildren<Record<string, unknown>>(body, 'w:p')) {
+    const paragraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'w:pPr');
+    const sectPr = xmlChild<Record<string, unknown>>(paragraphProperties, 'w:sectPr');
+    if (sectPr) {
+      sections.push(parseSectionNode(graph, mainDocumentUri, sectPr, 'paragraph'));
+    }
+  }
+
+  return sections;
+}
+
+function parseSectionNode(graph: PackageGraph, mainDocumentUri: string, node: Record<string, unknown>, source: 'body' | 'paragraph'): DocxSection {
+  const pageSizeNode = xmlChild<Record<string, unknown>>(node, 'w:pgSz');
+  const pageMarginsNode = xmlChild<Record<string, unknown>>(node, 'w:pgMar');
+
+  return {
+    source,
+    pageSize: pageSizeNode ? {
+      width: Number(xmlAttr(pageSizeNode, 'w:w') ?? xmlAttr(pageSizeNode, 'w') ?? '0'),
+      height: Number(xmlAttr(pageSizeNode, 'w:h') ?? xmlAttr(pageSizeNode, 'h') ?? '0')
+    } : undefined,
+    pageMargins: pageMarginsNode ? {
+      top: Number(xmlAttr(pageMarginsNode, 'w:top') ?? xmlAttr(pageMarginsNode, 'top') ?? '0'),
+      right: Number(xmlAttr(pageMarginsNode, 'w:right') ?? xmlAttr(pageMarginsNode, 'right') ?? '0'),
+      bottom: Number(xmlAttr(pageMarginsNode, 'w:bottom') ?? xmlAttr(pageMarginsNode, 'bottom') ?? '0'),
+      left: Number(xmlAttr(pageMarginsNode, 'w:left') ?? xmlAttr(pageMarginsNode, 'left') ?? '0')
+    } : undefined,
+    headerReferences: parseHeaderFooterReferences(graph, mainDocumentUri, node, 'w:headerReference'),
+    footerReferences: parseHeaderFooterReferences(graph, mainDocumentUri, node, 'w:footerReference')
+  };
+}
+
+function parseHeaderFooterReferences(graph: PackageGraph, mainDocumentUri: string, node: Record<string, unknown>, key: 'w:headerReference' | 'w:footerReference'): DocxHeaderFooterReference[] {
+  return xmlChildren<Record<string, unknown>>(node, key).map((referenceNode) => {
+    const relationshipId = xmlAttr(referenceNode, 'r:id') ?? '';
+    const relationship = relationshipId ? relationshipById(graph, mainDocumentUri, relationshipId) : undefined;
+    const rawType = xmlAttr(referenceNode, 'w:type') ?? xmlAttr(referenceNode, 'type') ?? 'default';
+    return {
+      type: rawType === 'first' || rawType === 'even' ? rawType : 'default',
+      relationshipId,
+      targetUri: relationship?.resolvedTarget ?? undefined
+    };
+  });
 }

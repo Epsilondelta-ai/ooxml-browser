@@ -1,0 +1,12 @@
+{
+  "id": "docx-sectioned",
+  "sourceApplication": "repo-generated",
+  "format": "docx",
+  "featureTags": ["sections", "headers", "footers"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "header/footer render"],
+  "reopenExpectations": {"parser": true, "office": "stage-2-attestation-pending", "libreoffice": "stage-2-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

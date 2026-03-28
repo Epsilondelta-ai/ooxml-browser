@@ -43,6 +43,32 @@ export interface DocxStory {
   tables: DocxTable[];
 }
 
+export interface DocxSectionPageSize {
+  width: number;
+  height: number;
+}
+
+export interface DocxSectionPageMargins {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface DocxHeaderFooterReference {
+  type: 'default' | 'first' | 'even';
+  relationshipId: string;
+  targetUri?: string;
+}
+
+export interface DocxSection {
+  source: 'body' | 'paragraph';
+  pageSize?: DocxSectionPageSize;
+  pageMargins?: DocxSectionPageMargins;
+  headerReferences: DocxHeaderFooterReference[];
+  footerReferences: DocxHeaderFooterReference[];
+}
+
 export interface DocxNumberingLevel {
   level: number;
   format: string;
@@ -83,4 +109,5 @@ export interface DocxDocument {
   comments: DocxComment[];
   styles: Record<string, DocxStyle>;
   numbering: DocxNumbering;
+  sections: DocxSection[];
 }

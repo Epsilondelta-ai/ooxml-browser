@@ -1,6 +1,10 @@
 export type {
   DocxComment,
+  DocxHeaderFooterReference,
   DocxDocument,
+  DocxSection,
+  DocxSectionPageMargins,
+  DocxSectionPageSize,
   DocxStyle,
   DocxParagraph,
   DocxParagraphNumbering,
