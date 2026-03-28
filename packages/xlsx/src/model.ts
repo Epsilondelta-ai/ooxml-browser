@@ -47,6 +47,13 @@ export interface XlsxComment {
   text: string;
 }
 
+export interface XlsxChart {
+  relationshipId: string;
+  drawingUri: string;
+  targetUri: string;
+  name?: string;
+}
+
 export interface WorkbookSheet {
   name: string;
   uri: string;
@@ -58,6 +65,7 @@ export interface WorkbookSheet {
   selection?: XlsxSelection;
   pageMargins?: XlsxPageMargins;
   pageSetup?: XlsxPageSetup;
+  charts: XlsxChart[];
   tables: XlsxTable[];
   comments: XlsxComment[];
 }

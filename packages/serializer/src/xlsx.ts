@@ -27,6 +27,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   for (const sheet of workbook.sheets) {
     const originalSheet = originalWorkbook.sheets.find((entry) => entry.uri === sheet.uri);
     syncWorksheetTableRelationships(graph, originalSheet, sheet);
+    syncWorksheetChartRelationships(graph, sheet);
     updatePackagePartText(
       graph,
       sheet.uri,
@@ -67,6 +68,17 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function syncWorksheetChartRelationships(graph: XlsxWorkbook['packageGraph'], sheet: WorkbookSheet): void {
+  for (const chart of sheet.charts) {
+    upsertRelationship(graph, chart.drawingUri, {
+      id: chart.relationshipId,
+      type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart',
+      target: relativeRelationshipTarget(chart.drawingUri, chart.targetUri),
+      targetMode: 'Internal'
+    });
+  }
 }
 
 function syncWorksheetTableRelationships(graph: XlsxWorkbook['packageGraph'], originalSheet: WorkbookSheet | undefined, sheet: WorkbookSheet): void {

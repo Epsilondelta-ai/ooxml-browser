@@ -1,6 +1,6 @@
-import { getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
+import { findElementsByLocalName, getParsedXmlPart, relationshipById, relationshipsFor, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
+import type { WorkbookSheet, WorksheetCell, XlsxCellFormat, XlsxChart, XlsxComment, XlsxDefinedName, XlsxFrozenPane, XlsxNumberFormat, XlsxPageMargins, XlsxPageSetup, XlsxStyleTable, XlsxTable, XlsxWorkbook } from './model';
 
 export function parseXlsx(graph: PackageGraph): XlsxWorkbook {
   const workbookUri = graph.rootDocumentUri ?? '/xl/workbook.xml';
@@ -93,6 +93,7 @@ function parseSheet(graph: PackageGraph, uri: string, name: string, sheetId: num
     selection,
     pageMargins,
     pageSetup,
+    charts: parseSheetCharts(graph, uri),
     tables: parseSheetTables(graph, uri),
     comments: parseSheetComments(graph, uri)
   };
@@ -289,6 +290,39 @@ function parseSheetTables(graph: PackageGraph, sheetUri: string): XlsxTable[] {
         partUri: relationship.resolvedTarget!
       };
     });
+}
+
+function parseSheetCharts(graph: PackageGraph, sheetUri: string): XlsxChart[] {
+  return relationshipsFor(graph, sheetUri)
+    .filter((relationship) => relationship.type.includes('/drawing') && relationship.resolvedTarget)
+    .flatMap((relationship) => parseDrawingCharts(graph, relationship.resolvedTarget!));
+}
+
+function parseDrawingCharts(graph: PackageGraph, drawingUri: string): XlsxChart[] {
+  const xml = getParsedXmlPart(graph, drawingUri);
+  if (!xml) {
+    return [];
+  }
+
+  const drawingRelationships = relationshipsFor(graph, drawingUri);
+  const frames = findElementsByLocalName(xml.document, 'graphicFrame');
+  return frames.flatMap((frame) => {
+    const graphicData = findElementsByLocalName(frame, 'graphicData')[0];
+    const chartNode = graphicData ? findElementsByLocalName(graphicData, 'chart')[0] : undefined;
+    const relationshipId = xmlAttr(chartNode, 'r:id');
+    const target = relationshipId ? drawingRelationships.find((entry) => entry.id === relationshipId)?.resolvedTarget : undefined;
+    if (!relationshipId || !target) {
+      return [];
+    }
+
+    const nonVisual = findElementsByLocalName(frame, 'cNvPr')[0];
+    return [{
+      relationshipId,
+      drawingUri,
+      targetUri: target,
+      name: xmlAttr(nonVisual, 'name')
+    }];
+  });
 }
 
 function parseSheetComments(graph: PackageGraph, sheetUri: string): XlsxComment[] {

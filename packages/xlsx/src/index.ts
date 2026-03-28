@@ -1,5 +1,6 @@
 export type {
   WorkbookSheet,
+  XlsxChart,
   XlsxComment,
   WorksheetCell,
   WorksheetRow,

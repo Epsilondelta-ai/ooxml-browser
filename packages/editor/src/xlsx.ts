@@ -347,6 +347,16 @@ export function setWorksheetPageSetup(editor: OfficeEditor<XlsxWorkbook>, sheetN
   });
 }
 
+export function setWorksheetChartTarget(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, chartIndex: number, targetUri: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    const chart = sheet?.charts[chartIndex];
+    if (chart) {
+      chart.targetUri = targetUri;
+    }
+  });
+}
+
 function createSheetReferenceRewriter(currentName: string, nextName: string): (value: string) => string {
   const escapedCurrent = currentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const quotedPattern = new RegExp(`'${escapedCurrent}'!`, 'g');

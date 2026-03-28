@@ -17,6 +17,7 @@ import {
   setWorkbookCellStyle,
   setWorkbookCellValue,
   setWorkbookSheetName,
+  setWorksheetChartTarget,
   setWorksheetPageMargins,
   setWorksheetPageSetup,
   setWorksheetPrintArea,
@@ -204,6 +205,7 @@ function renderEditorControls(): void {
       const selection = firstSheet?.selection;
       const pageOrientation = firstSheet?.pageSetup?.orientation ?? '';
       const topMargin = firstSheet?.pageMargins?.top ?? '';
+      const firstChartTarget = firstSheet?.charts[0]?.targetUri ?? '';
       editorControls.innerHTML = `
         <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!A1</div>
@@ -242,6 +244,10 @@ function renderEditorControls(): void {
           <input id="xlsx-top-margin-input" value="${escapeHtml(String(topMargin))}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">First chart target</div>
+          <input id="xlsx-chart-target-input" value="${escapeHtml(firstChartTarget)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Sheet1!B2 comment</div>
           <input id="xlsx-comment-input" value="${escapeHtml(commentB2?.text ?? '')}" style="width: 100%; padding: 8px;" />
         </label>
@@ -255,6 +261,7 @@ function renderEditorControls(): void {
       const selectionInput = window.document.getElementById('xlsx-selection-input') as HTMLInputElement;
       const orientationInput = window.document.getElementById('xlsx-orientation-input') as HTMLInputElement;
       const topMarginInput = window.document.getElementById('xlsx-top-margin-input') as HTMLInputElement;
+      const chartTargetInput = window.document.getElementById('xlsx-chart-target-input') as HTMLInputElement;
       const commentInput = window.document.getElementById('xlsx-comment-input') as HTMLInputElement;
       const update = () => {
         if (!currentEditor || currentEditor.document.kind !== 'xlsx') {
@@ -330,6 +337,14 @@ function renderEditorControls(): void {
             );
           }
         }
+        if (chartTargetInput.value && workbookEditor.document.sheets[0]?.charts[0]) {
+          setWorksheetChartTarget(
+            workbookEditor,
+            workbookEditor.document.sheets[0]?.name ?? sheetInput.value ?? 'Sheet1',
+            0,
+            chartTargetInput.value
+          );
+        }
         if (commentInput.value) {
           upsertWorksheetComment(
             workbookEditor,
@@ -350,6 +365,7 @@ function renderEditorControls(): void {
       selectionInput.addEventListener('input', update);
       orientationInput.addEventListener('input', update);
       topMarginInput.addEventListener('input', update);
+      chartTargetInput.addEventListener('input', update);
       commentInput.addEventListener('input', update);
       break;
     }
