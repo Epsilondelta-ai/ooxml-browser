@@ -25,7 +25,8 @@
       "@ooxml/render": ["packages/render/src/index.ts"],
       "@ooxml/editor": ["packages/editor/src/index.ts"],
       "@ooxml/browser": ["packages/browser/src/index.ts"],
-      "@ooxml/devtools": ["packages/devtools/src/index.ts"]
+      "@ooxml/devtools": ["packages/devtools/src/index.ts"],
+      "@ooxml/serializer": ["packages/serializer/src/index.ts"]
     }
   }
 }

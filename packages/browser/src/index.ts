@@ -1,8 +1,10 @@
 import { openPackage, type PackageGraph } from '@ooxml/core';
 import { inspectOfficeDocument, summarizePackageGraph, type OfficeDocumentSummary, type PackageGraphSummary } from '@ooxml/devtools';
+import { createOfficeEditor, type EditableOfficeDocument, type OfficeEditor } from '@ooxml/editor';
 import { parseDocx, type DocxDocument } from '@ooxml/docx';
 import { parsePptx, type PresentationDocument } from '@ooxml/pptx';
 import { mountOfficeDocument, renderOfficeDocumentToHtml, type RenderOptions } from '@ooxml/render';
+import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx, type XlsxWorkbook } from '@ooxml/xlsx';
 
 export type ParsedOfficeDocument = DocxDocument | XlsxWorkbook | PresentationDocument;
@@ -14,6 +16,8 @@ export interface BrowserSession {
   documentSummary: OfficeDocumentSummary;
   renderToHtml: (options?: RenderOptions) => string;
   mount: (target: HTMLElement, options?: RenderOptions) => HTMLElement;
+  createEditor(): OfficeEditor<EditableOfficeDocument>;
+  save(): Blob;
 }
 
 export async function openOfficeDocument(input: ArrayBuffer | Uint8Array | Blob): Promise<ParsedOfficeDocument> {
@@ -35,6 +39,15 @@ export async function createBrowserSession(input: ArrayBuffer | Uint8Array | Blo
     },
     mount(target, options = {}) {
       return mountOfficeDocument(document, target, options);
+    },
+    createEditor() {
+      return createOfficeEditor(document);
+    },
+    save() {
+      const bytes = Uint8Array.from(serializeOfficeDocument(document));
+      return new Blob([bytes], {
+        type: 'application/octet-stream'
+      });
     }
   };
 }

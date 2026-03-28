@@ -8,8 +8,7 @@
     { "path": "../core" },
     { "path": "../docx" },
     { "path": "../xlsx" },
-    { "path": "../pptx" },
-    { "path": "../serializer" }
+    { "path": "../pptx" }
   ],
   "include": ["src/**/*.ts"]
 }

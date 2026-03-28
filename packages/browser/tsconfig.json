@@ -11,7 +11,8 @@
     { "path": "../pptx" },
     { "path": "../render" },
     { "path": "../editor" },
-    { "path": "../devtools" }
+    { "path": "../devtools" },
+    { "path": "../serializer" }
   ],
   "include": ["src/**/*.ts"]
 }

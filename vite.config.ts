@@ -15,7 +15,8 @@ export default defineConfig({
       '@ooxml/render': fileURLToPath(new URL('./packages/render/src/index.ts', import.meta.url)),
       '@ooxml/editor': fileURLToPath(new URL('./packages/editor/src/index.ts', import.meta.url)),
       '@ooxml/browser': fileURLToPath(new URL('./packages/browser/src/index.ts', import.meta.url)),
-      '@ooxml/devtools': fileURLToPath(new URL('./packages/devtools/src/index.ts', import.meta.url))
+      '@ooxml/devtools': fileURLToPath(new URL('./packages/devtools/src/index.ts', import.meta.url)),
+      '@ooxml/serializer': fileURLToPath(new URL('./packages/serializer/src/index.ts', import.meta.url))
     }
   },
   test: {

@@ -21,6 +21,7 @@
     "@ooxml/pptx": "0.1.0",
     "@ooxml/render": "0.1.0",
     "@ooxml/editor": "0.1.0",
-    "@ooxml/devtools": "0.1.0"
+    "@ooxml/devtools": "0.1.0",
+    "@ooxml/serializer": "0.1.0"
   }
 }

@@ -9,6 +9,7 @@
     { "path": "packages/editor" },
     { "path": "packages/browser" },
     { "path": "packages/devtools" },
+    { "path": "packages/serializer" },
     { "path": "examples/basic" },
     { "path": "playground" }
   ]
