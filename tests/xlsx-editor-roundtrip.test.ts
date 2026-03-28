@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setWorkbookDefinedNameReference, setWorksheetCommentText, setWorksheetTableRange } from '@ooxml/editor';
+import { createOfficeEditor, setWorkbookDefinedNameReference, setWorksheetCommentText, setWorksheetFrozenPane, setWorksheetTableRange } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -34,6 +34,18 @@ describe('xlsx editor round-trips', () => {
 
     expect(reopened.definedNames[0]?.reference).toBe('Sheet1!$A$1:$B$9');
     expect(reopenedGraph.parts['/xl/workbook.xml']?.text).toContain('customWorkbookAttr="keep"');
+  });
+
+  it('persists edited worksheet frozen pane metadata', async () => {
+    const editor = createOfficeEditor(parseXlsx(await openPackage(createStructuredXlsxFixture())));
+    setWorksheetFrozenPane(editor, 'Sheet1', { ySplit: 2, topLeftCell: 'A3', state: 'frozen' });
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parseXlsx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopened.sheets[0]?.frozenPane).toEqual({ xSplit: undefined, ySplit: 2, topLeftCell: 'A3', state: 'frozen' });
+    expect(reopenedGraph.parts['/xl/worksheets/sheet1.xml']?.text).toContain('customAttr="keep"');
   });
 });
 

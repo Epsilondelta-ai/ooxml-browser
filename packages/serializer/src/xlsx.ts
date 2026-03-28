@@ -175,8 +175,23 @@ function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string
       }
     }
 
-    if (sheet.frozenPane?.topLeftCell) {
-      next = applyXmlPatchPlan(next, [{ op: 'replaceAttribute', tagName: 'pane', targetAttr: 'topLeftCell', newValue: sheet.frozenPane.topLeftCell }]);
+    if (sheet.frozenPane) {
+      const operations = [] as Array<Parameters<typeof applyXmlPatchPlan>[1][number]>;
+      if (sheet.frozenPane.topLeftCell) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pane', targetAttr: 'topLeftCell', newValue: sheet.frozenPane.topLeftCell });
+      }
+      if (sheet.frozenPane.xSplit !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pane', targetAttr: 'xSplit', newValue: String(sheet.frozenPane.xSplit) });
+      }
+      if (sheet.frozenPane.ySplit !== undefined) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pane', targetAttr: 'ySplit', newValue: String(sheet.frozenPane.ySplit) });
+      }
+      if (sheet.frozenPane.state) {
+        operations.push({ op: 'replaceAttribute', tagName: 'pane', targetAttr: 'state', newValue: sheet.frozenPane.state });
+      }
+      if (operations.length > 0) {
+        next = applyXmlPatchPlan(next, operations);
+      }
     }
 
     return next;

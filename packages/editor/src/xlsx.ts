@@ -127,3 +127,12 @@ export function setWorkbookDefinedNameReference(editor: OfficeEditor<XlsxWorkboo
     }
   });
 }
+
+export function setWorksheetFrozenPane(editor: OfficeEditor<XlsxWorkbook>, sheetName: string, frozenPane: { xSplit?: number; ySplit?: number; topLeftCell?: string; state?: string } | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const sheet = draft.sheets.find((entry) => entry.name === sheetName);
+    if (sheet) {
+      sheet.frozenPane = frozenPane;
+    }
+  });
+}
