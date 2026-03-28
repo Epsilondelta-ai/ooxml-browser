@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { createOfficeEditor, setPresentationCommentAuthor, setPresentationCommentText, setPresentationNotesText, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
@@ -65,6 +65,15 @@ describe('pptx editor round-trips', () => {
 
     const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
     expect(reopened.slides[0]?.transition).toEqual({ type: 'push', speed: 'slow' });
+  });
+
+
+  it('persists edited presentation size metadata', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createPptxFixture())));
+    setPresentationSize(editor, { cx: 10000000, cy: 7500000 });
+
+    const reopened = parsePptx(await openPackage(serializeOfficeDocument(editor.document)));
+    expect(reopened.size).toEqual({ cx: 10000000, cy: 7500000 });
   });
 
   it('persists edited slide timing metadata', async () => {

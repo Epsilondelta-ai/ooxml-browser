@@ -6,6 +6,17 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
   const originalPresentation = parsePptx(presentation.packageGraph);
   const originalSlidesByUri = new Map(originalPresentation.slides.map((slide) => [slide.uri, slide]));
 
+  const presentationUri = presentation.packageGraph.rootDocumentUri ?? '/ppt/presentation.xml';
+  if (graph.parts[presentationUri]) {
+    const existingPresentationSource = graph.parts[presentationUri]?.text;
+    updatePackagePartText(
+      graph,
+      presentationUri,
+      existingPresentationSource ? patchPresentationXml(existingPresentationSource, presentation.size) : buildPresentationXml(presentation),
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml'
+    );
+  }
+
   for (const slide of presentation.slides) {
     const originalSlide = originalSlidesByUri.get(slide.uri);
     const existingSlideSource = graph.parts[slide.uri]?.text;
@@ -44,6 +55,19 @@ export function serializePptx(presentation: PresentationDocument): Uint8Array {
   }
 
   return serializePackageGraph(graph);
+}
+
+function buildPresentationXml(presentation: PresentationDocument): string {
+  const slideEntries = presentation.slides.map((_slide, index) => `<p:sldId id="${256 + index}" r:id="rId${index + 1}"/>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldSz cx="${presentation.size.cx}" cy="${presentation.size.cy}"/><p:sldIdLst>${slideEntries}</p:sldIdLst></p:presentation>`;
+}
+
+function patchPresentationXml(existingSource: string, size: { cx: number; cy: number }): string {
+  return applyXmlPatchPlan(existingSource, [
+    { op: 'replaceAttribute', tagName: 'p:sldSz', targetAttr: 'cx', newValue: String(size.cx) },
+    { op: 'replaceAttribute', tagName: 'p:sldSz', targetAttr: 'cy', newValue: String(size.cy) }
+  ]);
 }
 
 function patchSlideXml(existingSource: string, originalSlide: PresentationSlide, slide: PresentationSlide): string | undefined {

@@ -72,3 +72,9 @@ export function setPresentationTimingNodes(editor: OfficeEditor<PresentationDocu
     }
   });
 }
+
+export function setPresentationSize(editor: OfficeEditor<PresentationDocument>, size: { cx: number; cy: number }): PresentationDocument {
+  return editor.transaction((draft) => {
+    draft.size = { ...size };
+  });
+}
