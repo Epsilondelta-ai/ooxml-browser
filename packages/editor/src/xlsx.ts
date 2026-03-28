@@ -118,3 +118,12 @@ export function setWorksheetTableRange(editor: OfficeEditor<XlsxWorkbook>, sheet
     }
   });
 }
+
+export function setWorkbookDefinedNameReference(editor: OfficeEditor<XlsxWorkbook>, name: string, reference: string): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const definedName = draft.definedNames.find((entry) => entry.name === name);
+    if (definedName) {
+      definedName.reference = reference;
+    }
+  });
+}
