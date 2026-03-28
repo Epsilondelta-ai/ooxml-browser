@@ -1,0 +1,12 @@
+{
+  "id": "pptx-basic",
+  "sourceApplication": "repo-generated",
+  "format": "pptx",
+  "featureTags": ["slide", "notes", "text-shape"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "shape text edit", "notes edit"],
+  "reopenExpectations": {"parser": true, "office": "seed-fixture-attestation-pending", "libreoffice": "seed-fixture-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

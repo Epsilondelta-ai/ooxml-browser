@@ -1,0 +1,12 @@
+{
+  "id": "docx-basic",
+  "sourceApplication": "repo-generated",
+  "format": "docx",
+  "featureTags": ["paragraphs", "comments", "table"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "paragraph text edit"],
+  "reopenExpectations": {"parser": true, "office": "seed-fixture-attestation-pending", "libreoffice": "seed-fixture-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}

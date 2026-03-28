@@ -65,14 +65,12 @@ Need multiple corpora:
 
 ## Fixture strategy
 
-Directory layout recommendation:
-- `fixtures/opc/`
-- `fixtures/docx/`
-- `fixtures/xlsx/`
-- `fixtures/pptx/`
-- `fixtures/interop/`
-- `fixtures/security/`
-- `fixtures/perf/`
+Canonical directory layout:
+- `fixtures/shared/{opc,xml,security}`
+- `fixtures/docx/{micro,representative,interop,perf}`
+- `fixtures/xlsx/{micro,representative,interop,perf}`
+- `fixtures/pptx/{micro,representative,interop,perf}`
+- `fixtures/manifests/{docx,xlsx,pptx,shared}`
 
 Each fixture should include:
 - source file
