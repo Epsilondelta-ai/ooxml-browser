@@ -8,8 +8,9 @@ export interface SlideShapeTransform {
 }
 
 export interface SlideShapeMedia {
-  type: 'image';
+  type: 'image' | 'embeddedObject';
   targetUri?: string;
+  progId?: string;
 }
 
 export interface SlideShape {

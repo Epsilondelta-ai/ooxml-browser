@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { addPresentationComment, createOfficeEditor, removePresentationComment, setPresentationCommentAuthor, setPresentationCommentText, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationSlideMaster, setPresentationSlideTheme, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
+import { addPresentationComment, createOfficeEditor, removePresentationComment, setPresentationCommentAuthor, setPresentationCommentText, setPresentationEmbeddedObjectTarget, setPresentationImageTarget, setPresentationNotesText, setPresentationShapeName, setPresentationShapePlaceholderType, setPresentationShapeText, setPresentationShapeTransform, setPresentationSize, setPresentationSlideLayout, setPresentationSlideMaster, setPresentationSlideTheme, setPresentationTimingNodes, setPresentationTransition } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createInheritedPptxFixture, createMediaPptxFixture, createPptxFixture, createTimedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createEmbeddedObjectPptxFixture, createInheritedPptxFixture, createMediaPptxFixture, createPptxFixture, createTimedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx editor round-trips', () => {
   it('persists edited slide comment text', async () => {
@@ -108,6 +108,20 @@ describe('pptx editor round-trips', () => {
     const reopenedGraph = await openPackage(serialized);
     expect(reopened.slides[0]?.shapes.find((entry) => entry.media?.type === 'image')?.media?.targetUri).toBe('/ppt/media/hero2.png');
     expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../media/hero2.png');
+  });
+
+  it('persists edited embedded-object relationship targets', async () => {
+    const editor = createOfficeEditor(parsePptx(await openPackage(createEmbeddedObjectPptxFixture())));
+    const embeddedIndex = editor.document.slides[0]?.shapes.findIndex((entry) => entry.media?.type === 'embeddedObject') ?? -1;
+    expect(embeddedIndex).toBeGreaterThanOrEqual(0);
+    setPresentationEmbeddedObjectTarget(editor, 0, embeddedIndex, '/ppt/embeddings/oleObject2.bin');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopened = parsePptx(await openPackage(serialized));
+    const reopenedGraph = await openPackage(serialized);
+    expect(reopened.slides[0]?.shapes.find((entry) => entry.media?.type === 'embeddedObject')?.media?.targetUri).toBe('/ppt/embeddings/oleObject2.bin');
+    expect(reopened.slides[0]?.shapes.find((entry) => entry.media?.type === 'embeddedObject')?.media?.progId).toBe('Excel.Sheet.12');
+    expect(reopenedGraph.parts['/ppt/slides/_rels/slide1.xml.rels']?.text).toContain('../embeddings/oleObject2.bin');
   });
 
   it('persists edited slide layout targets', async () => {

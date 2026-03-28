@@ -6,6 +6,7 @@ import {
   setDocxCommentText,
   setDocxParagraphStyle,
   setPresentationCommentText,
+  setPresentationEmbeddedObjectTarget,
   setPresentationNotesText,
   setPresentationShapeText,
   setPresentationSize,
@@ -947,6 +948,7 @@ function renderEditorControls(): void {
       const secondTimingConcurrent = officeDocument.slides[0]?.timing?.nodes[1]?.concurrent;
       const secondTimingNextAction = officeDocument.slides[0]?.timing?.nodes[1]?.nextAction ?? '';
       const secondTimingPreviousAction = officeDocument.slides[0]?.timing?.nodes[1]?.previousAction ?? '';
+      const embeddedObjectTarget = officeDocument.slides[0]?.shapes.find((shape) => shape.media?.type === 'embeddedObject')?.media?.targetUri ?? '';
       const layoutUri = officeDocument.slides[0]?.layoutUri ?? '';
       const masterUri = officeDocument.slides[0]?.masterUri ?? '';
       const themeUri = officeDocument.slides[0]?.themeUri ?? '';
@@ -1022,6 +1024,10 @@ function renderEditorControls(): void {
           <input id="pptx-timing-prev-action-input" value="${escapeHtml(secondTimingPreviousAction)}" style="width: 100%; padding: 8px;" />
         </label>
         <label>
+          <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Embedded object target</div>
+          <input id="pptx-embedded-target-input" value="${escapeHtml(embeddedObjectTarget)}" style="width: 100%; padding: 8px;" />
+        </label>
+        <label>
           <div style="font-size: 0.875rem; color: #475569; margin-bottom: 6px;">Layout URI</div>
           <input id="pptx-layout-input" value="${escapeHtml(layoutUri)}" style="width: 100%; padding: 8px;" />
         </label>
@@ -1061,6 +1067,7 @@ function renderEditorControls(): void {
       const timingConcurrentInput = window.document.getElementById('pptx-timing-concurrent-input') as HTMLInputElement;
       const timingNextActionInput = window.document.getElementById('pptx-timing-next-action-input') as HTMLInputElement;
       const timingPrevActionInput = window.document.getElementById('pptx-timing-prev-action-input') as HTMLInputElement;
+      const embeddedTargetInput = window.document.getElementById('pptx-embedded-target-input') as HTMLInputElement;
       const layoutInput = window.document.getElementById('pptx-layout-input') as HTMLInputElement;
       const masterInput = window.document.getElementById('pptx-master-input') as HTMLInputElement;
       const themeInput = window.document.getElementById('pptx-theme-input') as HTMLInputElement;
@@ -1168,6 +1175,12 @@ function renderEditorControls(): void {
             } : node)
           );
         }
+        if (embeddedTargetInput.value) {
+          const embeddedIndex = presentationEditor.document.slides[0]?.shapes.findIndex((shape) => shape.media?.type === 'embeddedObject') ?? -1;
+          if (embeddedIndex >= 0) {
+            setPresentationEmbeddedObjectTarget(presentationEditor, 0, embeddedIndex, embeddedTargetInput.value);
+          }
+        }
         if (layoutInput.value) {
           setPresentationSlideLayout(presentationEditor, 0, layoutInput.value);
         }
@@ -1201,6 +1214,7 @@ function renderEditorControls(): void {
       timingConcurrentInput.addEventListener('input', update);
       timingNextActionInput.addEventListener('input', update);
       timingPrevActionInput.addEventListener('input', update);
+      embeddedTargetInput.addEventListener('input', update);
       layoutInput.addEventListener('input', update);
       masterInput.addEventListener('input', update);
       themeInput.addEventListener('input', update);

@@ -80,6 +80,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 | Shape placeholder type | `setPresentationShapePlaceholderType` | Persisted | Stored directly in shape metadata. |
 | Shape transform | `setPresentationShapeTransform` | Persisted | Rebuild path persists transform values. |
 | Image target URI | `setPresentationImageTarget` | Persisted | Serializer updates slide image relationship targets. |
+| Embedded object target URI | `setPresentationEmbeddedObjectTarget` | Persisted | Serializer updates slide OLE/package relationship targets without dropping embedded-object metadata. |
 | Slide layout target | `setPresentationSlideLayout` | Persisted | Serializer retargets the slideLayout relationship to an alternate existing layout part. |
 | Slide master target | `setPresentationSlideMaster` | Persisted | Serializer retargets the slideLayout-to-slideMaster relationship to an alternate existing master part. |
 | Slide theme target | `setPresentationSlideTheme` | Persisted | Serializer retargets the slideMaster-to-theme relationship to an alternate existing theme part. |
@@ -96,7 +97,7 @@ This document tracks the current public editing surface exposed by `@ooxml/edito
 
 - XLSX deeper chart internals
 - PPTX richer animation graph editing beyond core timing lifecycle/curve policy and target bindings
-- Relationship-safe embedded-object retargeting across all formats
+- Relationship-safe embedded-object retargeting across DOCX/XLSX and deeper PPTX object families beyond current OLE/package support
 
 ## Maintenance rule
 

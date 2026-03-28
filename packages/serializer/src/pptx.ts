@@ -122,21 +122,28 @@ function syncSlideMasterRelationship(graph: PresentationDocument['packageGraph']
 function syncSlideImageRelationships(graph: PresentationDocument['packageGraph'], slideUri: string, originalSlide: PresentationSlide | undefined, slide: PresentationSlide): void {
   const slideRelationships = relationshipsFor(graph, slideUri);
   const imageRelationships = slideRelationships.filter((relationship) => relationship.type.includes('/image'));
+  const embeddedRelationships = slideRelationships.filter((relationship) => relationship.type.includes('/oleObject') || relationship.type.includes('/package'));
   let imageRelationshipIndex = 0;
+  let embeddedRelationshipIndex = 0;
 
   for (const [shapeIndex, shape] of slide.shapes.entries()) {
-    if (shape.media?.type !== 'image' || !shape.media.targetUri) {
+    if (!shape.media?.targetUri) {
       continue;
     }
 
     const originalShape = originalSlide?.shapes[shapeIndex];
+    const candidateRelationships = shape.media.type === 'embeddedObject' ? embeddedRelationships : imageRelationships;
     const relationship =
       (originalShape?.media?.targetUri
-        ? imageRelationships.find((entry) => entry.resolvedTarget === originalShape.media?.targetUri)
+        ? candidateRelationships.find((entry) => entry.resolvedTarget === originalShape.media?.targetUri)
         : undefined)
-      ?? imageRelationships[imageRelationshipIndex];
+      ?? candidateRelationships[shape.media.type === 'embeddedObject' ? embeddedRelationshipIndex : imageRelationshipIndex];
 
-    imageRelationshipIndex += 1;
+    if (shape.media.type === 'embeddedObject') {
+      embeddedRelationshipIndex += 1;
+    } else {
+      imageRelationshipIndex += 1;
+    }
     if (!relationship || relationship.resolvedTarget === shape.media.targetUri) {
       continue;
     }
@@ -232,6 +239,14 @@ function buildShapeXml(shape: SlideShape, slideRelationships: ReturnType<typeof 
   if (shape.media?.type === 'image') {
     const relationshipId = slideRelationships.find((relationship) => relationship.resolvedTarget === shape.media?.targetUri)?.id ?? 'rIdImage';
     return `<p:pic><p:nvPicPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Image')}"/></p:nvPicPr><p:spPr>${transformXml}</p:spPr><p:blipFill><a:blip r:embed="${escapeXml(relationshipId)}"/></p:blipFill></p:pic>`;
+  }
+
+  if (shape.media?.type === 'embeddedObject') {
+    const relationshipId = slideRelationships.find((relationship) => relationship.resolvedTarget === shape.media?.targetUri)?.id ?? 'rIdOle';
+    const graphicFrameTransformXml = shape.transform
+      ? `<p:xfrm><a:off x="${shape.transform.x ?? 0}" y="${shape.transform.y ?? 0}"/><a:ext cx="${shape.transform.cx ?? 0}" cy="${shape.transform.cy ?? 0}"/></p:xfrm>`
+      : '';
+    return `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Embedded Object')}"/></p:nvGraphicFramePr>${graphicFrameTransformXml}<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/presentationml/2006/ole"><p:oleObj r:id="${escapeXml(relationshipId)}"${shape.media.progId ? ` progId="${escapeXml(shape.media.progId)}"` : ''}/></a:graphicData></a:graphic></p:graphicFrame>`;
   }
 
   return `<p:sp><p:nvSpPr><p:cNvPr id="${escapeXml(shape.id || '1')}" name="${escapeXml(shape.name ?? 'Shape')}"/><p:nvPr>${shape.placeholderType ? `<p:ph type="${escapeXml(shape.placeholderType)}"/>` : ''}</p:nvPr></p:nvSpPr><p:spPr>${transformXml}</p:spPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>${escapeXml(shape.text)}</a:t></a:r></a:p></p:txBody></p:sp>`;

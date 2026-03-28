@@ -120,6 +120,18 @@ export function setPresentationImageTarget(editor: OfficeEditor<PresentationDocu
   });
 }
 
+export function setPresentationEmbeddedObjectTarget(editor: OfficeEditor<PresentationDocument>, slideIndex: number, shapeIndex: number, targetUri: string): PresentationDocument {
+  return editor.transaction((draft) => {
+    const shape = draft.slides[slideIndex]?.shapes[shapeIndex];
+    if (shape?.media?.type === 'embeddedObject') {
+      shape.media = {
+        ...shape.media,
+        targetUri
+      };
+    }
+  });
+}
+
 export function setPresentationSlideLayout(editor: OfficeEditor<PresentationDocument>, slideIndex: number, layoutUri: string): PresentationDocument {
   return editor.transaction((draft) => {
     const slide = draft.slides[slideIndex];

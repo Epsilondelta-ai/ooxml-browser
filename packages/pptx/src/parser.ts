@@ -50,7 +50,8 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
   const shapes = [
     ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:sp').map((shape) => parseShape(shape)),
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:pic').map((picture) => parsePicture(picture, slideRelationships))
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:pic').map((picture) => parsePicture(picture, slideRelationships)),
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, slideRelationships))
   ];
   const notesInfo = parseNotesInfo(graph, uri);
   const title = shapes.find((shape) => shape.text.trim())?.text ?? 'Slide';
@@ -111,8 +112,33 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
   };
 }
 
+function parseGraphicFrame(frame: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>): SlideShape[] {
+  const nvGraphicFramePr = xmlChild<Record<string, unknown>>(frame, 'p:nvGraphicFramePr');
+  const cNvPr = xmlChild<Record<string, unknown>>(nvGraphicFramePr, 'p:cNvPr');
+  const transform = parseTransform(xmlChild<Record<string, unknown>>(frame, 'p:xfrm'));
+  const oleObj = findElementsByLocalName(frame, 'oleObj')[0] as Record<string, unknown> | undefined;
+  if (!oleObj) {
+    return [];
+  }
+
+  const relationshipId = xmlAttr(oleObj, 'r:id');
+  const target = relationshipId ? relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget : undefined;
+
+  return [{
+    id: xmlAttr(cNvPr, 'id') ?? '',
+    name: xmlAttr(cNvPr, 'name'),
+    text: '',
+    transform,
+    media: {
+      type: 'embeddedObject',
+      targetUri: target ?? undefined,
+      progId: xmlAttr(oleObj, 'progId') ?? undefined
+    }
+  }];
+}
+
 function parseTransform(shapeProperties: Record<string, unknown> | undefined): SlideShapeTransform | undefined {
-  const xfrm = xmlChild<Record<string, unknown>>(shapeProperties, 'a:xfrm');
+  const xfrm = xmlChild<Record<string, unknown>>(shapeProperties, 'a:xfrm') ?? xmlChild<Record<string, unknown>>(shapeProperties, 'p:xfrm');
   if (!xfrm) {
     return undefined;
   }
