@@ -27,6 +27,22 @@ export interface PresentationComment {
   index: number;
 }
 
+export interface PresentationTransition {
+  type?: string;
+  speed?: string;
+}
+
+export interface PresentationTimingNode {
+  nodeType: string;
+  presetClass?: string;
+  presetId?: string;
+}
+
+export interface PresentationTiming {
+  nodeCount: number;
+  nodes: PresentationTimingNode[];
+}
+
 export interface PresentationSlide {
   title: string;
   uri: string;
@@ -37,6 +53,8 @@ export interface PresentationSlide {
   masterUri?: string;
   masterName?: string;
   themeUri?: string;
+  transition?: PresentationTransition;
+  timing?: PresentationTiming;
   shapes: SlideShape[];
   comments: PresentationComment[];
 }

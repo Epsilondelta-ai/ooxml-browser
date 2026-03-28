@@ -3,6 +3,9 @@ export type {
   PresentationDocument,
   PresentationSlide,
   PresentationTheme,
+  PresentationTiming,
+  PresentationTimingNode,
+  PresentationTransition,
   SlideShape,
   SlideShapeMedia
 } from './model';

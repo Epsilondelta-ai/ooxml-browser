@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, findElementsByLocalName, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTheme, SlideShape } from './model';
+import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape } from './model';
 
 export function parsePptx(graph: PackageGraph): PresentationDocument {
   const presentationUri = graph.rootDocumentUri ?? '/ppt/presentation.xml';
@@ -42,7 +42,7 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
     throw new Error(`Slide part ${uri} is missing.`);
   }
 
-  const slide = xml.document['p:sld'];
+  const slide = xml.document['p:sld'] as Record<string, unknown>;
   const commonSlideData = xmlChild<Record<string, unknown>>(slide, 'p:cSld');
   const shapeTree = xmlChild<Record<string, unknown>>(commonSlideData, 'p:spTree');
   const slideRelationships = relationshipsFor(graph, uri);
@@ -66,6 +66,8 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
     masterUri: layoutInfo?.masterUri,
     masterName: layoutInfo?.masterName,
     themeUri: layoutInfo?.themeUri,
+    transition: parseTransition(slide),
+    timing: parseTiming(slide),
     shapes,
     comments
   };
@@ -149,6 +151,42 @@ function parseThemeInfo(graph: PackageGraph, themeUri: string): PresentationThem
     colorSchemeName: colorScheme ? xmlAttr(colorScheme, 'name') : undefined,
     majorLatinFont: majorLatin ? xmlAttr(majorLatin, 'typeface') : undefined,
     minorLatinFont: minorLatin ? xmlAttr(minorLatin, 'typeface') : undefined
+  };
+}
+
+function parseTransition(slide: Record<string, unknown>): PresentationTransition | undefined {
+  const transitionNode = xmlChild<Record<string, unknown>>(slide, 'p:transition');
+  if (!transitionNode) {
+    return undefined;
+  }
+
+  const transitionType = Object.keys(transitionNode).find((key) => !key.startsWith('@_') && key !== '#text');
+  return {
+    type: transitionType?.split(':').pop(),
+    speed: xmlAttr(transitionNode, 'spd')
+  };
+}
+
+function parseTiming(slide: Record<string, unknown>): PresentationTiming | undefined {
+  const timingNode = xmlChild<Record<string, unknown>>(slide, 'p:timing');
+  if (!timingNode) {
+    return undefined;
+  }
+
+  const nodes: PresentationTimingNode[] = [];
+  for (const nodeType of ['p:par', 'p:seq', 'p:anim']) {
+    for (const node of findElementsByLocalName(timingNode, nodeType.split(':')[1])) {
+      nodes.push({
+        nodeType: nodeType.split(':')[1],
+        presetClass: xmlAttr(node, 'presetClass') ?? undefined,
+        presetId: xmlAttr(node, 'presetID') ?? undefined
+      });
+    }
+  }
+
+  return {
+    nodeCount: nodes.length,
+    nodes
   };
 }
 

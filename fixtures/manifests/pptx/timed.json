@@ -1,0 +1,12 @@
+{
+  "id": "pptx-timed",
+  "sourceApplication": "repo-generated",
+  "format": "pptx",
+  "featureTags": ["transition", "timing"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "timing metadata render"],
+  "reopenExpectations": {"parser": true, "office": "stage-4-attestation-pending", "libreoffice": "stage-4-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}
