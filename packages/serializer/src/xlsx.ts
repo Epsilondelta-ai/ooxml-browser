@@ -11,7 +11,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   updatePackagePartText(
     graph,
     '/xl/workbook.xml',
-    patchWorkbookXml(graph.parts['/xl/workbook.xml']?.text, originalWorkbook, workbook) ?? buildWorkbookXml(workbook),
+    patchWorkbookXml(graph.parts['/xl/workbook.xml']?.text, originalWorkbook, workbook) ?? buildWorkbookXml(workbook, graph.parts['/xl/workbook.xml']?.text),
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
   );
 
@@ -68,13 +68,18 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
   return serializePackageGraph(graph);
 }
 
-function buildWorkbookXml(workbook: XlsxWorkbook): string {
+function buildWorkbookXml(workbook: XlsxWorkbook, existingSource?: string): string {
   const definedNamesXml = workbook.definedNames.length
     ? `<definedNames>${workbook.definedNames.map(buildDefinedNameXml).join('')}</definedNames>`
     : '';
   const sheetsXml = workbook.sheets.map((sheet) => `<sheet name="${escapeXml(sheet.name)}" sheetId="${sheet.sheetId}" r:id="${escapeXml(sheet.relationshipId)}"/>`).join('');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${definedNamesXml}<sheets>${sheetsXml}</sheets></workbook>`;
+  const workbookOpenTag = preserveWorkbookOpenTag(existingSource) ?? '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${workbookOpenTag}${definedNamesXml}<sheets>${sheetsXml}</sheets></workbook>`;
+}
+
+function preserveWorkbookOpenTag(existingSource?: string): string | undefined {
+  return existingSource?.match(/<workbook\b[^>]*>/)?.[0];
 }
 
 function patchWorkbookXml(existingSource: string | undefined, originalWorkbook: XlsxWorkbook, workbook: XlsxWorkbook): string | undefined {

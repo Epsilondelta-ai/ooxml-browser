@@ -239,6 +239,15 @@ export function upsertWorkbookDefinedName(editor: OfficeEditor<XlsxWorkbook>, na
   });
 }
 
+export function setWorkbookDefinedNameScope(editor: OfficeEditor<XlsxWorkbook>, name: string, scopeSheetId: number | undefined): XlsxWorkbook {
+  return editor.transaction((draft) => {
+    const definedName = draft.definedNames.find((entry) => entry.name === name);
+    if (definedName) {
+      definedName.scopeSheetId = scopeSheetId;
+    }
+  });
+}
+
 export function setWorkbookSheetName(editor: OfficeEditor<XlsxWorkbook>, currentName: string, nextName: string): XlsxWorkbook {
   return editor.transaction((draft) => {
     const sheet = draft.sheets.find((entry) => entry.name === currentName);
