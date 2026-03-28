@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T07:15:26.587Z",
+  "generatedAt": "2026-03-28T07:19:13.053Z",
   "results": [
     {
       "id": "docx-basic",
@@ -200,13 +200,12 @@
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/xl/sharedStrings.xml",
         "/xl/worksheets/sheet1.xml"
       ],
       "addedParts": [],
       "removedParts": [],
-      "changedPartCount": 2,
-      "preservedPartCount": 3,
+      "changedPartCount": 1,
+      "preservedPartCount": 4,
       "totalOriginalPartCount": 5,
       "officeStatus": "seed-fixture-attestation-pending",
       "libreOfficeStatus": "seed-fixture-attestation-pending"
@@ -258,13 +257,12 @@
       "parserRoundTrip": true,
       "editedRoundTrip": true,
       "changedParts": [
-        "/xl/sharedStrings.xml",
         "/xl/worksheets/sheet1.xml"
       ],
       "addedParts": [],
       "removedParts": [],
-      "changedPartCount": 2,
-      "preservedPartCount": 4,
+      "changedPartCount": 1,
+      "preservedPartCount": 5,
       "totalOriginalPartCount": 6,
       "officeStatus": "stage-3-attestation-pending",
       "libreOfficeStatus": "stage-3-attestation-pending"

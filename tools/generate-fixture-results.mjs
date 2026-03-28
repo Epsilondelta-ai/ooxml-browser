@@ -79,6 +79,15 @@ function describePartDiff(originalGraph, editedGraph) {
   };
 }
 
+function chooseSpreadsheetMutationCell(workbook) {
+  const sheet = workbook.sheets[0];
+  const cells = sheet?.rows.flatMap((row) => row.cells) ?? [];
+  return cells.find((cell) => cell.type === 'n' && !cell.formula)
+    ?? cells.find((cell) => !cell.formula && !Number.isNaN(Number(cell.value)))
+    ?? cells.find((cell) => !cell.formula)
+    ?? cells[0];
+}
+
 function mutateDocument(format, document) {
   const editor = createOfficeEditor(document);
   if (format === 'docx') {
@@ -98,10 +107,11 @@ function mutateDocument(format, document) {
       return { document: editor.document, mutation: 'comment-text-edit' };
     }
 
+    const targetCell = chooseSpreadsheetMutationCell(workbook);
     setWorkbookCellValue(
       editor,
       workbook.sheets[0]?.name ?? 'Sheet1',
-      workbook.sheets[0]?.rows[0]?.cells[0]?.reference ?? 'A1',
+      targetCell?.reference ?? 'A1',
       '99'
     );
     return { document: editor.document, mutation: 'cell-value-edit' };

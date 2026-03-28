@@ -15,7 +15,7 @@ export function serializeXlsx(workbook: XlsxWorkbook): Uint8Array {
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml'
   );
 
-  if (hasSharedStringsPart) {
+  if (hasSharedStringsPart && shouldRewriteSharedStrings(originalWorkbook, workbook)) {
     updatePackagePartText(
       graph,
       sharedStringsUri,
@@ -139,6 +139,20 @@ function buildSharedStringsXml(values: string[]): string {
   const items = values.map((value) => `<si><t>${escapeXml(value)}</t></si>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${values.length}" uniqueCount="${values.length}">${items}</sst>`;
 }
+function shouldRewriteSharedStrings(originalWorkbook: XlsxWorkbook, workbook: XlsxWorkbook): boolean {
+  return JSON.stringify(sharedStringSignature(originalWorkbook)) !== JSON.stringify(sharedStringSignature(workbook));
+}
+
+function sharedStringSignature(workbook: XlsxWorkbook): Array<{ reference: string; value: string }> {
+  return workbook.sheets.flatMap((sheet) =>
+    sheet.rows.flatMap((row) =>
+      row.cells
+        .filter((cell) => shouldUseSharedString(cell))
+        .map((cell) => ({ reference: cell.reference, value: cell.value }))
+    )
+  );
+}
+
 
 function buildWorksheetXml(sheet: WorkbookSheet, sharedStringIndices: Map<string, number>, useSharedStrings: boolean, existingSource?: string): string {
   if (existingSource && canPatchWorksheet(sheet)) {

@@ -35,4 +35,16 @@ describe('fixture result artifacts', () => {
       expect(result.preservedPartCount + result.changedPartCount + result.removedParts.length).toBe(result.totalOriginalPartCount);
     }
   });
+
+  it('prefers narrow SpreadsheetML mutations that avoid shared-string churn when possible', async () => {
+    const report = JSON.parse(await readFile('benchmarks/reports/latest-fixture-results.json', 'utf8')) as {
+      results: Array<{ id: string; changedParts: string[] }>;
+    };
+
+    const basic = report.results.find((result) => result.id === 'xlsx-basic');
+    const styled = report.results.find((result) => result.id === 'xlsx-styled');
+
+    expect(basic?.changedParts).toEqual(['/xl/worksheets/sheet1.xml']);
+    expect(styled?.changedParts).toEqual(['/xl/worksheets/sheet1.xml']);
+  });
 });

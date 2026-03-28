@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { openPackage } from '@ooxml/core';
-import { createOfficeEditor, insertWorkbookRow } from '@ooxml/editor';
+import { createOfficeEditor, insertWorkbookRow, setWorkbookCellValue } from '@ooxml/editor';
 import { parseXlsx } from '@ooxml/xlsx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 
-import { createCommentedXlsxFixture, createStructuredXlsxFixture } from './fixture-builders';
+import { createCommentedXlsxFixture, createStructuredXlsxFixture, createStyledXlsxFixture, createXlsxFixture } from './fixture-builders';
 
 describe('xlsx serializer persistence', () => {
   it('persists workbook structural metadata after a row insert', async () => {
@@ -32,5 +32,31 @@ describe('xlsx serializer persistence', () => {
 
     expect(sheet?.comments).toEqual([{ reference: 'B2', author: 'Codex', text: 'Review this value' }]);
     expect(sheet?.tables).toEqual([{ name: 'SalesTable', range: 'A1:B2', partUri: '/xl/tables/table1.xml' }]);
+  });
+});
+
+describe('xlsx shared-string preservation', () => {
+  it('leaves sharedStrings.xml untouched when editing a numeric cell in the basic fixture', async () => {
+    const originalBytes = createXlsxFixture();
+    const originalGraph = await openPackage(originalBytes);
+    const editor = createOfficeEditor(parseXlsx(originalGraph));
+    setWorkbookCellValue(editor, 'Sheet1', 'B1', '99');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopenedGraph.parts['/xl/sharedStrings.xml']?.text).toBe(originalGraph.parts['/xl/sharedStrings.xml']?.text);
+  });
+
+  it('leaves sharedStrings.xml untouched when editing a numeric styled cell', async () => {
+    const originalBytes = createStyledXlsxFixture();
+    const originalGraph = await openPackage(originalBytes);
+    const editor = createOfficeEditor(parseXlsx(originalGraph));
+    setWorkbookCellValue(editor, 'Sheet1', 'B1', '99');
+
+    const serialized = serializeOfficeDocument(editor.document);
+    const reopenedGraph = await openPackage(serialized);
+
+    expect(reopenedGraph.parts['/xl/sharedStrings.xml']?.text).toBe(originalGraph.parts['/xl/sharedStrings.xml']?.text);
   });
 });
