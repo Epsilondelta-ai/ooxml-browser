@@ -63,6 +63,10 @@ export interface SlideShape {
   line?: PresentationLine;
   textStyle?: PresentationTextStyle;
   pathCommands?: PresentationPathCommand[];
+  pathViewport?: {
+    width: number;
+    height: number;
+  };
   media?: SlideShapeMedia;
 }
 
