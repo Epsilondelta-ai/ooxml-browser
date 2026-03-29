@@ -291,6 +291,16 @@
   - `sample6/1`: `93.08 -> 93.27`
 - **Decision:** accepted because it materially improved the sample6 badge-title lane while leaving the other two targets flat.
 
+## Stage 27 — local-search compact centered title text to 97.0%
+- **Status:** accepted
+- **What changed:** compact centered title-sized text now uses `97.0%` effective sizing, continuing the isolated sample6 badge-title lane that has been improving without moving sample1 or sample5.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4366 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.80 -> 91.80`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `93.27 -> 93.37`
+- **Decision:** accepted because the compact badge-title lane improved further while the other two targets stayed flat.
+
 ## Stage 27 — local-search compact centered title text to 97.5%
 - **Status:** accepted
 - **What changed:** compact centered title-sized text now uses a slightly smaller effective font size (`97.5%`) than the prior accepted title lane, which further improves the sample6 badge title while leaving sample1 and sample5 flat.
