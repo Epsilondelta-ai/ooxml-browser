@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-29T04:06:02.503Z",
+  "generatedAt": "2026-03-29T04:12:26.189Z",
   "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
   "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
   "results": [
@@ -17,8 +17,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.155243,
-      "score": 84.48
+      "normalizedRmse": 0.146884,
+      "score": 85.31
     },
     {
       "sample": "sample1",
@@ -34,8 +34,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.163603,
-      "score": 83.64
+      "normalizedRmse": 0.16138,
+      "score": 83.86
     },
     {
       "sample": "sample1",
@@ -51,8 +51,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.170268,
-      "score": 82.97
+      "normalizedRmse": 0.16301,
+      "score": 83.7
     },
     {
       "sample": "sample2",
@@ -68,8 +68,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.138217,
-      "score": 86.18
+      "normalizedRmse": 0.139502,
+      "score": 86.05
     },
     {
       "sample": "sample2",
@@ -85,8 +85,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.13936,
-      "score": 86.06
+      "normalizedRmse": 0.129278,
+      "score": 87.07
     },
     {
       "sample": "sample2",
@@ -102,8 +102,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.144512,
-      "score": 85.55
+      "normalizedRmse": 0.140235,
+      "score": 85.98
     },
     {
       "sample": "sample3",
@@ -119,8 +119,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.15274,
-      "score": 84.73
+      "normalizedRmse": 0.144132,
+      "score": 85.59
     },
     {
       "sample": "sample3",
@@ -136,8 +136,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.291867,
-      "score": 70.81
+      "normalizedRmse": 0.290733,
+      "score": 70.93
     },
     {
       "sample": "sample4",
@@ -153,8 +153,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.230958,
-      "score": 76.9
+      "normalizedRmse": 0.236488,
+      "score": 76.35
     },
     {
       "sample": "sample4",
@@ -170,8 +170,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.158257,
-      "score": 84.17
+      "normalizedRmse": 0.155857,
+      "score": 84.41
     },
     {
       "sample": "sample5",
@@ -187,8 +187,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.191414,
-      "score": 80.86
+      "normalizedRmse": 0.190631,
+      "score": 80.94
     },
     {
       "sample": "sample5",
@@ -204,8 +204,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.259595,
-      "score": 74.04
+      "normalizedRmse": 0.247976,
+      "score": 75.2
     },
     {
       "sample": "sample6",
@@ -238,8 +238,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.115199,
-      "score": 88.48
+      "normalizedRmse": 0.111339,
+      "score": 88.87
     }
   ]
 }

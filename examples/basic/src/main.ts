@@ -684,7 +684,7 @@ function enhancePresentationPreview(): void {
       content.style.fontFamily = fontFamily || '';
       content.style.textAlign = textAlign === 'ctr' ? 'center' : textAlign === 'r' ? 'right' : textAlign === 'just' ? 'justify' : 'left';
       if (fontSizePt > 0) {
-        content.style.fontSize = `${Math.max(fontSizePt * 1.18, 14)}px`;
+        content.style.fontSize = `${Math.max(fontSizePt, 14)}px`;
       }
       if (shape.dataset.fontBold === 'true') {
         content.style.fontWeight = '700';
@@ -711,6 +711,10 @@ function enhancePresentationPreview(): void {
     const heightRatio = height / cy;
     if (topRatio < 0.18 && widthRatio > 0.35) {
       shape.classList.add('kind-title', 'is-heading');
+      shape.style.overflow = 'visible';
+      if (content && !textAlign) {
+        content.style.textAlign = 'center';
+      }
     } else if (widthRatio > 0.22 && heightRatio > 0.12) {
       shape.classList.add('kind-body', 'is-card');
       shape.style.setProperty('--accent', accentPalette[index % accentPalette.length]);
