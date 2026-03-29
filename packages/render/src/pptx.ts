@@ -62,7 +62,7 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
   const filledStyle = [
     style,
     shape.fill?.color ? `background:${applyOpacity(shape.fill.color, shape.fill.opacity)}` : '',
-    shape.line?.color ? `border:${Math.max(1, Math.round((shape.line.width ?? 0) / 12700))}px solid ${applyOpacity(shape.line.color, shape.line.opacity)}` : ''
+    shape.line?.color ? `border:${Math.max(1, emuToPx(shape.line.width ?? 0))}px solid ${applyOpacity(shape.line.color, shape.line.opacity)}` : ''
   ].filter(Boolean).join(';');
 
   if (shape.media?.type === 'image' && shape.media.targetUri) {
@@ -93,7 +93,7 @@ function renderSceneShapeSvg(shape: SlideShape): string {
   const gradientId = shape.fill?.gradientStops?.length ? 'ooxml-scene-gradient' : undefined;
   const fill = gradientId ? `url(#${gradientId})` : shape.fill?.color ?? 'none';
   const stroke = shape.line?.color ?? 'none';
-  const strokeWidth = Math.max(1, Math.round((shape.line?.width ?? 0) / 12700));
+  const strokeWidth = Math.max(1, emuToPx(shape.line?.width ?? 0));
   const strokeDashArray = sceneStrokeDashArray(shape.line);
   const strokeAttrs = `${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''}${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}`;
   const gradientMarkup = gradientId
@@ -191,7 +191,7 @@ function buildPresetSceneSvgMarkup(
 }
 
 function sceneStrokeDashArray(line: SlideShape['line']): string | undefined {
-  const width = Math.max(1, Math.round((line?.width ?? 0) / 12700));
+  const width = Math.max(1, emuToPx(line?.width ?? 0));
   switch (line?.dash) {
     case 'dash':
     case 'sysDash':
@@ -206,6 +206,10 @@ function sceneStrokeDashArray(line: SlideShape['line']): string | undefined {
     default:
       return undefined;
   }
+}
+
+function emuToPx(value: number): number {
+  return Math.max(1, Math.round(value / 9525));
 }
 
 function toCssAlign(value: string | undefined): string {

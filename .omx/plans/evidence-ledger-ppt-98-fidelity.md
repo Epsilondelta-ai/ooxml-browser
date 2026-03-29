@@ -70,3 +70,13 @@
   - `sample5/2`: `84.89 -> 84.89`
   - `sample6/1`: `91.20 -> 91.20`
 - **Decision:** accepted because the sample1 title-slide hotspot improved materially and no target slide regressed.
+
+## Stage 6 — scene stroke width normalization
+- **Status:** accepted
+- **What changed:** scene stroke widths now convert from EMU to CSS pixels using a renderer-consistent pixel mapping, slightly improving vector border fidelity on the active scene lane.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4279 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `89.46 -> 89.47`
+  - `sample5/2`: `84.89 -> 84.94`
+  - `sample6/1`: `91.20 -> 91.20`
+- **Decision:** accepted because all target slides stayed neutral-to-better and the stroke conversion is a more principled renderer baseline for later geometry work.
