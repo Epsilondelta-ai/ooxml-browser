@@ -1,31 +1,31 @@
 {
   "suite": "ooxml-benchmarks",
-  "generatedAt": "2026-03-29T00:31:26.474Z",
+  "generatedAt": "2026-03-29T00:42:33.529Z",
   "micro": [
     {
       "label": "docx-micro",
-      "openMs": 4.347,
-      "parseMs": 0.521,
-      "renderMs": 0.146,
-      "serializeMs": 6.055,
+      "openMs": 4.387,
+      "parseMs": 0.499,
+      "renderMs": 0.143,
+      "serializeMs": 5.682,
       "outputBytes": 889,
       "htmlLength": 228
     },
     {
       "label": "xlsx-micro",
-      "openMs": 10.378,
-      "parseMs": 0.516,
-      "renderMs": 0.176,
-      "serializeMs": 0.833,
+      "openMs": 10.043,
+      "parseMs": 0.489,
+      "renderMs": 0.162,
+      "serializeMs": 0.826,
       "outputBytes": 1776,
       "htmlLength": 187
     },
     {
       "label": "pptx-micro",
-      "openMs": 11.453,
-      "parseMs": 0.416,
-      "renderMs": 0.11,
-      "serializeMs": 0.522,
+      "openMs": 10.983,
+      "parseMs": 0.385,
+      "renderMs": 0.099,
+      "serializeMs": 0.511,
       "outputBytes": 1584,
       "htmlLength": 311
     }
@@ -33,37 +33,46 @@
   "representative": [
     {
       "label": "docx-representative-styled",
-      "openMs": 0.274,
-      "parseMs": 0.242,
-      "renderMs": 0.012,
-      "serializeMs": 0.261,
+      "openMs": 0.262,
+      "parseMs": 0.262,
+      "renderMs": 0.008,
+      "serializeMs": 0.253,
       "outputBytes": 1527,
       "htmlLength": 293
     },
     {
       "label": "xlsx-representative-structured",
-      "openMs": 0.202,
-      "parseMs": 0.217,
-      "renderMs": 0.013,
-      "serializeMs": 0.452,
+      "openMs": 0.391,
+      "parseMs": 0.307,
+      "renderMs": 0.02,
+      "serializeMs": 0.494,
       "outputBytes": 1683,
       "htmlLength": 420
     },
     {
       "label": "xlsx-representative-charted",
-      "openMs": 0.6,
-      "parseMs": 3.203,
-      "renderMs": 0.198,
-      "serializeMs": 1.957,
+      "openMs": 0.528,
+      "parseMs": 2.89,
+      "renderMs": 0.18,
+      "serializeMs": 1.454,
       "outputBytes": 4230,
       "htmlLength": 1772
     },
     {
+      "label": "xlsx-representative-bubble",
+      "openMs": 0.303,
+      "parseMs": 0.408,
+      "renderMs": 0.014,
+      "serializeMs": 0.514,
+      "outputBytes": 3078,
+      "htmlLength": 450
+    },
+    {
       "label": "pptx-representative-inherited",
-      "openMs": 0.383,
-      "parseMs": 0.367,
-      "renderMs": 0.013,
-      "serializeMs": 0.519,
+      "openMs": 0.503,
+      "parseMs": 0.502,
+      "renderMs": 0.014,
+      "serializeMs": 0.64,
       "outputBytes": 3931,
       "htmlLength": 659
     }

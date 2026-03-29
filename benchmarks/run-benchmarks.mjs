@@ -77,6 +77,7 @@ async function representativeBenchmarks() {
     ['docx-representative-styled', 'fixtures/docx/representative/styled.docx', parseDocx],
     ['xlsx-representative-structured', 'fixtures/xlsx/representative/structured.xlsx', parseXlsx],
     ['xlsx-representative-charted', 'fixtures/xlsx/representative/charted.xlsx', parseXlsx],
+    ['xlsx-representative-bubble', 'fixtures/xlsx/representative/bubble.xlsx', parseXlsx],
     ['pptx-representative-inherited', 'fixtures/pptx/representative/inherited.pptx', parsePptx]
   ];
 

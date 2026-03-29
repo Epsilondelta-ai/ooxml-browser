@@ -12,7 +12,14 @@ describe('benchmark artifacts', () => {
 
     expect(report.suite).toBe('ooxml-benchmarks');
     expect(report.micro.length).toBeGreaterThanOrEqual(3);
-    expect(report.representative.length).toBeGreaterThanOrEqual(3);
+    expect(report.representative.length).toBeGreaterThanOrEqual(5);
+    expect(report.representative.map((result) => result.label)).toEqual(expect.arrayContaining([
+      'docx-representative-styled',
+      'xlsx-representative-structured',
+      'xlsx-representative-charted',
+      'xlsx-representative-bubble',
+      'pptx-representative-inherited'
+    ]));
 
     for (const result of [...report.micro, ...report.representative]) {
       expect(result.openMs).toBeLessThan(100);
