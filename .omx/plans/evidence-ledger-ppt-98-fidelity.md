@@ -241,6 +241,16 @@
   - `sample6/1`: `92.96 -> 93.02`
 - **Decision:** accepted because it improved sample1 and sample6 while leaving sample5 flat.
 
+## Stage 22 — slightly shrink wide centered small text
+- **Status:** accepted
+- **What changed:** wide centered small-text nodes now render at a slightly reduced effective font size, which further tightens the sample1 subtitle band while staying neutral on the agenda slide and slightly helping the sample6 badge text.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4325 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.35 -> 91.78`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `93.02 -> 93.05`
+- **Decision:** accepted because it materially improved sample1, slightly improved sample6, and left sample5 unchanged.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
