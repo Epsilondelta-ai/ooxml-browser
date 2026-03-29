@@ -93,7 +93,8 @@ function renderSceneShapeSvg(shape: SlideShape): string {
   const gradientId = shape.fill?.gradientStops?.length ? 'ooxml-scene-gradient' : undefined;
   const fill = gradientId ? `url(#${gradientId})` : shape.fill?.color ?? 'none';
   const stroke = shape.line?.color ?? 'none';
-  const strokeWidth = Math.max(1, emuToPx(shape.line?.width ?? 0));
+  const dashedEllipseStroke = shape.shapeType === 'ellipse' && (shape.line?.dash === 'dash' || shape.line?.dash === 'sysDash');
+  const strokeWidth = Math.max(1, emuToPx(shape.line?.width ?? 0) * (dashedEllipseStroke ? 0.92 : 1));
   const strokeDashArray = sceneStrokeDashArray(shape.line);
   const strokeAttrs = `${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''}${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}`;
   const preserveAspectRatio = shouldUseIntrinsicAspectRatio(shape) ? 'xMidYMid meet' : 'none';
