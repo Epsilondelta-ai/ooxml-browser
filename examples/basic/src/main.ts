@@ -306,6 +306,11 @@ app.innerHTML = `
         text-align: center;
       }
 
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.is-decorative {
+        border-style: dashed;
+        box-shadow: inset 0 0 0 2px rgba(105, 182, 204, 0.2);
+      }
+
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-body .ooxml-pptx-shape-content,
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
         font-size: 1.05rem;
@@ -831,6 +836,9 @@ function enhancePresentationPreview(): void {
         shape.classList.add('kind-footer');
       } else {
         shape.classList.add('kind-subtitle');
+        if (content && circleBadgeShape && body.includes(' OF YOUR ')) {
+          content.textContent = body.replace(' OF YOUR ', '\nOF YOUR ');
+        }
         if (content && !textColor) {
           content.style.color = darkBackground ? '#93c5fd' : '#57A7BD';
         }
@@ -840,10 +848,10 @@ function enhancePresentationPreview(): void {
         const circleY = (Number(circleBadgeShape.dataset.y ?? 0) / cy) * 100;
         const circleW = (Number(circleBadgeShape.dataset.cx ?? 0) / cx) * 100;
         const circleH = (Number(circleBadgeShape.dataset.cy ?? 0) / cy) * 100;
-        shape.style.left = `${circleX + circleW * 0.12}%`;
-        shape.style.width = `${circleW * 0.76}%`;
-        shape.style.height = rank === 0 ? `${circleH * 0.30}%` : `${circleH * 0.14}%`;
-        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.22 : circleH * 0.60)}%`;
+        shape.style.left = `${circleX + circleW * 0.09}%`;
+        shape.style.width = `${circleW * 0.82}%`;
+        shape.style.height = rank === 0 ? `${circleH * 0.28}%` : `${circleH * 0.18}%`;
+        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.24 : circleH * 0.56)}%`;
       }
       if (yellowTheme && !circleBadgeShape && content) {
         if (shape.classList.contains('kind-title')) {
