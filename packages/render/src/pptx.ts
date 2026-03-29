@@ -323,7 +323,7 @@ function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: bool
     overlay ? (isCentered ? 'justify-content:center' : 'justify-content:flex-start') : '',
     isCentered ? 'padding:0' : '',
     compactCenteredLongText ? 'line-height:1.05' : '',
-    compactCenteredTitleText ? 'font-size:96.5%' : '',
+    compactCenteredTitleText ? 'font-size:96%' : '',
     wideCenteredSmallText ? 'line-height:1.03' : '',
     wideCenteredSmallText ? 'font-size:96%' : '',
     isCentered ? 'box-sizing:border-box' : '',
