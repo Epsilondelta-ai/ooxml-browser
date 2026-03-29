@@ -547,9 +547,9 @@ function enhancePresentationPreview(): void {
   const backgroundOpacity = Number(presentation.dataset.backgroundOpacity ?? 1);
   const backgroundImageUri = presentation.dataset.backgroundImageUri;
   if (backgroundColor) {
-    canvas.style.background = applyOpacity(backgroundColor, backgroundOpacity);
+    canvas.style.backgroundColor = applyOpacity(backgroundColor, backgroundOpacity);
   } else {
-    canvas.style.background = '';
+    canvas.style.backgroundColor = '';
   }
   if (backgroundImageUri) {
     const imageUrl = getPackagePartObjectUrl(backgroundImageUri);
@@ -560,7 +560,10 @@ function enhancePresentationPreview(): void {
       canvas.style.backgroundRepeat = 'no-repeat';
     }
   } else {
-    canvas.style.backgroundImage = '';
+    canvas.style.backgroundImage = 'none';
+    canvas.style.backgroundSize = '';
+    canvas.style.backgroundPosition = '';
+    canvas.style.backgroundRepeat = '';
   }
 
   const accentPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
