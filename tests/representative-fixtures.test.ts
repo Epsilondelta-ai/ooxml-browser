@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { openPackage, relationshipsFor } from '@ooxml/core';
 import { parseDocx } from '@ooxml/docx';
-import { createOfficeEditor, replaceDocxParagraphText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue, setWorksheetChartTitle } from '@ooxml/editor';
+import { createOfficeEditor, replaceDocxParagraphText, setPresentationNotesText, setPresentationShapeText, setWorkbookCellValue, setWorksheetChartBubbleScale, setWorksheetChartTitle } from '@ooxml/editor';
 import { parsePptx } from '@ooxml/pptx';
 import { serializeOfficeDocument } from '@ooxml/serializer';
 import { parseXlsx } from '@ooxml/xlsx';
@@ -53,6 +53,22 @@ describe('representative fixture preservation', () => {
 
     const editor = createOfficeEditor(parseXlsx(await openPackage(originalBytes)));
     setWorksheetChartTitle(editor, 'Sheet1', 0, 'Representative chart edit');
+    const editedGraph = await openPackage(serializeOfficeDocument(editor.document));
+    expect(editedGraph.parts['/xl/_rels/workbook.xml.rels']?.text).toBe(originalGraph.parts['/xl/_rels/workbook.xml.rels']?.text);
+    expect(editedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toBe(originalGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text);
+  });
+
+  it('preserves bubble-chart XLSX relationships on no-op and keeps drawing/workbook rels untouched on bubble-scale edit', async () => {
+    const originalBytes = await loadFixture('fixtures/xlsx/representative/bubble.xlsx');
+    const originalGraph = await openPackage(originalBytes);
+    const reopenedGraph = await openPackage(serializeOfficeDocument(parseXlsx(originalGraph)));
+
+    expect(reopenedGraph.partOrder).toEqual(originalGraph.partOrder);
+    expect(relationshipsFor(reopenedGraph, '/xl/workbook.xml').map((rel) => rel.type)).toEqual(relationshipsFor(originalGraph, '/xl/workbook.xml').map((rel) => rel.type));
+    expect(relationshipsFor(reopenedGraph, '/xl/drawings/drawing1.xml').map((rel) => rel.type)).toEqual(relationshipsFor(originalGraph, '/xl/drawings/drawing1.xml').map((rel) => rel.type));
+
+    const editor = createOfficeEditor(parseXlsx(await openPackage(originalBytes)));
+    setWorksheetChartBubbleScale(editor, 'Sheet1', 0, 180);
     const editedGraph = await openPackage(serializeOfficeDocument(editor.document));
     expect(editedGraph.parts['/xl/_rels/workbook.xml.rels']?.text).toBe(originalGraph.parts['/xl/_rels/workbook.xml.rels']?.text);
     expect(editedGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text).toBe(originalGraph.parts['/xl/drawings/_rels/drawing1.xml.rels']?.text);

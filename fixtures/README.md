@@ -12,12 +12,14 @@ Current representative seed fixtures:
 - `fixtures/docx/representative/basic.docx`
 - `fixtures/xlsx/representative/basic.xlsx`
 - `fixtures/xlsx/representative/charted.xlsx`
+- `fixtures/xlsx/representative/bubble.xlsx`
 - `fixtures/pptx/representative/basic.pptx`
 
 Current manifest files:
 - `fixtures/manifests/docx/basic.json`
 - `fixtures/manifests/xlsx/basic.json`
 - `fixtures/manifests/xlsx/charted.json`
+- `fixtures/manifests/xlsx/bubble.json`
 - `fixtures/manifests/pptx/basic.json`
 
 Policy:

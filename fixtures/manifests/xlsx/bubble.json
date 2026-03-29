@@ -1,0 +1,12 @@
+{
+  "id": "xlsx-bubble",
+  "sourceApplication": "repo-generated",
+  "format": "xlsx",
+  "featureTags": ["charts", "bubble-chart", "chart-style", "chart-display-policy"],
+  "expectedDiagnostics": [],
+  "supportedOperations": ["no-op round trip", "bubble chart render", "bubble chart metadata edit"],
+  "reopenExpectations": {"parser": true, "office": "stage-6-attestation-pending", "libreoffice": "stage-6-attestation-pending"},
+  "visualBaseline": null,
+  "perfClass": "micro",
+  "toleratedDiffs": []
+}
