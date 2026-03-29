@@ -261,6 +261,16 @@
   - `sample6/1`: `93.05 -> 93.05`
 - **Decision:** accepted because it produced a small real gain on sample1 while the other two targets stayed flat.
 
+## Stage 24 — tighten wide centered small-text line-height again
+- **Status:** accepted
+- **What changed:** the wide centered small-text lane now uses a slightly tighter line-height (`1.03`) while keeping the already-accepted font-size guard, which improves the subtitle/badge-text lane without perturbing sample5.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4333 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.79 -> 91.80`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `93.05 -> 93.07`
+- **Decision:** accepted because it improved sample1 and sample6 while leaving sample5 unchanged.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
