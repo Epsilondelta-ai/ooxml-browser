@@ -296,12 +296,17 @@ function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: bool
     && (shape.transform?.cx ?? Number.POSITIVE_INFINITY) < 4_000_000
     && (shape.textStyle?.fontSizePt ?? 0) <= 36
     && shape.text.trim().length > 10;
+  const wideCenteredSmallText = isCentered
+    && (shape.transform?.cx ?? 0) > 8_000_000
+    && (shape.textStyle?.fontSizePt ?? Number.POSITIVE_INFINITY) <= 24
+    && shape.text.trim().length > 20;
   const style = [
     `text-align:${isCentered ? 'center' : toCssAlign(shape.textStyle?.align)}`,
     overlay ? `align-items:${toCssAnchor(shape.textStyle?.anchor)}` : '',
     overlay ? (isCentered ? 'justify-content:center' : 'justify-content:flex-start') : '',
     isCentered ? 'padding:0' : '',
     compactCenteredLongText ? 'line-height:1.05' : '',
+    wideCenteredSmallText ? 'line-height:1.05' : '',
     isCentered ? 'box-sizing:border-box' : '',
     isCentered ? 'width:100%' : '',
     isCentered ? '' : 'padding:6px 18px 6px 18px',
