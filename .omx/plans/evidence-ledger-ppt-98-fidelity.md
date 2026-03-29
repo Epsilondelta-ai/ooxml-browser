@@ -291,6 +291,16 @@
   - `sample6/1`: `93.08 -> 93.27`
 - **Decision:** accepted because it materially improved the sample6 badge-title lane while leaving the other two targets flat.
 
+## Stage 27 — local-search compact centered title text to 97.5%
+- **Status:** accepted
+- **What changed:** compact centered title-sized text now uses a slightly smaller effective font size (`97.5%`) than the prior accepted title lane, which further improves the sample6 badge title while leaving sample1 and sample5 flat.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4365 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.80 -> 91.80`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `93.27 -> 93.33`
+- **Decision:** accepted because it materially improved the sample6 badge-title lane while leaving the other two targets unchanged.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
