@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parsePptx } from '@ooxml/pptx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createTransformedPptxFixture } from './fixture-builders';
+import { createGroupedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx richer shape metadata', () => {
   it('parses text and picture transforms into shape metadata', async () => {
@@ -25,5 +25,12 @@ describe('pptx richer shape metadata', () => {
     expect(html).toContain('data-cx="3000"');
     expect(html).toContain('data-media-uri="/ppt/media/image1.png"');
     expect(html).toContain('data-x="500"');
+  });
+
+  it('parses grouped shapes into slide-level coordinates', async () => {
+    const presentation = parsePptx(await openPackage(createGroupedPptxFixture()));
+    const groupedShape = presentation.slides[0]?.shapes.find((shape) => shape.name === 'Grouped Title');
+
+    expect(groupedShape?.transform).toEqual({ x: 2000, y: 3000, cx: 1600, cy: 1800 });
   });
 });
