@@ -676,9 +676,9 @@ function enhancePresentationPreview(): void {
       const shouldRenderPath = Boolean(
         pathCommands
         && titleLike
-        && !lineColor
         && fillColor
-        && !isDarkColor(fillColor)
+        && !darkBackground
+        && shape.dataset.shapeType === 'custom'
       );
       if (shouldRenderPath) {
         const svgMarkup = buildDecorativeSvg(pathCommands ?? '', fillColor, lineColor, lineWidth);
@@ -828,6 +828,23 @@ function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?
       continue;
     }
     const [type, pair] = segment.split(':');
+    if (type === 'C') {
+      const [p1, p2, p3] = (pair ?? '').split('|');
+      const [x1Raw, y1Raw] = (p1 ?? '').split(',');
+      const [x2Raw, y2Raw] = (p2 ?? '').split(',');
+      const [xRaw, yRaw] = (p3 ?? '').split(',');
+      const x1 = Number(x1Raw);
+      const y1 = Number(y1Raw);
+      const x2 = Number(x2Raw);
+      const y2 = Number(y2Raw);
+      const x = Number(xRaw);
+      const y = Number(yRaw);
+      if ([x1, y1, x2, y2, x, y].every(Number.isFinite)) {
+        points.push({ x: x1, y: y1 }, { x: x2, y: y2 }, { x, y });
+        commands.push(`C ${x1} ${y1} ${x2} ${y2} ${x} ${y}`);
+      }
+      continue;
+    }
     const [xRaw, yRaw] = (pair ?? '').split(',');
     const x = Number(xRaw);
     const y = Number(yRaw);
