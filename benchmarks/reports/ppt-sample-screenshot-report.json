@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-29T06:32:04.981Z",
+  "generatedAt": "2026-03-29T06:34:43.461Z",
   "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
   "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
   "results": [
@@ -17,8 +17,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.145735,
-      "score": 85.43
+      "normalizedRmse": 0.13002,
+      "score": 87
     },
     {
       "sample": "sample1",
@@ -187,8 +187,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.187832,
-      "score": 81.22
+      "normalizedRmse": 0.188659,
+      "score": 81.13
     },
     {
       "sample": "sample5",

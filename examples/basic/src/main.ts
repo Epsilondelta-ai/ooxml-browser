@@ -223,6 +223,7 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
         font-size: 4.8rem;
         font-weight: 800;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #ffffff;
         line-height: 1.15;
       }
@@ -230,6 +231,7 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
         font-size: 1.6rem;
         font-weight: 500;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #93c5fd;
         line-height: 1.4;
       }
@@ -242,6 +244,7 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-light .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
         font-size: 3.9rem;
         font-weight: 800;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #1e293b;
         line-height: 1.05;
       }
@@ -249,6 +252,7 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-light .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
         font-size: 1.4rem;
         font-weight: 700;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #334155;
         line-height: 1.25;
       }
