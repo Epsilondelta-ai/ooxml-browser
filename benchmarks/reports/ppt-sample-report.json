@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2026-03-29T03:16:28.985Z",
+  "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
+  "sampleCount": 6,
+  "results": [
+    {
+      "sample": "sample1",
+      "pptxPath": "../../../ppt-samples/sample1/sample.pptx",
+      "pngCount": 48,
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "officeDocumentKind": "pptx",
+      "slideCount": 48,
+      "slideSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "diagnostics": [],
+      "parseStatus": "parsed"
+    },
+    {
+      "sample": "sample2",
+      "pptxPath": "../../../ppt-samples/sample2/sample.pptx",
+      "pngCount": 48,
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "officeDocumentKind": "pptx",
+      "slideCount": 48,
+      "slideSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "diagnostics": [],
+      "parseStatus": "parsed"
+    },
+    {
+      "sample": "sample3",
+      "pptxPath": "../../../ppt-samples/sample3/sample.pptx",
+      "pngCount": 48,
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "officeDocumentKind": "pptx",
+      "slideCount": 48,
+      "slideSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "diagnostics": [],
+      "parseStatus": "parsed"
+    },
+    {
+      "sample": "sample4",
+      "pptxPath": "../../../ppt-samples/sample4/sample.pptx",
+      "pngCount": 48,
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "officeDocumentKind": "pptx",
+      "slideCount": 48,
+      "slideSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "diagnostics": [],
+      "parseStatus": "parsed"
+    },
+    {
+      "sample": "sample5",
+      "pptxPath": "../../../ppt-samples/sample5/sample.pptx",
+      "pngCount": 37,
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "officeDocumentKind": "pptx",
+      "slideCount": 37,
+      "slideSize": {
+        "cx": 9144000,
+        "cy": 5143500
+      },
+      "diagnostics": [],
+      "parseStatus": "parsed"
+    },
+    {
+      "sample": "sample6",
+      "pptxPath": "../../../ppt-samples/sample6/sample.pptx",
+      "pngCount": 36,
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "officeDocumentKind": "pptx",
+      "slideCount": 36,
+      "slideSize": {
+        "cx": 9144000,
+        "cy": 5143500
+      },
+      "diagnostics": [],
+      "parseStatus": "parsed"
+    }
+  ]
+}

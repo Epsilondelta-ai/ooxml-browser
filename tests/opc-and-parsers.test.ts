@@ -5,7 +5,7 @@ import { parseDocx } from '@ooxml/docx';
 import { parsePptx } from '@ooxml/pptx';
 import { parseXlsx } from '@ooxml/xlsx';
 
-import { createDocxFixture, createPptxFixture, createXlsxFixture } from './fixture-builders';
+import { createDocxFixture, createPptxFixture, createPptxFixtureWithLeadingExtendedPropertiesRelationship, createXlsxFixture } from './fixture-builders';
 
 describe('OPC package graph', () => {
   it('opens a docx package and resolves relationships', async () => {
@@ -31,6 +31,13 @@ describe('OPC package graph', () => {
     expect(graph.officeDocumentKind).toBe('pptx');
     expect(graph.rootDocumentUri).toBe('/ppt/presentation.xml');
     expect(graph.parts['/ppt/notesSlides/notesSlide1.xml']).toBeDefined();
+  });
+
+  it('uses the exact officeDocument relationship instead of matching extended-properties first', async () => {
+    const graph = await openPackage(createPptxFixtureWithLeadingExtendedPropertiesRelationship());
+
+    expect(graph.officeDocumentKind).toBe('pptx');
+    expect(graph.rootDocumentUri).toBe('/ppt/presentation.xml');
   });
 });
 

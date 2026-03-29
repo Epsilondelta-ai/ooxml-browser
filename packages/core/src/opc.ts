@@ -77,7 +77,7 @@ export async function openPackage(input: ArrayBuffer | Uint8Array | Blob, option
     relationshipsBySource[sourceUri] = parseRelationshipsPart(part.text, sourceUri);
   }
 
-  const rootDocumentUri = packageRelationships.find((relationship) => relationship.type.includes('/officeDocument'))?.resolvedTarget ?? null;
+  const rootDocumentUri = packageRelationships.find((relationship) => relationship.type === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument')?.resolvedTarget ?? null;
   const officeDocumentKind = detectOfficeDocumentKind(rootDocumentUri, parts[rootDocumentUri ?? '']?.contentType);
 
   if (!rootDocumentUri) {
