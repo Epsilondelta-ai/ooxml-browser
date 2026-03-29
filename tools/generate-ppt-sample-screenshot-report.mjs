@@ -14,6 +14,7 @@ const screenshotRoot = path.join(root, 'benchmarks', 'reports', 'ppt-sample-scre
 const diffRoot = path.join(root, 'benchmarks', 'reports', 'ppt-sample-diffs');
 const reportPath = path.join(root, 'benchmarks', 'reports', 'ppt-sample-screenshot-report.json');
 const port = Number(process.env.PPT_SAMPLE_SCREENSHOT_PORT ?? 4174);
+const renderQuery = process.env.PPT_SAMPLE_RENDER_QUERY ?? '';
 
 const declaredSlides = {
   sample1: [1, 2, 10],
@@ -41,7 +42,8 @@ async function ensurePlaywright() {
 
 function staticServer(rootDir) {
   return createServer(async (req, res) => {
-    const urlPath = req.url === '/' ? '/index.html' : req.url ?? '/index.html';
+    const requestUrl = req.url ?? '/index.html';
+    const urlPath = requestUrl === '/' || requestUrl.startsWith('/?') ? '/index.html' : requestUrl;
     const filePath = path.join(rootDir, urlPath.replace(/\?.*$/, ''));
     try {
       const bytes = await readFile(filePath);
@@ -120,7 +122,7 @@ await browser.close();
       await mkdir(path.dirname(diffPath), { recursive: true });
       await execFileAsync(
         'node',
-        [runnerPath, `http://127.0.0.1:${port}/`, pptxPath, screenshotPath, String(slideNumber - 1), String(referenceSize?.width ?? 960)],
+        [runnerPath, `http://127.0.0.1:${port}/${renderQuery ? `?${renderQuery}` : ''}`, pptxPath, screenshotPath, String(slideNumber - 1), String(referenceSize?.width ?? 960)],
         { cwd: cacheRoot }
       );
 
@@ -150,6 +152,7 @@ await browser.close();
   await writeFile(reportPath, JSON.stringify({
     generatedAt: new Date().toISOString(),
     sampleRoot,
+    renderQuery,
     screenshotRoot: path.relative(root, screenshotRoot).replaceAll('\\', '/'),
     results
   }, null, 2));

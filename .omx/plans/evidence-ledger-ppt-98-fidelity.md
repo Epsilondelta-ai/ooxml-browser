@@ -22,14 +22,14 @@
 3. Update this ledger after every accepted/reverted stage.
 
 ## Stage 1 — scene renderer scaffold
-- **Status:** partial scaffold kept, default-on attempt rejected
-- **What landed:** a real `scene-svg` PPT render mode exists behind opt-in (`?pptxRenderer=scene-svg`) while metadata mode stays default/fallback.
-- **Why default-on was rejected:** the first default-on screenshot loop produced severe visual regressions despite infrastructure progress.
-- **Rejected attempt evidence:**
-  - `sample1/1`: `85.20 -> 85.74` but vision regressed badly (white placeholder blocks / broken machinery silhouette)
-  - `sample5/2`: `81.14 -> 82.37` but vision regressed badly (rocket/ring collapse and black block artifacts)
-  - `sample6/1`: `89.88 -> 88.87` with text/layout degradation
-- **Decision:** revert default usage, keep scaffold hidden behind fallback, and continue toward inheritance/text + geometry completion before re-enabling it for evidence runs.
+- **Status:** accepted after geometry/text follow-up
+- **What landed:** a real `scene-svg` PPT render mode exists, the example and screenshot harness can switch between metadata and scene paths, and scene rendering now covers backgrounds, absolute-positioned text/image nodes, custom paths, and core preset vectors.
+- **Initial trial:** the first default-on screenshot loop was rejected because it produced white placeholder blocks and broken vector silhouettes.
+- **Accepted follow-up evidence (`renderQuery=pptxRenderer=scene-svg`):**
+  - `sample1/1`: `85.20 -> 87.05`
+  - `sample5/2`: `81.14 -> 83.43`
+  - `sample6/1`: `89.88 -> 91.04`
+- **Decision:** accept the scene renderer stage because it now beats the metadata fallback on all three target slides, while keeping fallback capability available for regression checks.
 
 ## Stage 2 — placeholder/layout/master inheritance + text defaults
 - **Status:** accepted

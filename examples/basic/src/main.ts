@@ -167,6 +167,14 @@ app.innerHTML = `
         word-break: keep-all;
       }
 
+      .preview-shell .ooxml-pptx-scene-text--overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .preview-shell .ooxml-xlsx-grid thead th {
         position: sticky;
         top: 0;
@@ -504,9 +512,9 @@ const slideIndicator = document.getElementById('slide-indicator') as HTMLSpanEle
 const summary = document.getElementById('summary') as HTMLPreElement;
 const htmlOutput = document.getElementById('html-output') as HTMLPreElement;
 const preview = document.getElementById('preview') as HTMLDivElement;
-const defaultPptxRenderer: 'metadata' | 'scene-svg' = new URLSearchParams(window.location.search).get('pptxRenderer') === 'scene-svg'
-  ? 'scene-svg'
-  : 'metadata';
+const defaultPptxRenderer: 'metadata' | 'scene-svg' = new URLSearchParams(window.location.search).get('pptxRenderer') === 'metadata'
+  ? 'metadata'
+  : 'scene-svg';
 let currentSession: Awaited<ReturnType<typeof createBrowserSession>> | null = null;
 let currentFileName = 'document.ooxml';
 let currentSlideIndex = 0;

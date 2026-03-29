@@ -42,8 +42,6 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
     `height:${(height / presentationCy) * 100}%`,
     'box-sizing:border-box',
     'overflow:hidden',
-    shape.fill?.color ? `background:${applyOpacity(shape.fill.color, shape.fill.opacity)}` : '',
-    shape.line?.color ? `border:${Math.max(1, Math.round((shape.line.width ?? 0) / 12700))}px solid ${applyOpacity(shape.line.color, shape.line.opacity)}` : '',
     shape.shapeType === 'ellipse' ? 'border-radius:999px' : '',
     shape.shapeType === 'chevron' ? 'clip-path:polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%, 18% 50%)' : '',
     buildTransformStyle(shape),
@@ -57,25 +55,42 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
     'align-items:center',
     'justify-content:center'
   ].filter(Boolean).join(';');
+  const filledStyle = [
+    style,
+    shape.fill?.color ? `background:${applyOpacity(shape.fill.color, shape.fill.opacity)}` : '',
+    shape.line?.color ? `border:${Math.max(1, Math.round((shape.line.width ?? 0) / 12700))}px solid ${applyOpacity(shape.line.color, shape.line.opacity)}` : ''
+  ].filter(Boolean).join(';');
 
   if (shape.media?.type === 'image' && shape.media.targetUri) {
     return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--image" style="${style}"><img src="${escapeHtml(shape.media.targetUri)}" alt="" data-media-uri="${escapeHtml(shape.media.targetUri)}"></div>`;
   }
 
-  if (shape.pathCommands?.length) {
-    return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--vector" style="${style}">${renderSceneShapeSvg(shape)}</div>`;
+  if (shape.pathCommands?.length || isPresetSceneVectorShape(shape.shapeType)) {
+    const text = shape.text ? `<div class="ooxml-pptx-scene-text ooxml-pptx-scene-text--overlay">${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>` : '';
+    return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--vector" style="${style};position:absolute;">${renderSceneShapeSvg(shape)}${text}</div>`;
   }
 
   const text = shape.text ? `<div class="ooxml-pptx-scene-text">${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>` : '';
-  return `<div class="ooxml-pptx-scene-node" style="${style}">${text}</div>`;
+  return `<div class="ooxml-pptx-scene-node" style="${filledStyle}">${text}</div>`;
 }
 
 function renderSceneShapeSvg(shape: SlideShape): string {
-  const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands ?? []);
   const fill = shape.fill?.gradientStops?.length ? 'none' : shape.fill?.color ?? 'none';
   const stroke = shape.line?.color ?? 'none';
   const strokeWidth = Math.max(1, Math.round((shape.line?.width ?? 0) / 12700));
-  return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true"><path d="${escapeHtml(toSvgPath(shape.pathCommands ?? []))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''} stroke-width="${strokeWidth}"/></svg>`;
+  const strokeDashArray = sceneStrokeDashArray(shape.line);
+  const strokeAttrs = `${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''}${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}`;
+  if (shape.pathCommands?.length) {
+    const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands);
+  return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true"><path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/></svg>`;
+  }
+
+  const presetMarkup = buildPresetSceneSvgMarkup(shape.shapeType, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
+  if (!presetMarkup) {
+    return '';
+  }
+
+  return `<svg class="ooxml-pptx-scene-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${presetMarkup}</svg>`;
 }
 
 function buildSceneBackgroundStyle(fill: PresentationFill | undefined): string {
@@ -124,6 +139,54 @@ function buildPathViewBox(commands: PresentationPathCommand[]): string {
   const maxX = Math.max(...points.map((point) => point.x));
   const maxY = Math.max(...points.map((point) => point.y));
   return `${minX} ${minY} ${Math.max(1, maxX - minX)} ${Math.max(1, maxY - minY)}`;
+}
+
+function isPresetSceneVectorShape(shapeType: string | undefined): boolean {
+  return ['rect', 'ellipse', 'chevron', 'trapezoid', 'roundRect', 'round2SameRect'].includes(shapeType ?? '');
+}
+
+function buildPresetSceneSvgMarkup(
+  shapeType: string | undefined,
+  fill: string,
+  fillOpacity: number | undefined,
+  stroke: string,
+  strokeWidth: number,
+  strokeAttrs: string
+): string | undefined {
+  const fillOpacityAttr = fill !== 'none' && fillOpacity !== undefined ? ` fill-opacity="${fillOpacity}"` : '';
+  switch (shapeType) {
+    case 'ellipse':
+      return `<ellipse cx="500" cy="500" rx="500" ry="500" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+    case 'chevron':
+      return `<path d="M 0 0 L 760 0 L 1000 500 L 760 1000 L 0 1000 L 180 500 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+    case 'trapezoid':
+      return `<path d="M 180 0 L 820 0 L 1000 1000 L 0 1000 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+    case 'roundRect':
+    case 'round2SameRect':
+      return `<rect x="0" y="0" width="1000" height="1000" rx="120" ry="120" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+    case 'rect':
+      return `<rect x="0" y="0" width="1000" height="1000" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+    default:
+      return undefined;
+  }
+}
+
+function sceneStrokeDashArray(line: SlideShape['line']): string | undefined {
+  const width = Math.max(1, Math.round((line?.width ?? 0) / 12700));
+  switch (line?.dash) {
+    case 'dash':
+    case 'sysDash':
+      return `${width * 4} ${width * 2}`;
+    case 'lgDash':
+      return `${width * 6} ${width * 2}`;
+    case 'dot':
+    case 'sysDot':
+      return `${width} ${width * 1.5}`;
+    case 'dashDot':
+      return `${width * 4} ${width * 2} ${width} ${width * 2}`;
+    default:
+      return undefined;
+  }
 }
 
 function toCssAlign(value: string | undefined): string {
