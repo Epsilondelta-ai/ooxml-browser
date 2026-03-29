@@ -250,6 +250,25 @@ app.innerHTML = `
         color: rgba(255,255,255,0.7);
       }
 
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-light .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
+        font-size: 3.9rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.05;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-light .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #334155;
+        line-height: 1.25;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-light .ooxml-pptx-shape.kind-footer .ooxml-pptx-shape-content {
+        font-size: 0.9rem;
+        color: #334155;
+      }
+
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-body .ooxml-pptx-shape-content,
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
         font-size: 1.05rem;
@@ -532,7 +551,9 @@ function enhancePresentationPreview(): void {
 
   const accentPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
   const titleLike = shapes.every((shape) => !shape.dataset.mediaType) && shapes.length <= 4;
-  canvas.classList.toggle('is-title-slide', titleLike);
+  const darkBackground = backgroundColor ? isDarkColor(backgroundColor) : true;
+  canvas.classList.toggle('is-title-slide', titleLike && darkBackground);
+  canvas.classList.toggle('is-title-slide-light', titleLike && !darkBackground);
   canvas.classList.toggle('is-content-slide', !titleLike);
   const header = presentation.querySelector('header') as HTMLElement | null;
   if (header) {
@@ -544,11 +565,13 @@ function enhancePresentationPreview(): void {
     const topDiff = Number(left.dataset.y ?? 0) - Number(right.dataset.y ?? 0);
     return topDiff !== 0 ? topDiff : Number(left.dataset.x ?? 0) - Number(right.dataset.x ?? 0);
   });
+  const positionRank = new Map(orderedShapes.map((shape, index) => [shape, index]));
 
-  for (const [index, shape] of orderedShapes.entries()) {
+  for (const [index, shape] of shapes.entries()) {
     if (shape.parentElement !== canvas) {
       canvas.appendChild(shape);
     }
+    shape.style.zIndex = String(index + 1);
 
     const name = shape.querySelector('h3')?.textContent?.trim() ?? '';
     const body = shape.querySelector('p')?.textContent?.trim() ?? '';
@@ -562,6 +585,7 @@ function enhancePresentationPreview(): void {
     const height = Number(shape.dataset.cy ?? 0);
     const fillColor = shape.dataset.fillColor;
     const fillOpacity = Number(shape.dataset.fillOpacity ?? 1);
+    const fillImageUri = shape.dataset.fillImageUri;
     const lineColor = shape.dataset.lineColor;
     const lineWidth = Number(shape.dataset.lineWidth ?? 0);
     const textColor = shape.dataset.textColor;
@@ -590,6 +614,16 @@ function enhancePresentationPreview(): void {
 
     if (fillColor) {
       shape.style.background = applyOpacity(fillColor, fillOpacity);
+    }
+    if (fillImageUri) {
+      const imageUrl = getPackagePartObjectUrl(fillImageUri);
+      if (imageUrl) {
+        shape.style.backgroundImage = `url(${imageUrl})`;
+        shape.style.backgroundSize = 'cover';
+        shape.style.backgroundPosition = 'center';
+      }
+    } else {
+      shape.style.backgroundImage = '';
     }
     if (lineColor) {
       shape.style.border = `${Math.max(1, Math.round(lineWidth / 12700))}px solid ${lineColor}`;
@@ -638,9 +672,10 @@ function enhancePresentationPreview(): void {
     }
 
     if (titleLike) {
-      if (index === 0) {
+      const rank = positionRank.get(shape) ?? index;
+      if (rank === 0) {
         shape.classList.add('kind-title');
-      } else if (index === orderedShapes.length - 1 && y / cy > 0.75) {
+      } else if (rank === orderedShapes.length - 1 && y / cy > 0.75) {
         shape.classList.add('kind-footer');
       } else {
         shape.classList.add('kind-subtitle');
@@ -680,6 +715,19 @@ function escapeHtmlText(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function isDarkColor(color: string): boolean {
+  const hex = color.replace('#', '');
+  if (hex.length !== 6) {
+    return false;
+  }
+
+  const r = Number.parseInt(hex.slice(0, 2), 16);
+  const g = Number.parseInt(hex.slice(2, 4), 16);
+  const b = Number.parseInt(hex.slice(4, 6), 16);
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return luminance < 0.45;
 }
 
 function getPackagePartObjectUrl(uri: string): string | null {

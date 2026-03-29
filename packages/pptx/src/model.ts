@@ -8,9 +8,10 @@ export interface SlideShapeTransform {
 }
 
 export interface PresentationFill {
-  kind: 'solid' | 'none';
+  kind: 'solid' | 'none' | 'image';
   color?: string;
   opacity?: number;
+  targetUri?: string;
 }
 
 export interface PresentationLine {
@@ -40,6 +41,7 @@ export interface SlideShape {
   name?: string;
   text: string;
   placeholderType?: string;
+  placeholderIndex?: string;
   shapeType?: string;
   transform?: SlideShapeTransform;
   fill?: PresentationFill;

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-29T03:36:48.830Z",
+  "generatedAt": "2026-03-29T03:49:45.966Z",
   "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
   "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
   "results": [
@@ -17,8 +17,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.177061,
-      "score": 82.29
+      "normalizedRmse": 0.177787,
+      "score": 82.22
     },
     {
       "sample": "sample1",
@@ -34,8 +34,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.567157,
-      "score": 43.28
+      "normalizedRmse": 0.163331,
+      "score": 83.67
     },
     {
       "sample": "sample1",
@@ -51,8 +51,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.156722,
-      "score": 84.33
+      "normalizedRmse": 0.167373,
+      "score": 83.26
     },
     {
       "sample": "sample2",
@@ -68,7 +68,7 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.502766,
+      "normalizedRmse": 0.502819,
       "score": 49.72
     },
     {
@@ -119,8 +119,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.520666,
-      "score": 47.93
+      "normalizedRmse": 0.520549,
+      "score": 47.95
     },
     {
       "sample": "sample3",
@@ -136,8 +136,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.28479,
-      "score": 71.52
+      "normalizedRmse": 0.287993,
+      "score": 71.2
     },
     {
       "sample": "sample4",
@@ -153,8 +153,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.382206,
-      "score": 61.78
+      "normalizedRmse": 0.382088,
+      "score": 61.79
     },
     {
       "sample": "sample4",
@@ -187,8 +187,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.66702,
-      "score": 33.3
+      "normalizedRmse": 0.288706,
+      "score": 71.13
     },
     {
       "sample": "sample5",
@@ -204,8 +204,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.440487,
-      "score": 55.95
+      "normalizedRmse": 0.258394,
+      "score": 74.16
     },
     {
       "sample": "sample6",
@@ -221,8 +221,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.29568,
-      "score": 70.43
+      "normalizedRmse": 0.302302,
+      "score": 69.77
     },
     {
       "sample": "sample6",

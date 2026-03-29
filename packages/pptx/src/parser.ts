@@ -49,7 +49,15 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const layoutRelationship = slideRelationships.find((relationship) => relationship.type.includes('/slideLayout'));
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
   const theme = layoutInfo?.themeUri ? themeCache[layoutInfo.themeUri] : undefined;
-  const shapes = collectShapes(shapeTree, slideRelationships, theme);
+  const baseShapes = collectShapes(shapeTree, slideRelationships, theme);
+  const inheritedShapes = [
+    ...(layoutInfo?.masterShapes ?? []),
+    ...(layoutInfo?.layoutShapes ?? [])
+  ];
+  const shapes = [
+    ...inheritedShapes.filter((shape) => !shape.placeholderType && !shape.placeholderIndex),
+    ...applyInheritedPlaceholderProperties(baseShapes, inheritedShapes)
+  ];
   const notesInfo = parseNotesInfo(graph, uri);
   const title = selectSlideTitle(shapes);
   const comments = parseSlideComments(graph, uri);
@@ -64,7 +72,7 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
     masterUri: layoutInfo?.masterUri,
     masterName: layoutInfo?.masterName,
     themeUri: layoutInfo?.themeUri,
-    background: parseBackground(commonSlideData, theme),
+    background: parseBackground(commonSlideData, slideRelationships, theme) ?? layoutInfo?.layoutBackground ?? layoutInfo?.masterBackground,
     transition: parseTransition(slide),
     timing: parseTiming(slide),
     shapes,
@@ -140,14 +148,19 @@ function collectShapes(
   }
 
   return [
-    ...xmlChildren<Record<string, unknown>>(container, 'p:sp').map((shape) => parseShape(shape, theme, context)),
+    ...xmlChildren<Record<string, unknown>>(container, 'p:sp').map((shape) => parseShape(shape, relationships, theme, context)),
     ...xmlChildren<Record<string, unknown>>(container, 'p:pic').map((picture) => parsePicture(picture, relationships, theme, context)),
     ...xmlChildren<Record<string, unknown>>(container, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, relationships, theme, context)),
     ...xmlChildren<Record<string, unknown>>(container, 'p:grpSp').flatMap((group) => collectShapes(group, relationships, theme, composeGroupContext(group, context)))
   ];
 }
 
-function parseShape(shape: Record<string, unknown>, theme?: PresentationTheme, context?: TransformContext): SlideShape {
+function parseShape(
+  shape: Record<string, unknown>,
+  relationships: ReturnType<typeof relationshipsFor>,
+  theme?: PresentationTheme,
+  context?: TransformContext
+): SlideShape {
   const nvSpPr = xmlChild<Record<string, unknown>>(shape, 'p:nvSpPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:cNvPr');
   const nvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:nvPr');
@@ -161,9 +174,10 @@ function parseShape(shape: Record<string, unknown>, theme?: PresentationTheme, c
     name: xmlAttr(cNvPr, 'name'),
     text: textNodes.map((node) => xmlText(node)).join(''),
     placeholderType: xmlAttr(placeholder, 'type'),
+    placeholderIndex: xmlAttr(placeholder, 'idx') ?? undefined,
     shapeType: parseShapeType(shapeProperties),
     transform,
-    fill: parseFill(shapeProperties, theme),
+    fill: parseFill(shapeProperties, relationships, theme),
     line: parseLine(shapeProperties, theme),
     textStyle: parseTextStyle(shape, theme)
   };
@@ -185,7 +199,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
     text: '',
     shapeType: 'picture',
     transform,
-    fill: parseFill(shapeProperties, theme),
+    fill: parseFill(shapeProperties, relationships, theme),
     line: parseLine(shapeProperties, theme),
     media: {
       type: 'image',
@@ -322,27 +336,78 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
   };
 }
 
-function parseLayoutInfo(graph: PackageGraph, layoutUri: string, themeCache: Record<string, PresentationTheme>): { layoutUri: string; layoutName?: string; masterUri?: string; masterName?: string; themeUri?: string } {
+function parseLayoutInfo(
+  graph: PackageGraph,
+  layoutUri: string,
+  themeCache: Record<string, PresentationTheme>
+): {
+  layoutUri: string;
+  layoutName?: string;
+  masterUri?: string;
+  masterName?: string;
+  themeUri?: string;
+  layoutBackground?: PresentationFill;
+  masterBackground?: PresentationFill;
+  layoutShapes: SlideShape[];
+  masterShapes: SlideShape[];
+} {
   const layoutXml = getParsedXmlPart(graph, layoutUri);
   const layoutRoot = layoutXml?.document['p:sldLayout'] as Record<string, unknown> | undefined;
+  const layoutCommonSlideData = xmlChild<Record<string, unknown>>(layoutRoot, 'p:cSld');
   const layoutName = layoutRoot ? xmlAttr(layoutRoot, 'matchingName') ?? xmlAttr(layoutRoot, 'type') : undefined;
   const masterRelationship = relationshipsFor(graph, layoutUri).find((relationship) => relationship.type.includes('/slideMaster'));
   const masterUri = masterRelationship?.resolvedTarget ?? undefined;
   let masterName: string | undefined;
   let themeUri: string | undefined;
+  let masterBackground: PresentationFill | undefined;
+  let masterShapes: SlideShape[] = [];
 
   if (masterUri) {
     const masterXml = getParsedXmlPart(graph, masterUri);
     const masterRoot = masterXml?.document['p:sldMaster'] as Record<string, unknown> | undefined;
+    const masterCommonSlideData = xmlChild<Record<string, unknown>>(masterRoot, 'p:cSld');
     masterName = masterRoot ? xmlAttr(masterRoot, 'preserve') ?? 'slide-master' : 'slide-master';
     const themeRelationship = relationshipsFor(graph, masterUri).find((relationship) => relationship.type.includes('/theme'));
     themeUri = themeRelationship?.resolvedTarget ?? undefined;
     if (themeUri && !themeCache[themeUri]) {
       themeCache[themeUri] = parseThemeInfo(graph, themeUri);
     }
+    const theme = themeUri ? themeCache[themeUri] : undefined;
+    masterBackground = parseBackground(masterCommonSlideData, relationshipsFor(graph, masterUri), theme);
+    masterShapes = collectShapes(xmlChild<Record<string, unknown>>(masterCommonSlideData, 'p:spTree'), relationshipsFor(graph, masterUri), theme);
   }
 
-  return { layoutUri, layoutName, masterUri, masterName, themeUri };
+  const theme = themeUri ? themeCache[themeUri] : undefined;
+  const layoutBackground = parseBackground(layoutCommonSlideData, relationshipsFor(graph, layoutUri), theme);
+  const layoutShapes = collectShapes(xmlChild<Record<string, unknown>>(layoutCommonSlideData, 'p:spTree'), relationshipsFor(graph, layoutUri), theme);
+
+  return { layoutUri, layoutName, masterUri, masterName, themeUri, layoutBackground, masterBackground, layoutShapes, masterShapes };
+}
+
+function applyInheritedPlaceholderProperties(slideShapes: SlideShape[], inheritedShapes: SlideShape[]): SlideShape[] {
+  return slideShapes.map((shape) => {
+    if (!shape.placeholderType && !shape.placeholderIndex) {
+      return shape;
+    }
+
+    const match = inheritedShapes.find((candidate) =>
+      candidate.placeholderType === shape.placeholderType
+      && candidate.placeholderIndex === shape.placeholderIndex
+    );
+    if (!match) {
+      return shape;
+    }
+
+    return {
+      ...match,
+      ...shape,
+      transform: shape.transform ?? match.transform,
+      fill: shape.fill ?? match.fill,
+      line: shape.line ?? match.line,
+      textStyle: shape.textStyle ?? match.textStyle,
+      shapeType: shape.shapeType ?? match.shapeType
+    };
+  });
 }
 
 function parseThemeInfo(graph: PackageGraph, themeUri: string): PresentationTheme {
@@ -378,14 +443,22 @@ function parseThemeInfo(graph: PackageGraph, themeUri: string): PresentationThem
   };
 }
 
-function parseBackground(commonSlideData: Record<string, unknown> | undefined, theme?: PresentationTheme): PresentationFill | undefined {
+function parseBackground(
+  commonSlideData: Record<string, unknown> | undefined,
+  relationships: ReturnType<typeof relationshipsFor>,
+  theme?: PresentationTheme
+): PresentationFill | undefined {
   const background = xmlChild<Record<string, unknown>>(commonSlideData, 'p:bg');
   const backgroundProperties = xmlChild<Record<string, unknown>>(background, 'p:bgPr');
   const backgroundReference = xmlChild<Record<string, unknown>>(background, 'p:bgRef');
-  return parseFill(backgroundProperties ?? backgroundReference, theme);
+  return parseFill(backgroundProperties ?? backgroundReference, relationships, theme);
 }
 
-function parseFill(shapeProperties: Record<string, unknown> | undefined, theme?: PresentationTheme): PresentationFill | undefined {
+function parseFill(
+  shapeProperties: Record<string, unknown> | undefined,
+  relationships: ReturnType<typeof relationshipsFor>,
+  theme?: PresentationTheme
+): PresentationFill | undefined {
   if (!shapeProperties) {
     return undefined;
   }
@@ -401,6 +474,25 @@ function parseFill(shapeProperties: Record<string, unknown> | undefined, theme?:
       kind: 'solid',
       color: resolved?.color,
       opacity: resolved?.opacity
+    };
+  }
+
+  const blipFill = xmlChild<Record<string, unknown>>(shapeProperties, 'a:blipFill');
+  const blip = xmlChild<Record<string, unknown>>(blipFill, 'a:blip');
+  const relationshipId = xmlAttr(blip, 'r:embed');
+  if (relationshipId) {
+    return {
+      kind: 'image',
+      targetUri: relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget ?? undefined
+    };
+  }
+
+  const directColor = resolveColor(shapeProperties, theme);
+  if (directColor?.color) {
+    return {
+      kind: 'solid',
+      color: directColor.color,
+      opacity: directColor.opacity
     };
   }
 

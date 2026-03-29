@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parsePptx } from '@ooxml/pptx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createGroupedPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createGroupedPptxFixture, createLayoutInheritedPlaceholderPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx richer shape metadata', () => {
   it('parses text and picture transforms into shape metadata', async () => {
@@ -32,5 +32,16 @@ describe('pptx richer shape metadata', () => {
     const groupedShape = presentation.slides[0]?.shapes.find((shape) => shape.name === 'Grouped Title');
 
     expect(groupedShape?.transform).toEqual({ x: 2000, y: 3000, cx: 1600, cy: 1800 });
+  });
+
+  it('inherits placeholder transform and styling from the slide layout', async () => {
+    const presentation = parsePptx(await openPackage(createLayoutInheritedPlaceholderPptxFixture()));
+    const inheritedShape = presentation.slides[0]?.shapes.find((shape) => shape.name === 'Body Placeholder');
+
+    expect(presentation.slides[0]?.background?.color).toBe('#FFCC00');
+    expect(inheritedShape?.transform).toEqual({ x: 1200, y: 3400, cx: 5600, cy: 1800 });
+    expect(inheritedShape?.fill?.color).toBe('#123456');
+    expect(inheritedShape?.textStyle?.color).toBe('#FFFFFF');
+    expect(inheritedShape?.textStyle?.fontSizePt).toBe(32);
   });
 });
