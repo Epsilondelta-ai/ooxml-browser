@@ -37,6 +37,7 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
   const isSlideTitle = shape.text.trim() === slideTitle.trim() && slideTitle.trim().length > 0;
   const inferredCenterText = !shape.textStyle?.align && width / presentationCx > 0.6 && shape.text.trim().length > 0;
   const textAlign = isSlideTitle || inferredCenterText ? 'center' : toCssAlign(shape.textStyle?.align);
+  const centerText = textAlign === 'center';
   const style = [
     'position:absolute',
     `left:${(x / presentationCx) * 100}%`,
@@ -56,7 +57,7 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
     `text-align:${textAlign}`,
     'display:flex',
     `align-items:${toCssAnchor(shape.textStyle?.anchor)}`,
-    isSlideTitle || inferredCenterText ? 'justify-content:center' : 'justify-content:flex-start'
+    centerText ? 'justify-content:center' : 'justify-content:flex-start'
   ].filter(Boolean).join(';');
   const filledStyle = [
     style,
@@ -74,11 +75,11 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
   }
 
   if (shape.pathCommands?.length || isPresetSceneVectorShape(shape.shapeType)) {
-    const text = shape.text ? renderSceneText(shape, true, isSlideTitle || inferredCenterText) : '';
+    const text = shape.text ? renderSceneText(shape, true, centerText) : '';
     return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--vector" style="${style};position:absolute;">${renderSceneShapeSvg(shape)}${text}</div>`;
   }
 
-  const text = shape.text ? renderSceneText(shape, false, isSlideTitle || inferredCenterText) : '';
+  const text = shape.text ? renderSceneText(shape, false, centerText) : '';
   return `<div class="ooxml-pptx-scene-node" style="${filledStyle}">${text}</div>`;
 }
 

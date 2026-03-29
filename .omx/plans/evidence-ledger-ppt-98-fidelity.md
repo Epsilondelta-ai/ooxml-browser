@@ -60,3 +60,13 @@
   - `sample5/2`: `83.43 -> 84.89`
   - `sample6/1`: `91.04 -> 91.20`
 - **Decision:** accepted because all three target slides improved and the text engine now gives cleaner input to later hotspot-specific tuning.
+
+## Stage 5 — centered title/subtitle scene text
+- **Status:** accepted
+- **What changed:** scene text nodes now center based on effective text alignment, not only title heuristics, which fixed the sample1 subtitle drift and improved overall title-slide text placement.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4279 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `87.12 -> 89.46`
+  - `sample5/2`: `84.89 -> 84.89`
+  - `sample6/1`: `91.20 -> 91.20`
+- **Decision:** accepted because the sample1 title-slide hotspot improved materially and no target slide regressed.
