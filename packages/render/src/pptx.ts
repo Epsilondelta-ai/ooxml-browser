@@ -101,7 +101,8 @@ function renderSceneShapeSvg(shape: SlideShape): string {
     : '';
   if (shape.pathCommands?.length) {
     const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands);
-    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/></svg>`;
+    const evenOdd = shouldUseEvenOddFill(shape);
+    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''}${evenOdd ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/></svg>`;
   }
 
   const presetMarkup = buildPresetSceneSvgMarkup(shape.shapeType, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
@@ -158,6 +159,38 @@ function buildPathViewBox(commands: PresentationPathCommand[]): string {
   const maxX = Math.max(...points.map((point) => point.x));
   const maxY = Math.max(...points.map((point) => point.y));
   return `${minX} ${minY} ${Math.max(1, maxX - minX)} ${Math.max(1, maxY - minY)}`;
+}
+
+function shouldUseEvenOddFill(shape: SlideShape): boolean {
+  const commands = shape.pathCommands ?? [];
+  const viewport = shape.pathViewport;
+  if (!viewport || commands.length < 8) {
+    return false;
+  }
+  const moveCommands = commands.filter((command) => command.type === 'moveTo' && command.x !== undefined && command.y !== undefined);
+  if (moveCommands.length < 2) {
+    return false;
+  }
+  const aspect = viewport.width / Math.max(viewport.height, 1);
+  if (aspect < 0.8 || aspect > 1.2) {
+    return false;
+  }
+  if (shape.line && shape.line.kind !== 'none') {
+    return false;
+  }
+  if (shape.fill?.kind !== 'solid' || shape.fill.color !== '#FFFFFF') {
+    return false;
+  }
+  const first = moveCommands[0]!;
+  const second = moveCommands[1]!;
+  const firstXRatio = (first.x ?? 0) / viewport.width;
+  const firstYRatio = (first.y ?? 0) / viewport.height;
+  const secondXRatio = (second.x ?? 0) / viewport.width;
+  const secondYRatio = (second.y ?? 0) / viewport.height;
+  return firstXRatio > 0.85
+    && firstYRatio > 0.35 && firstYRatio < 0.7
+    && secondXRatio > 0.25 && secondXRatio < 0.75
+    && secondYRatio < 0.1;
 }
 
 function isPresetSceneVectorShape(shapeType: string | undefined): boolean {

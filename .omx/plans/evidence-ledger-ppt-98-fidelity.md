@@ -121,6 +121,16 @@
   - `sample6/1`: `92.02 -> 92.04`
 - **Decision:** accepted because all three target slides improved, with the clearest gain on the agenda-slide border/illustration lane.
 
+## Stage 11 — selective even-odd for ring-like custom geometry
+- **Status:** accepted
+- **What changed:** ring-like custom shapes that meet a narrow parser-grounded profile now render with even-odd fill, which improved the agenda slide’s left ring/rocket silhouette while keeping the other target slides neutral.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4282 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.36 -> 91.35`
+  - `sample5/2`: `86.67 -> 86.91`
+  - `sample6/1`: `92.04 -> 92.04`
+- **Decision:** accepted under mixed-evidence rule because the worst drift stayed negligible while the target agenda hotspot improved measurably.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
