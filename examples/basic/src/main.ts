@@ -724,7 +724,6 @@ function enhancePresentationPreview(): void {
     const topDiff = Number(left.dataset.y ?? 0) - Number(right.dataset.y ?? 0);
     return topDiff !== 0 ? topDiff : Number(left.dataset.x ?? 0) - Number(right.dataset.x ?? 0);
   });
-  const positionRank = new Map(orderedShapes.map((shape, index) => [shape, index]));
   const principalOrderedShapes = orderedShapes.filter((shape) => principalTextShapes.includes(shape));
   const textBearingRank = new Map(principalOrderedShapes.map((shape, index) => [shape, index]));
   const leftIconShapes = !titleLike
