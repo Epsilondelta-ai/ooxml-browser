@@ -95,10 +95,26 @@ app.innerHTML = `
         border-radius: 18px;
         border: 1px solid #cbd5e1;
         background:
-          linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98)),
-          radial-gradient(circle at top left, rgba(59,130,246,0.08), transparent 35%);
+          linear-gradient(180deg, rgba(255,255,255,0.99), rgba(248,250,252,0.98)),
+          radial-gradient(circle at top left, rgba(59,130,246,0.05), transparent 35%);
         box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
         overflow: hidden;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide {
+        background: linear-gradient(180deg, #1d2551 0%, #1a2148 100%);
+        border-color: #1a2148;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide::before {
+        content: '';
+        position: absolute;
+        left: 8%;
+        top: 16%;
+        width: 10%;
+        height: 4px;
+        border-radius: 999px;
+        background: #3b82f6;
       }
 
       .preview-shell .ooxml-render--pptx > header,
@@ -117,17 +133,88 @@ app.innerHTML = `
         position: absolute;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        padding: 16px;
-        border-radius: 14px;
-        border: 1px solid #cbd5e1;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+        justify-content: flex-start;
+        padding: 0;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
         overflow: hidden;
       }
 
-      .preview-shell .ooxml-pptx-shape h3 {
-        margin: 0 0 8px;
+      .preview-shell .ooxml-pptx-shape-content {
+        white-space: pre-wrap;
+        word-break: keep-all;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.is-card {
+        padding: 18px 18px 16px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.94);
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.is-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: var(--accent, #3b82f6);
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.is-heading .ooxml-pptx-shape-content {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.15;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.is-card .ooxml-pptx-shape-content {
+        font-size: 1rem;
+        color: #334155;
+        line-height: 1.45;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
+        font-size: 3.8rem;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.15;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
+        font-size: 1.35rem;
+        font-weight: 500;
+        color: #93c5fd;
+        line-height: 1.4;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-footer .ooxml-pptx-shape-content {
+        font-size: 0.95rem;
+        color: rgba(255,255,255,0.7);
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-body .ooxml-pptx-shape-content,
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
+        font-size: 1.05rem;
+        color: #334155;
+        line-height: 1.45;
+      }
+
+      .preview-shell .ooxml-pptx-shape.is-media {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: #0f172a;
+        color: #e2e8f0;
+        border: 1px solid #1e293b;
+      }
+
+      .preview-shell .ooxml-pptx-shape.is-media .ooxml-pptx-shape-content {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.95rem;
       }
 
       .preview-shell .ooxml-pptx-shape p,
@@ -279,15 +366,39 @@ function enhancePresentationPreview(): void {
   canvas.style.aspectRatio = `${cx} / ${cy}`;
   canvas.style.minHeight = '320px';
 
-  for (const shape of shapes) {
+  const accentPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+  const titleLike = shapes.every((shape) => !shape.dataset.mediaType) && shapes.length <= 4;
+  canvas.classList.toggle('is-title-slide', titleLike);
+  canvas.classList.toggle('is-content-slide', !titleLike);
+  const header = presentation.querySelector('header') as HTMLElement | null;
+  if (header) {
+    header.style.display = titleLike ? 'none' : 'grid';
+    header.style.gap = '4px';
+  }
+
+  const orderedShapes = [...shapes].sort((left, right) => {
+    const topDiff = Number(left.dataset.y ?? 0) - Number(right.dataset.y ?? 0);
+    return topDiff !== 0 ? topDiff : Number(left.dataset.x ?? 0) - Number(right.dataset.x ?? 0);
+  });
+
+  for (const [index, shape] of orderedShapes.entries()) {
     if (shape.parentElement !== canvas) {
       canvas.appendChild(shape);
     }
+
+    const name = shape.querySelector('h3')?.textContent?.trim() ?? '';
+    const body = shape.querySelector('p')?.textContent?.trim() ?? '';
+    const mediaType = shape.dataset.mediaType;
+    const text = body || name || (mediaType === 'embeddedObject' ? '[embedded object]' : mediaType === 'image' ? '[image]' : '');
+    shape.innerHTML = `<div class="ooxml-pptx-shape-content">${escapeHtmlText(text)}</div>`;
 
     const x = Number(shape.dataset.x ?? 0);
     const y = Number(shape.dataset.y ?? 0);
     const width = Number(shape.dataset.cx ?? 0);
     const height = Number(shape.dataset.cy ?? 0);
+
+    shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media');
+    shape.style.removeProperty('--accent');
 
     if (width > 0 && height > 0) {
       shape.style.left = `${(x / cx) * 100}%`;
@@ -299,6 +410,35 @@ function enhancePresentationPreview(): void {
       shape.style.top = '5%';
       shape.style.width = '40%';
       shape.style.height = '20%';
+    }
+
+    if (mediaType) {
+      shape.classList.add('is-media');
+      shape.style.setProperty('--accent', accentPalette[index % accentPalette.length]);
+      continue;
+    }
+
+    if (titleLike) {
+      if (index === 0) {
+        shape.classList.add('kind-title');
+      } else if (index === orderedShapes.length - 1 && y / cy > 0.75) {
+        shape.classList.add('kind-footer');
+      } else {
+        shape.classList.add('kind-subtitle');
+      }
+      continue;
+    }
+
+    const topRatio = y / cy;
+    const widthRatio = width / cx;
+    const heightRatio = height / cy;
+    if (topRatio < 0.18 && widthRatio > 0.35) {
+      shape.classList.add('kind-title', 'is-heading');
+    } else if (widthRatio > 0.22 && heightRatio > 0.12) {
+      shape.classList.add('kind-body', 'is-card');
+      shape.style.setProperty('--accent', accentPalette[index % accentPalette.length]);
+    } else {
+      shape.classList.add('kind-body');
     }
   }
 }
@@ -312,4 +452,13 @@ function columnLabel(index: number): string {
     value = Math.floor((value - 1) / 26);
   }
   return label;
+}
+
+function escapeHtmlText(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
