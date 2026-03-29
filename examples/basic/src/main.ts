@@ -564,7 +564,13 @@ function enhancePresentationPreview(): void {
   }
 
   const accentPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
-  const titleLike = shapes.every((shape) => !shape.dataset.mediaType) && shapes.length <= 4;
+  const textBearingShapes = shapes.filter((shape) => {
+    const text = shape.querySelector('p')?.textContent?.trim() ?? '';
+    return text.length > 0;
+  });
+  const titleLike = textBearingShapes.length > 0
+    && textBearingShapes.length <= 4
+    && textBearingShapes.every((shape) => !shape.dataset.mediaType);
   const darkBackground = backgroundColor ? isDarkColor(backgroundColor) : true;
   canvas.classList.toggle('is-title-slide', titleLike && darkBackground);
   canvas.classList.toggle('is-title-slide-light', titleLike && !darkBackground);
