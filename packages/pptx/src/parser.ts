@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, findElementsByLocalName, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { PresentationComment, PresentationDocument, PresentationSlide, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape, SlideShapeTransform } from './model';
+import type { PresentationComment, PresentationDocument, PresentationFill, PresentationLine, PresentationSlide, PresentationTextStyle, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape, SlideShapeTransform } from './model';
 
 export function parsePptx(graph: PackageGraph): PresentationDocument {
   const presentationUri = graph.rootDocumentUri ?? '/ppt/presentation.xml';
@@ -48,10 +48,11 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const slideRelationships = relationshipsFor(graph, uri);
   const layoutRelationship = slideRelationships.find((relationship) => relationship.type.includes('/slideLayout'));
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
+  const theme = layoutInfo?.themeUri ? themeCache[layoutInfo.themeUri] : undefined;
   const shapes = [
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:sp').map((shape) => parseShape(shape)),
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:pic').map((picture) => parsePicture(picture, slideRelationships)),
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, slideRelationships))
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:sp').map((shape) => parseShape(shape, theme)),
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:pic').map((picture) => parsePicture(picture, slideRelationships, theme)),
+    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, slideRelationships, theme))
   ];
   const notesInfo = parseNotesInfo(graph, uri);
   const title = shapes.find((shape) => shape.text.trim())?.text ?? 'Slide';
@@ -67,6 +68,7 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
     masterUri: layoutInfo?.masterUri,
     masterName: layoutInfo?.masterName,
     themeUri: layoutInfo?.themeUri,
+    background: parseBackground(commonSlideData, theme),
     transition: parseTransition(slide),
     timing: parseTiming(slide),
     shapes,
@@ -74,37 +76,46 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   };
 }
 
-function parseShape(shape: Record<string, unknown>): SlideShape {
+function parseShape(shape: Record<string, unknown>, theme?: PresentationTheme): SlideShape {
   const nvSpPr = xmlChild<Record<string, unknown>>(shape, 'p:nvSpPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:cNvPr');
   const nvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:nvPr');
   const placeholder = xmlChild<Record<string, unknown>>(nvPr, 'p:ph');
   const textNodes = findElementsByLocalName(shape, 't');
-  const transform = parseTransform(xmlChild<Record<string, unknown>>(shape, 'p:spPr'));
+  const shapeProperties = xmlChild<Record<string, unknown>>(shape, 'p:spPr');
+  const transform = parseTransform(shapeProperties);
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
     name: xmlAttr(cNvPr, 'name'),
     text: textNodes.map((node) => xmlText(node)).join(''),
     placeholderType: xmlAttr(placeholder, 'type'),
-    transform
+    shapeType: parseShapeType(shapeProperties),
+    transform,
+    fill: parseFill(shapeProperties, theme),
+    line: parseLine(shapeProperties, theme),
+    textStyle: parseTextStyle(shape, theme)
   };
 }
 
-function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>): SlideShape {
+function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, theme?: PresentationTheme): SlideShape {
   const nvPicPr = xmlChild<Record<string, unknown>>(picture, 'p:nvPicPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvPicPr, 'p:cNvPr');
   const blipFill = xmlChild<Record<string, unknown>>(picture, 'p:blipFill');
   const blip = xmlChild<Record<string, unknown>>(blipFill, 'a:blip');
   const relationshipId = xmlAttr(blip, 'r:embed');
   const target = relationshipId ? relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget : undefined;
-  const transform = parseTransform(xmlChild<Record<string, unknown>>(picture, 'p:spPr'));
+  const shapeProperties = xmlChild<Record<string, unknown>>(picture, 'p:spPr');
+  const transform = parseTransform(shapeProperties);
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
     name: xmlAttr(cNvPr, 'name'),
     text: '',
+    shapeType: 'picture',
     transform,
+    fill: parseFill(shapeProperties, theme),
+    line: parseLine(shapeProperties, theme),
     media: {
       type: 'image',
       targetUri: target ?? undefined
@@ -112,7 +123,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
   };
 }
 
-function parseGraphicFrame(frame: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>): SlideShape[] {
+function parseGraphicFrame(frame: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, _theme?: PresentationTheme): SlideShape[] {
   const nvGraphicFramePr = xmlChild<Record<string, unknown>>(frame, 'p:nvGraphicFramePr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvGraphicFramePr, 'p:cNvPr');
   const transform = parseTransform(xmlChild<Record<string, unknown>>(frame, 'p:xfrm'));
@@ -128,7 +139,10 @@ function parseGraphicFrame(frame: Record<string, unknown>, relationships: Return
     id: xmlAttr(cNvPr, 'id') ?? '',
     name: xmlAttr(cNvPr, 'name'),
     text: '',
+    shapeType: 'graphicFrame',
     transform,
+    fill: undefined,
+    line: undefined,
     media: {
       type: 'embeddedObject',
       targetUri: target ?? undefined,
@@ -150,6 +164,47 @@ function parseTransform(shapeProperties: Record<string, unknown> | undefined): S
     y: (() => { const value = xmlAttr(off, 'y'); return value ? Number(value) : undefined; })(),
     cx: (() => { const value = xmlAttr(ext, 'cx'); return value ? Number(value) : undefined; })(),
     cy: (() => { const value = xmlAttr(ext, 'cy'); return value ? Number(value) : undefined; })()
+  };
+}
+
+function parseShapeType(shapeProperties: Record<string, unknown> | undefined): string | undefined {
+  if (xmlChild<Record<string, unknown>>(shapeProperties, 'a:custGeom')) {
+    return 'custom';
+  }
+
+  const preset = xmlChild<Record<string, unknown>>(shapeProperties, 'a:prstGeom');
+  return xmlAttr(preset, 'prst') ?? undefined;
+}
+
+function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationTheme): PresentationTextStyle | undefined {
+  const textBody = xmlChild<Record<string, unknown>>(shape, 'p:txBody');
+  if (!textBody) {
+    return undefined;
+  }
+
+  const paragraph = xmlChild<Record<string, unknown>>(textBody, 'a:p');
+  const paragraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'a:pPr');
+  const run = xmlChild<Record<string, unknown>>(paragraph, 'a:r');
+  const runProperties = xmlChild<Record<string, unknown>>(run, 'a:rPr')
+    ?? xmlChild<Record<string, unknown>>(paragraph, 'a:endParaRPr');
+  const solidFill = xmlChild<Record<string, unknown>>(runProperties, 'a:solidFill');
+  const latin = xmlChild<Record<string, unknown>>(runProperties, 'a:latin');
+  const eastAsian = xmlChild<Record<string, unknown>>(runProperties, 'a:ea');
+  const complexScript = xmlChild<Record<string, unknown>>(runProperties, 'a:cs');
+  const color = solidFill ? resolveColor(solidFill, theme)?.color : undefined;
+  const size = xmlAttr(runProperties, 'sz');
+
+  if (!runProperties && !paragraphProperties) {
+    return undefined;
+  }
+
+  return {
+    color,
+    fontSizePt: size ? Number(size) / 100 : undefined,
+    fontFamily: xmlAttr(latin, 'typeface') ?? xmlAttr(eastAsian, 'typeface') ?? xmlAttr(complexScript, 'typeface') ?? undefined,
+    bold: xmlAttr(runProperties, 'b') === '1' ? true : xmlAttr(runProperties, 'b') === '0' ? false : undefined,
+    italic: xmlAttr(runProperties, 'i') === '1' ? true : xmlAttr(runProperties, 'i') === '0' ? false : undefined,
+    align: xmlAttr(paragraphProperties, 'algn') ?? undefined
   };
 }
 
@@ -190,15 +245,135 @@ function parseThemeInfo(graph: PackageGraph, themeUri: string): PresentationThem
   const minorFont = xmlChild<Record<string, unknown>>(fontScheme, 'a:minorFont');
   const majorLatin = xmlChild<Record<string, unknown>>(majorFont, 'a:latin');
   const minorLatin = xmlChild<Record<string, unknown>>(minorFont, 'a:latin');
+  const colors = Object.fromEntries(
+    ['dk1', 'lt1', 'dk2', 'lt2', 'accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6', 'hlink', 'folHlink']
+      .flatMap((key) => {
+        const colorNode = xmlChild<Record<string, unknown>>(colorScheme, `a:${key}`);
+        const resolved = colorNode ? resolveColor(colorNode, undefined) : undefined;
+        return resolved?.color ? [[key, resolved.color]] : [];
+      })
+  );
 
   return {
     uri: themeUri,
     name: theme ? xmlAttr(theme, 'name') : undefined,
     colorSchemeName: colorScheme ? xmlAttr(colorScheme, 'name') : undefined,
     majorLatinFont: majorLatin ? xmlAttr(majorLatin, 'typeface') : undefined,
-    minorLatinFont: minorLatin ? xmlAttr(minorLatin, 'typeface') : undefined
+    minorLatinFont: minorLatin ? xmlAttr(minorLatin, 'typeface') : undefined,
+    colors
   };
 }
+
+function parseBackground(commonSlideData: Record<string, unknown> | undefined, theme?: PresentationTheme): PresentationFill | undefined {
+  const background = xmlChild<Record<string, unknown>>(commonSlideData, 'p:bg');
+  const backgroundProperties = xmlChild<Record<string, unknown>>(background, 'p:bgPr');
+  const backgroundReference = xmlChild<Record<string, unknown>>(background, 'p:bgRef');
+  return parseFill(backgroundProperties ?? backgroundReference, theme);
+}
+
+function parseFill(shapeProperties: Record<string, unknown> | undefined, theme?: PresentationTheme): PresentationFill | undefined {
+  if (!shapeProperties) {
+    return undefined;
+  }
+
+  if (xmlChild<Record<string, unknown>>(shapeProperties, 'a:noFill')) {
+    return { kind: 'none' };
+  }
+
+  const solidFill = xmlChild<Record<string, unknown>>(shapeProperties, 'a:solidFill');
+  if (solidFill) {
+    const resolved = resolveColor(solidFill, theme);
+    return {
+      kind: 'solid',
+      color: resolved?.color,
+      opacity: resolved?.opacity
+    };
+  }
+
+  return undefined;
+}
+
+function parseLine(shapeProperties: Record<string, unknown> | undefined, theme?: PresentationTheme): PresentationLine | undefined {
+  const line = xmlChild<Record<string, unknown>>(shapeProperties, 'a:ln');
+  if (!line) {
+    return undefined;
+  }
+
+  if (xmlChild<Record<string, unknown>>(line, 'a:noFill')) {
+    return {
+      kind: 'none',
+      width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : undefined; })()
+    };
+  }
+
+  const solidFill = xmlChild<Record<string, unknown>>(line, 'a:solidFill');
+  const resolved = solidFill ? resolveColor(solidFill, theme) : undefined;
+  return {
+    kind: 'solid',
+    color: resolved?.color,
+    opacity: resolved?.opacity,
+    width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : undefined; })()
+  };
+}
+
+function resolveColor(parent: Record<string, unknown> | undefined, theme?: PresentationTheme): { color?: string; opacity?: number } | undefined {
+  if (!parent) {
+    return undefined;
+  }
+
+  const srgb = xmlChild<Record<string, unknown>>(parent, 'a:srgbClr');
+  if (srgb) {
+    return {
+      color: `#${xmlAttr(srgb, 'val') ?? ''}`.replace(/^#$/, ''),
+      opacity: parseAlpha(srgb)
+    };
+  }
+
+  const scheme = xmlChild<Record<string, unknown>>(parent, 'a:schemeClr');
+  if (scheme) {
+    const schemeValue = xmlAttr(scheme, 'val') ?? '';
+    return {
+      color: theme?.colors?.[schemeValue] ?? defaultThemeColors[schemeValue],
+      opacity: parseAlpha(scheme)
+    };
+  }
+
+  const sys = xmlChild<Record<string, unknown>>(parent, 'a:sysClr');
+  if (sys) {
+    return {
+      color: `#${xmlAttr(sys, 'lastClr') ?? ''}`.replace(/^#$/, ''),
+      opacity: parseAlpha(sys)
+    };
+  }
+
+  return undefined;
+}
+
+function parseAlpha(node: Record<string, unknown>): number | undefined {
+  const alpha = xmlChild<Record<string, unknown>>(node, 'a:alpha');
+  const value = xmlAttr(alpha, 'val');
+  return value ? Number(value) / 100000 : undefined;
+}
+
+const defaultThemeColors: Record<string, string> = {
+  dk1: '#000000',
+  lt1: '#FFFFFF',
+  dk2: '#1F497D',
+  lt2: '#EEECE1',
+  accent1: '#4F81BD',
+  accent2: '#C0504D',
+  accent3: '#9BBB59',
+  accent4: '#8064A2',
+  accent5: '#4BACC6',
+  accent6: '#F79646',
+  hlink: '#0000FF',
+  folHlink: '#800080',
+  bg1: '#FFFFFF',
+  tx1: '#000000',
+  bg2: '#EEECE1',
+  tx2: '#1F497D',
+  phClr: '#4F81BD'
+};
 
 function parseTransition(slide: Record<string, unknown>): PresentationTransition | undefined {
   const transitionNode = xmlChild<Record<string, unknown>>(slide, 'p:transition');

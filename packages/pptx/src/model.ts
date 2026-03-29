@@ -7,6 +7,28 @@ export interface SlideShapeTransform {
   cy?: number;
 }
 
+export interface PresentationFill {
+  kind: 'solid' | 'none';
+  color?: string;
+  opacity?: number;
+}
+
+export interface PresentationLine {
+  kind: 'solid' | 'none';
+  color?: string;
+  opacity?: number;
+  width?: number;
+}
+
+export interface PresentationTextStyle {
+  color?: string;
+  fontSizePt?: number;
+  fontFamily?: string;
+  bold?: boolean;
+  italic?: boolean;
+  align?: string;
+}
+
 export interface SlideShapeMedia {
   type: 'image' | 'embeddedObject';
   targetUri?: string;
@@ -18,7 +40,11 @@ export interface SlideShape {
   name?: string;
   text: string;
   placeholderType?: string;
+  shapeType?: string;
   transform?: SlideShapeTransform;
+  fill?: PresentationFill;
+  line?: PresentationLine;
+  textStyle?: PresentationTextStyle;
   media?: SlideShapeMedia;
 }
 
@@ -28,6 +54,7 @@ export interface PresentationTheme {
   colorSchemeName?: string;
   majorLatinFont?: string;
   minorLatinFont?: string;
+  colors?: Record<string, string>;
 }
 
 export interface PresentationComment {
@@ -90,6 +117,7 @@ export interface PresentationSlide {
   masterUri?: string;
   masterName?: string;
   themeUri?: string;
+  background?: PresentationFill;
   transition?: PresentationTransition;
   timing?: PresentationTiming;
   shapes: SlideShape[];

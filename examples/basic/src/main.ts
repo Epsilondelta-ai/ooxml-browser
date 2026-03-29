@@ -518,6 +518,11 @@ function enhancePresentationPreview(): void {
   const cy = Number(presentation.dataset.presentationCy ?? 0) || 6858000;
   canvas.style.aspectRatio = `${cx} / ${cy}`;
   canvas.style.minHeight = '320px';
+  const backgroundColor = presentation.dataset.backgroundColor;
+  const backgroundOpacity = Number(presentation.dataset.backgroundOpacity ?? 1);
+  if (backgroundColor) {
+    canvas.style.background = applyOpacity(backgroundColor, backgroundOpacity);
+  }
 
   const accentPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
   const titleLike = shapes.every((shape) => !shape.dataset.mediaType) && shapes.length <= 4;
@@ -525,7 +530,7 @@ function enhancePresentationPreview(): void {
   canvas.classList.toggle('is-content-slide', !titleLike);
   const header = presentation.querySelector('header') as HTMLElement | null;
   if (header) {
-    header.style.display = titleLike ? 'none' : 'grid';
+    header.style.display = 'none';
     header.style.gap = '4px';
   }
 
@@ -549,9 +554,19 @@ function enhancePresentationPreview(): void {
     const y = Number(shape.dataset.y ?? 0);
     const width = Number(shape.dataset.cx ?? 0);
     const height = Number(shape.dataset.cy ?? 0);
+    const fillColor = shape.dataset.fillColor;
+    const fillOpacity = Number(shape.dataset.fillOpacity ?? 1);
+    const lineColor = shape.dataset.lineColor;
+    const lineWidth = Number(shape.dataset.lineWidth ?? 0);
+    const textColor = shape.dataset.textColor;
+    const fontSizePt = Number(shape.dataset.fontSizePt ?? 0);
+    const fontFamily = shape.dataset.fontFamily;
+    const textAlign = shape.dataset.textAlign;
 
     shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media', 'is-image-frame');
     shape.style.removeProperty('--accent');
+    shape.style.background = 'transparent';
+    shape.style.border = 'none';
 
     if (width > 0 && height > 0) {
       shape.style.left = `${(x / cx) * 100}%`;
@@ -565,6 +580,13 @@ function enhancePresentationPreview(): void {
       shape.style.height = '20%';
     }
 
+    if (fillColor) {
+      shape.style.background = applyOpacity(fillColor, fillOpacity);
+    }
+    if (lineColor) {
+      shape.style.border = `${Math.max(1, Math.round(lineWidth / 12700))}px solid ${lineColor}`;
+    }
+
     if (mediaType) {
       const mediaUri = shape.dataset.mediaUri;
       const imageUrl = mediaType === 'image' && mediaUri ? getPackagePartObjectUrl(mediaUri) : null;
@@ -576,6 +598,22 @@ function enhancePresentationPreview(): void {
         shape.style.setProperty('--accent', accentPalette[index % accentPalette.length]);
       }
       continue;
+    }
+
+    const content = shape.querySelector('.ooxml-pptx-shape-content') as HTMLElement | null;
+    if (content) {
+      content.style.color = textColor || '';
+      content.style.fontFamily = fontFamily || '';
+      content.style.textAlign = textAlign === 'ctr' ? 'center' : textAlign === 'r' ? 'right' : textAlign === 'just' ? 'justify' : 'left';
+      if (fontSizePt > 0) {
+        content.style.fontSize = `${Math.max(fontSizePt * 1.18, 14)}px`;
+      }
+      if (shape.dataset.fontBold === 'true') {
+        content.style.fontWeight = '700';
+      }
+      if (shape.dataset.fontItalic === 'true') {
+        content.style.fontStyle = 'italic';
+      }
     }
 
     if (titleLike) {
@@ -649,4 +687,15 @@ function resetMediaUrlCache(): void {
     URL.revokeObjectURL(url);
   }
   mediaUrlCache.clear();
+}
+
+function applyOpacity(hexColor: string, opacity: number): string {
+  if (!hexColor.startsWith('#') || hexColor.length !== 7) {
+    return hexColor;
+  }
+
+  const red = Number.parseInt(hexColor.slice(1, 3), 16);
+  const green = Number.parseInt(hexColor.slice(3, 5), 16);
+  const blue = Number.parseInt(hexColor.slice(5, 7), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${Number.isFinite(opacity) ? opacity : 1})`;
 }
