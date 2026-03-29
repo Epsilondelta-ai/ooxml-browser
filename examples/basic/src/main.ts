@@ -796,9 +796,10 @@ function enhancePresentationPreview(): void {
       if (rank === undefined) {
         continue;
       }
+      const footerLike = y / cy > 0.82 && fontSizePt > 0 && fontSizePt <= 12;
       if (rank === 0) {
         shape.classList.add('kind-title');
-      } else if (rank === principalOrderedShapes.length - 1 && y / cy > 0.75) {
+      } else if (rank === principalOrderedShapes.length - 1 && footerLike) {
         shape.classList.add('kind-footer');
       } else {
         shape.classList.add('kind-subtitle');
