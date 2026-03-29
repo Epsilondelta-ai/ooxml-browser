@@ -8,7 +8,7 @@
 
 ## Test layers
 ### Unit
-- root document detection for malformed/unusual package ordering (`sample6`)
+- root document detection / package-opening regressions for corpus decks
 - PPTX parser extraction of slide size, backgrounds, shape text, transforms, media, and placeholder metadata
 - PPTX renderer projection helpers for title/content/image/card slides
 
@@ -32,7 +32,7 @@
 - sample3: title slide, representative content slide
 - sample4: title slide, representative content slide
 - sample5: title slide, representative graphical/content slide
-- sample6: title slide plus one later representative slide after parse root is fixed
+- sample6: title slide plus one later representative slide
 
 ## Required commands
 - `npm test`
@@ -43,7 +43,7 @@
 - `git diff --check`
 
 ## Exit criteria
-1. no sample deck parses as empty/unknown when it should be PPTX,
+1. no sample deck parses with the wrong slide count or silently degrades to empty output,
 2. declared screenshot comparisons are captured and reviewed,
 3. browser example/playground preview changes are covered by tests or deterministic harness evidence,
 4. final architect + verifier sign-off approve the evidence set.

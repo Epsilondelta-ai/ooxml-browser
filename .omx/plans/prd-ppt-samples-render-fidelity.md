@@ -12,7 +12,6 @@ Improve the repository's PPTX parsing and browser rendering so paired sample pre
 
 ## Why this phase exists
 The current PPTX flow can parse representative shapes and render semantic HTML, but the produced slides still look like inspection surfaces instead of presentation exports. The sample corpus exposes concrete fidelity gaps in:
-- root presentation detection (`sample6` currently resolves as `unknown`)
 - title-slide and content-slide composition
 - background/fill/shape primitive rendering
 - theme-aware typography and color application
@@ -20,7 +19,7 @@ The current PPTX flow can parse representative shapes and render semantic HTML, 
 - end-to-end screenshot-to-reference verification
 
 ## Goals
-1. Parse all six sample decks into non-empty PPTX documents, including `sample6`.
+1. Parse all six sample decks into PPTX documents with the expected slide counts.
 2. Introduce a PPTX render path that supports export-like slide presentation rather than metadata-heavy debug blocks.
 3. Preserve and render key visual semantics: slide background, theme/text colors, shape fills/lines, image placement, and placeholder-driven layout heuristics.
 4. Add a deterministic visual verification harness that compares rendered screenshots against the paired PNG exports for the sample corpus.
@@ -32,7 +31,7 @@ The current PPTX flow can parse representative shapes and render semantic HTML, 
 - Replacing semantic render HTML for DOCX/XLSX.
 
 ## Acceptance criteria
-1. `sample1` through `sample6` all parse as PPTX with expected slide counts > 0.
+1. `sample1` through `sample6` all parse as PPTX with the expected slide counts from the paired PNG corpus.
 2. A screenshot harness can render each sample slide and compare it with its paired PNG export.
 3. Title slides, image-driven slides, and card/list slides from the sample corpus score materially better than the current baseline in visual review.
 4. The browser example can load the sample decks and present slide-first navigation with media-backed previews.
@@ -41,7 +40,7 @@ The current PPTX flow can parse representative shapes and render semantic HTML, 
 ## Corpus facts
 - `sample1`–`sample4`: 48 PNG exports each
 - `sample5`: 37 PNG exports
-- `sample6`: 36 PNG exports, but currently parses as 0 slides because package root detection picks `/docProps/app.xml`
+- `sample6`: 36 PNG exports and parses as a 36-slide PPTX when inspected directly
 - `sample2` has several image-driven slides; `sample1`, `sample4`, and `sample5` lean heavily on vector/text composition
 
 ## Likely codebase touchpoints
@@ -61,7 +60,7 @@ The current PPTX flow can parse representative shapes and render semantic HTML, 
 
 ## Definition of done
 This phase is done when:
-1. all six sample decks parse correctly,
+1. all six sample decks parse correctly with expected slide counts,
 2. a screenshot/reference harness exists and is green for the declared sample corpus baseline,
 3. the PPTX example/playground behaves like a slide viewer instead of an inspection shell,
 4. fresh verification, architect review, and verifier review all pass.
