@@ -45,7 +45,7 @@ describe('pptx richer shape metadata', () => {
     const presentation = parsePptx(await openPackage(createGroupedPptxFixture()));
     const groupedShape = presentation.slides[0]?.shapes.find((shape) => shape.name === 'Grouped Title');
 
-    expect(groupedShape?.transform).toEqual({ x: 2000, y: 3000, cx: 1600, cy: 1800, rotationDeg: 120, flipH: true });
+    expect(groupedShape?.transform).toEqual({ x: 3300, y: 4300, cx: 1600, cy: 1800, rotationDeg: 120, flipH: true, flipV: undefined });
   });
 
   it('inherits placeholder transform and styling from the slide layout', async () => {

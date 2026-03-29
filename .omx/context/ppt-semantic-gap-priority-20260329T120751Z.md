@@ -1,0 +1,26 @@
+# Context Snapshot: PPT semantic gap priority pass
+
+- **Task statement:** Improve PPT rendering by prioritizing parser-grounded OOXML semantic interpretation over example styling, working to completion in this strict order: (1) group transform accuracy, (2) custom/preset geometry fidelity, (3) placeholder/layout/master inheritance, (4) theme color transforms, (5) line/fill/stroke semantics, (6) minimize overlay hacks.
+- **Desired outcome:** Land verified semantic fixes that materially improve `sample1` slide 1, `sample5` slide 2, and `sample6` slide 1, using parser-grounded changes only; after each semantic step, run screenshot verification and LLM vision review, reverting regressions immediately and moving to the next semantic gap.
+- **Known facts / evidence:**
+  - Existing PPT fidelity planning artifacts already exist under `.omx/plans/prd-ppt-samples-render-fidelity.md` and `test-spec-ppt-samples-render-fidelity.md`.
+  - Screenshot verification is implemented by `npm run quality:ppt-sample-screenshots`, which writes JSON metrics and image artifacts under `benchmarks/reports/`.
+  - Sample screenshot coverage explicitly includes `sample1`, `sample5`, and `sample6`.
+  - The repo already contains PPT parser/model code under `packages/pptx/**` and rendering code under `packages/render/**`.
+- **Constraints:**
+  - Ralph + ralplan workflow is active; planning artifacts must exist before implementation.
+  - Strict priority order must be followed.
+  - Only parser-grounded semantic changes are allowed first; avoid ad-hoc overlay styling unless later minimized as priority 6.
+  - Each step must be validated by `quality:ppt-sample-screenshots` plus LLM vision on target slides.
+  - On regression, revert the step immediately and continue to the next semantic gap.
+- **Unknowns / open questions:**
+  - Which target gaps already have partial support in parser/model vs renderer.
+  - Whether screenshot script supports slide-subset filtering or requires full run.
+  - How much of the current mismatch comes from parser omissions vs renderer projection simplifications.
+- **Likely codebase touchpoints:**
+  - `packages/pptx/src/**`
+  - `packages/render/src/pptx.ts`
+  - `tools/generate-ppt-sample-screenshot-report.mjs`
+  - `examples/basic/**`
+  - `tests/**`
+  - `benchmarks/reports/**` for evidence review

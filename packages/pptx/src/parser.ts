@@ -132,20 +132,34 @@ function selectSlideTitle(shapes: SlideShape[]): string {
 }
 
 interface TransformContext {
-  offsetX: number;
-  offsetY: number;
-  scaleX: number;
-  scaleY: number;
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  tx: number;
+  ty: number;
   rotationDeg: number;
   flipH: boolean;
   flipV: boolean;
 }
 
+const identityTransformContext: TransformContext = {
+  a: 1,
+  b: 0,
+  c: 0,
+  d: 1,
+  tx: 0,
+  ty: 0,
+  rotationDeg: 0,
+  flipH: false,
+  flipV: false
+};
+
 function collectShapes(
   container: Record<string, unknown> | undefined,
   relationships: ReturnType<typeof relationshipsFor>,
   theme?: PresentationTheme,
-  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, rotationDeg: 0, flipH: false, flipV: false },
+  context: TransformContext = identityTransformContext,
   rawShapeXmlById?: Record<string, string>
 ): SlideShape[] {
   if (!container) {
@@ -306,11 +320,17 @@ function composeGroupContext(group: Record<string, unknown>, parent: TransformCo
   const flipH = xmlAttr(xfrm, 'flipH') === '1';
   const flipV = xmlAttr(xfrm, 'flipV') === '1';
 
+  const localMatrix = multiplyMatrices(
+    translationMatrix(offsetX, offsetY),
+    multiplyMatrices(
+      aroundPointMatrix(extX / 2, extY / 2, multiplyMatrices(rotationMatrix(rotationDeg), scaleMatrix(flipH ? -1 : 1, flipV ? -1 : 1))),
+      multiplyMatrices(scaleMatrix(scaleX, scaleY), translationMatrix(-childOffsetX, -childOffsetY))
+    )
+  );
+  const matrix = multiplyMatrices(parent, localMatrix);
+
   return {
-    offsetX: parent.offsetX + (offsetX - childOffsetX * scaleX) * parent.scaleX,
-    offsetY: parent.offsetY + (offsetY - childOffsetY * scaleY) * parent.scaleY,
-    scaleX: parent.scaleX * scaleX,
-    scaleY: parent.scaleY * scaleY,
+    ...matrix,
     rotationDeg: parent.rotationDeg + rotationDeg,
     flipH: parent.flipH !== flipH,
     flipV: parent.flipV !== flipV
@@ -319,20 +339,99 @@ function composeGroupContext(group: Record<string, unknown>, parent: TransformCo
 
 function applyTransformContext(
   transform: SlideShapeTransform | undefined,
-  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, rotationDeg: 0, flipH: false, flipV: false }
+  context: TransformContext = identityTransformContext
 ): SlideShapeTransform | undefined {
   if (!transform) {
     return undefined;
   }
 
+  const topLeft = transform.x !== undefined && transform.y !== undefined
+    ? applyMatrixToPoint(context, transform.x, transform.y)
+    : undefined;
+  const widthVector = transform.cx !== undefined ? applyMatrixToVector(context, transform.cx, 0) : undefined;
+  const heightVector = transform.cy !== undefined ? applyMatrixToVector(context, 0, transform.cy) : undefined;
+  const width = widthVector ? Math.hypot(widthVector.x, widthVector.y) : undefined;
+  const height = heightVector ? Math.hypot(heightVector.x, heightVector.y) : undefined;
+  const center = (
+    transform.x !== undefined
+    && transform.y !== undefined
+    && transform.cx !== undefined
+    && transform.cy !== undefined
+  )
+    ? applyMatrixToPoint(context, transform.x + transform.cx / 2, transform.y + transform.cy / 2)
+    : undefined;
+
   return {
-    x: transform.x !== undefined ? context.offsetX + transform.x * context.scaleX : undefined,
-    y: transform.y !== undefined ? context.offsetY + transform.y * context.scaleY : undefined,
-    cx: transform.cx !== undefined ? transform.cx * context.scaleX : undefined,
-    cy: transform.cy !== undefined ? transform.cy * context.scaleY : undefined,
+    x: center && width !== undefined ? center.x - width / 2 : topLeft?.x,
+    y: center && height !== undefined ? center.y - height / 2 : topLeft?.y,
+    cx: width,
+    cy: height,
     rotationDeg: (transform.rotationDeg ?? 0) + context.rotationDeg || undefined,
     flipH: context.flipH !== Boolean(transform.flipH) || undefined,
     flipV: context.flipV !== Boolean(transform.flipV) || undefined
+  };
+}
+
+function multiplyMatrices(left: TransformContext, right: Pick<TransformContext, 'a' | 'b' | 'c' | 'd' | 'tx' | 'ty'>): TransformContext {
+  return {
+    ...identityTransformContext,
+    a: left.a * right.a + left.c * right.b,
+    b: left.b * right.a + left.d * right.b,
+    c: left.a * right.c + left.c * right.d,
+    d: left.b * right.c + left.d * right.d,
+    tx: left.a * right.tx + left.c * right.ty + left.tx,
+    ty: left.b * right.tx + left.d * right.ty + left.ty
+  };
+}
+
+function translationMatrix(tx: number, ty: number): TransformContext {
+  return {
+    ...identityTransformContext,
+    tx,
+    ty
+  };
+}
+
+function scaleMatrix(scaleX: number, scaleY: number): TransformContext {
+  return {
+    ...identityTransformContext,
+    a: scaleX,
+    d: scaleY
+  };
+}
+
+function rotationMatrix(rotationDeg: number): TransformContext {
+  const radians = rotationDeg * (Math.PI / 180);
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+
+  return {
+    ...identityTransformContext,
+    a: cos,
+    b: sin,
+    c: -sin,
+    d: cos
+  };
+}
+
+function aroundPointMatrix(cx: number, cy: number, matrix: TransformContext): TransformContext {
+  return multiplyMatrices(
+    translationMatrix(cx, cy),
+    multiplyMatrices(matrix, translationMatrix(-cx, -cy))
+  );
+}
+
+function applyMatrixToPoint(context: TransformContext, x: number, y: number): { x: number; y: number } {
+  return {
+    x: context.a * x + context.c * y + context.tx,
+    y: context.b * x + context.d * y + context.ty
+  };
+}
+
+function applyMatrixToVector(context: TransformContext, x: number, y: number): { x: number; y: number } {
+  return {
+    x: context.a * x + context.c * y,
+    y: context.b * x + context.d * y
   };
 }
 
