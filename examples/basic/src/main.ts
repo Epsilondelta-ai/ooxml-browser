@@ -145,7 +145,7 @@ app.innerHTML = `
         width: 100%;
         max-width: 1280px;
         margin: 0 auto;
-        border-radius: 18px;
+        border-radius: 0;
         border: 1px solid #cbd5e1;
         background:
           linear-gradient(180deg, rgba(255,255,255,0.99), rgba(248,250,252,0.98)),
@@ -157,17 +157,6 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide {
         background: linear-gradient(180deg, #1d2551 0%, #1a2148 100%);
         border-color: #1a2148;
-      }
-
-      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide::before {
-        content: '';
-        position: absolute;
-        left: 8%;
-        top: 16%;
-        width: 10%;
-        height: 4px;
-        border-radius: 999px;
-        background: #3b82f6;
       }
 
       .preview-shell .ooxml-render--pptx > header,
@@ -307,6 +296,13 @@ app.innerHTML = `
         padding: 0;
         overflow: hidden;
       }
+
+      .preview-shell .ooxml-pptx-shape.is-decorative svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
 
       .preview-shell .ooxml-pptx-shape p,
       .preview-shell .ooxml-pptx-notes,
@@ -621,6 +617,7 @@ function enhancePresentationPreview(): void {
     shape.style.background = 'transparent';
     shape.style.border = 'none';
     shape.style.borderRadius = '0';
+    shape.style.clipPath = '';
     shape.style.boxShadow = 'none';
 
     if (width > 0 && height > 0) {
@@ -653,6 +650,8 @@ function enhancePresentationPreview(): void {
     }
     if (shape.dataset.shapeType === 'ellipse') {
       shape.style.borderRadius = '999px';
+    } else if (shape.dataset.shapeType === 'chevron') {
+      shape.style.clipPath = 'polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%, 18% 50%)';
     } else if (name.toLowerCase().includes('rounded')) {
       shape.style.borderRadius = '18px';
     }
@@ -673,6 +672,20 @@ function enhancePresentationPreview(): void {
     const content = shape.querySelector('.ooxml-pptx-shape-content') as HTMLElement | null;
     if (!text) {
       shape.classList.add('is-decorative');
+      const pathCommands = shape.dataset.pathCommands;
+      const shouldRenderPath = Boolean(
+        pathCommands
+        && titleLike
+        && !lineColor
+        && fillColor
+        && !isDarkColor(fillColor)
+      );
+      if (shouldRenderPath) {
+        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', fillColor, lineColor, lineWidth);
+        if (svgMarkup) {
+          shape.innerHTML = svgMarkup;
+        }
+      }
       if (content) {
         content.remove();
       }
@@ -695,6 +708,9 @@ function enhancePresentationPreview(): void {
     }
 
     if (titleLike) {
+      if (content) {
+        content.style.textAlign = 'center';
+      }
       const rank = positionRank.get(shape) ?? index;
       if (rank === 0) {
         shape.classList.add('kind-title');
@@ -702,6 +718,9 @@ function enhancePresentationPreview(): void {
         shape.classList.add('kind-footer');
       } else {
         shape.classList.add('kind-subtitle');
+        if (content && !textColor) {
+          content.style.color = darkBackground ? '#93c5fd' : '#57A7BD';
+        }
       }
       continue;
     }
@@ -709,6 +728,9 @@ function enhancePresentationPreview(): void {
     const topRatio = y / cy;
     const widthRatio = width / cx;
     const heightRatio = height / cy;
+    if (!text && titleLike && !darkBackground && fillColor === '#FFFFFF' && widthRatio > 0.35 && heightRatio > 0.45) {
+      shape.style.borderRadius = '48% 0 0 48% / 40% 0 0 40%';
+    }
     if (topRatio < 0.18 && widthRatio > 0.35) {
       shape.classList.add('kind-title', 'is-heading');
       shape.style.overflow = 'visible';
@@ -794,4 +816,38 @@ function applyOpacity(hexColor: string, opacity: number): string {
   const green = Number.parseInt(hexColor.slice(3, 5), 16);
   const blue = Number.parseInt(hexColor.slice(5, 7), 16);
   return `rgba(${red}, ${green}, ${blue}, ${Number.isFinite(opacity) ? opacity : 1})`;
+}
+
+function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?: string, lineWidthPx?: number): string {
+  const segments = pathCommands.split(';').filter(Boolean);
+  const points = [];
+  const commands = [];
+  for (const segment of segments) {
+    if (segment === 'Z') {
+      commands.push('Z');
+      continue;
+    }
+    const [type, pair] = segment.split(':');
+    const [xRaw, yRaw] = (pair ?? '').split(',');
+    const x = Number(xRaw);
+    const y = Number(yRaw);
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      points.push({ x, y });
+      commands.push(`${type === 'M' ? 'M' : 'L'} ${x} ${y}`);
+    }
+  }
+  if (!points.length) {
+    return '';
+  }
+  const minX = Math.min(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const maxY = Math.max(...points.map((point) => point.y));
+  const width = Math.max(maxX - minX, 1);
+  const height = Math.max(maxY - minY, 1);
+  const d = commands.join(' ');
+  const fill = fillColor ? fillColor : 'none';
+  const stroke = lineColor ? lineColor : 'none';
+  const strokeWidth = typeof lineWidthPx === 'number' && Number.isFinite(lineWidthPx) && lineWidthPx > 0 ? lineWidthPx : 1;
+  return `<svg viewBox="${minX} ${minY} ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><path d="${escapeHtmlText(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/></svg>`;
 }

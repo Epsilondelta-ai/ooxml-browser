@@ -30,6 +30,12 @@ export interface PresentationTextStyle {
   align?: string;
 }
 
+export interface PresentationPathCommand {
+  type: 'moveTo' | 'lineTo' | 'close';
+  x?: number;
+  y?: number;
+}
+
 export interface SlideShapeMedia {
   type: 'image' | 'embeddedObject';
   targetUri?: string;
@@ -47,6 +53,7 @@ export interface SlideShape {
   fill?: PresentationFill;
   line?: PresentationLine;
   textStyle?: PresentationTextStyle;
+  pathCommands?: PresentationPathCommand[];
   media?: SlideShapeMedia;
 }
 

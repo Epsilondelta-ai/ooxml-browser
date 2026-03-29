@@ -1,6 +1,6 @@
 import { getParsedXmlPart, relationshipById, relationshipsFor, findElementsByLocalName, xmlAttr, xmlChild, xmlChildren, xmlText, type PackageGraph } from '@ooxml/core';
 
-import type { PresentationComment, PresentationDocument, PresentationFill, PresentationLine, PresentationSlide, PresentationTextStyle, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape, SlideShapeTransform } from './model';
+import type { PresentationComment, PresentationDocument, PresentationFill, PresentationLine, PresentationPathCommand, PresentationSlide, PresentationTextStyle, PresentationTheme, PresentationTiming, PresentationTimingNode, PresentationTransition, SlideShape, SlideShapeTransform } from './model';
 
 export function parsePptx(graph: PackageGraph): PresentationDocument {
   const presentationUri = graph.rootDocumentUri ?? '/ppt/presentation.xml';
@@ -165,7 +165,6 @@ function parseShape(
   const cNvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:cNvPr');
   const nvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:nvPr');
   const placeholder = xmlChild<Record<string, unknown>>(nvPr, 'p:ph');
-  const textNodes = findElementsByLocalName(shape, 't');
   const shapeProperties = xmlChild<Record<string, unknown>>(shape, 'p:spPr');
   const style = xmlChild<Record<string, unknown>>(shape, 'p:style');
   const shapeType = parseShapeType(shapeProperties);
@@ -174,15 +173,28 @@ function parseShape(
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
     name: xmlAttr(cNvPr, 'name'),
-    text: textNodes.map((node) => xmlText(node)).join(''),
+    text: extractShapeText(shape),
     placeholderType: xmlAttr(placeholder, 'type'),
     placeholderIndex: xmlAttr(placeholder, 'idx') ?? undefined,
     shapeType,
     transform,
     fill: parseFill(shapeProperties, relationships, theme, style, shapeType),
     line: parseLine(shapeProperties, theme, style),
-    textStyle: parseTextStyle(shape, theme)
+    textStyle: parseTextStyle(shape, theme),
+    pathCommands: parsePathCommands(shapeProperties)
   };
+}
+
+function extractShapeText(shape: Record<string, unknown>): string {
+  const textBody = xmlChild<Record<string, unknown>>(shape, 'p:txBody');
+  if (!textBody) {
+    return '';
+  }
+
+  return xmlChildren<Record<string, unknown>>(textBody, 'a:p')
+    .map((paragraph) => findElementsByLocalName(paragraph, 't').map((node) => xmlText(node)).join(''))
+    .filter((text) => text.length > 0)
+    .join('\n');
 }
 
 function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, theme?: PresentationTheme, context?: TransformContext): SlideShape {
@@ -204,6 +216,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
     transform,
     fill: parseFill(shapeProperties, relationships, theme, style, 'picture'),
     line: parseLine(shapeProperties, theme, style),
+    pathCommands: undefined,
     media: {
       type: 'image',
       targetUri: target ?? undefined
@@ -231,6 +244,7 @@ function parseGraphicFrame(frame: Record<string, unknown>, relationships: Return
     transform,
     fill: undefined,
     line: undefined,
+    pathCommands: undefined,
     media: {
       type: 'embeddedObject',
       targetUri: target ?? undefined,
@@ -307,6 +321,38 @@ function parseShapeType(shapeProperties: Record<string, unknown> | undefined): s
   return xmlAttr(preset, 'prst') ?? undefined;
 }
 
+function parsePathCommands(shapeProperties: Record<string, unknown> | undefined): PresentationPathCommand[] | undefined {
+  const customGeometry = xmlChild<Record<string, unknown>>(shapeProperties, 'a:custGeom');
+  const pathList = xmlChild<Record<string, unknown>>(customGeometry, 'a:pathLst');
+  const pathNode = xmlChild<Record<string, unknown>>(pathList, 'a:path');
+  if (!pathNode) {
+    return undefined;
+  }
+
+  const commands: PresentationPathCommand[] = [];
+  for (const [key, value] of Object.entries(pathNode)) {
+    if (key.startsWith('@_')) {
+      continue;
+    }
+
+    const entries = Array.isArray(value) ? value : [value];
+    for (const entry of entries) {
+      if (key === 'a:moveTo' || key === 'a:lnTo') {
+        const point = xmlChild<Record<string, unknown>>(entry, 'a:pt');
+        commands.push({
+          type: key === 'a:moveTo' ? 'moveTo' : 'lineTo',
+          x: (() => { const raw = xmlAttr(point, 'x'); return raw ? Number(raw) : undefined; })(),
+          y: (() => { const raw = xmlAttr(point, 'y'); return raw ? Number(raw) : undefined; })()
+        });
+      } else if (key === 'a:close') {
+        commands.push({ type: 'close' });
+      }
+    }
+  }
+
+  return commands.length ? commands : undefined;
+}
+
 function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationTheme): PresentationTextStyle | undefined {
   const textBody = xmlChild<Record<string, unknown>>(shape, 'p:txBody');
   if (!textBody) {
@@ -316,16 +362,20 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
   const paragraph = xmlChild<Record<string, unknown>>(textBody, 'a:p');
   const paragraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'a:pPr');
   const run = xmlChild<Record<string, unknown>>(paragraph, 'a:r');
-  const runProperties = xmlChild<Record<string, unknown>>(run, 'a:rPr')
-    ?? xmlChild<Record<string, unknown>>(paragraph, 'a:endParaRPr');
-  const solidFill = xmlChild<Record<string, unknown>>(runProperties, 'a:solidFill');
-  const latin = xmlChild<Record<string, unknown>>(runProperties, 'a:latin');
-  const eastAsian = xmlChild<Record<string, unknown>>(runProperties, 'a:ea');
-  const complexScript = xmlChild<Record<string, unknown>>(runProperties, 'a:cs');
+  const runProperties = xmlChild<Record<string, unknown>>(run, 'a:rPr');
+  const endParagraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'a:endParaRPr');
+  const solidFill = xmlChild<Record<string, unknown>>(runProperties, 'a:solidFill')
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:solidFill');
+  const latin = xmlChild<Record<string, unknown>>(runProperties, 'a:latin')
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:latin');
+  const eastAsian = xmlChild<Record<string, unknown>>(runProperties, 'a:ea')
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:ea');
+  const complexScript = xmlChild<Record<string, unknown>>(runProperties, 'a:cs')
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:cs');
   const color = solidFill ? resolveColor(solidFill, theme)?.color : undefined;
-  const size = xmlAttr(runProperties, 'sz');
+  const size = xmlAttr(runProperties, 'sz') ?? xmlAttr(endParagraphProperties, 'sz');
 
-  if (!runProperties && !paragraphProperties) {
+  if (!runProperties && !endParagraphProperties && !paragraphProperties) {
     return undefined;
   }
 
@@ -333,8 +383,16 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
     color,
     fontSizePt: size ? Number(size) / 100 : undefined,
     fontFamily: xmlAttr(latin, 'typeface') ?? xmlAttr(eastAsian, 'typeface') ?? xmlAttr(complexScript, 'typeface') ?? undefined,
-    bold: xmlAttr(runProperties, 'b') === '1' ? true : xmlAttr(runProperties, 'b') === '0' ? false : undefined,
-    italic: xmlAttr(runProperties, 'i') === '1' ? true : xmlAttr(runProperties, 'i') === '0' ? false : undefined,
+    bold: xmlAttr(runProperties, 'b') === '1' || xmlAttr(endParagraphProperties, 'b') === '1'
+      ? true
+      : xmlAttr(runProperties, 'b') === '0' || xmlAttr(endParagraphProperties, 'b') === '0'
+        ? false
+        : undefined,
+    italic: xmlAttr(runProperties, 'i') === '1' || xmlAttr(endParagraphProperties, 'i') === '1'
+      ? true
+      : xmlAttr(runProperties, 'i') === '0' || xmlAttr(endParagraphProperties, 'i') === '0'
+        ? false
+        : undefined,
     align: xmlAttr(paragraphProperties, 'algn') ?? undefined
   };
 }
@@ -468,7 +526,7 @@ function parseFill(
     return undefined;
   }
 
-  if (xmlChild<Record<string, unknown>>(shapeProperties, 'a:noFill')) {
+  if (xmlChild<Record<string, unknown> | string>(shapeProperties, 'a:noFill') !== undefined) {
     return { kind: 'none' };
   }
 
@@ -523,7 +581,7 @@ function parseLine(shapeProperties: Record<string, unknown> | undefined, theme?:
     return undefined;
   }
 
-  if (xmlChild<Record<string, unknown>>(line, 'a:noFill')) {
+  if (xmlChild<Record<string, unknown> | string>(line, 'a:noFill') !== undefined) {
     return {
       kind: 'none',
       width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : undefined; })()
