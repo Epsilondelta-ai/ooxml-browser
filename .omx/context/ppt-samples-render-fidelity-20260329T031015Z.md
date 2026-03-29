@@ -1,0 +1,24 @@
+# Context Snapshot: PPT samples render fidelity
+
+- **Task statement:** Use the sample corpus under `~/Desktop/ppt-samples/` to plan and execute renderer improvements so parsed PPTX files render closer to their exported PNG images.
+- **Desired outcome:** A grounded plan and then completed implementation work that materially narrows the gap between PPTX preview output and the paired reference images across the six sample folders.
+- **Known facts / evidence:**
+  - The repo already has browser example/playground PPTX preview work under `examples/basic/src/main.ts` and renderer code under `packages/render/src/pptx.ts`.
+  - Local reference deck `~/Downloads/stack.pptx` plus JPEG exports has already exposed fidelity gaps around slide chrome, image rendering, and title/content slide heuristics.
+  - The user has an additional corpus under `~/Desktop/ppt-samples/` with paired `.pptx` and exported `.png` images that should drive planning and implementation.
+  - Existing tests cover PPTX parsing, media, inheritance, timing, and browser/render basics, but not screenshot-to-reference fidelity for this sample corpus.
+- **Constraints:**
+  - Plan with ralplan first, then execute with Ralph to completion.
+  - Visual fidelity tasks require iterative screenshot/reference comparison before further edits.
+  - Keep verification evidence fresh and commit meaningful stages using Lore protocol.
+- **Unknowns / open questions:**
+  - Exact corpus structure and whether references are full-slide exports or cropped composites.
+  - Which PPTX semantics dominate the mismatches: theme fonts/colors, placeholder inheritance, shape fills/lines, image placement, or text layout.
+  - Whether current semantic HTML renderer is sufficient or a stronger slide-scene/canvas projection is needed.
+- **Likely codebase touchpoints:**
+  - `packages/pptx/**`
+  - `packages/render/**`
+  - `examples/basic/**`
+  - `playground/**`
+  - `tests/**`
+  - possible new fixture/reference harness under `fixtures/` or `tools/`
