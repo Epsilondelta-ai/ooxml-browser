@@ -7,8 +7,35 @@ if (!app) {
 }
 
 app.innerHTML = `
-  <section style="font-family: system-ui, sans-serif; max-width: 1100px; margin: 0 auto; padding: 32px; display: grid; gap: 16px;">
+  <section id="example-root" style="font-family: system-ui, sans-serif; max-width: 1280px; margin: 0 auto; padding: 32px; display: grid; gap: 16px;">
     <style>
+      #example-root.is-presentation-mode {
+        max-width: 1400px;
+      }
+
+      #example-root.is-presentation-mode #example-intro p,
+      #example-root.is-presentation-mode .preview-shell > h2 {
+        display: none;
+      }
+
+      #example-root.is-presentation-mode #toolbar {
+        padding: 8px 12px;
+      }
+
+      #example-root.is-presentation-mode #content-area {
+        grid-template-columns: 1fr;
+      }
+
+      #example-root.is-presentation-mode #sidebar {
+        order: 2;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      #example-root.is-presentation-mode .preview-shell {
+        order: 1;
+      }
+
       .preview-shell .ooxml-render {
         color: #0f172a;
         line-height: 1.5;
@@ -46,6 +73,32 @@ app.innerHTML = `
         background: #f8fafc;
         font-weight: 600;
         text-align: left;
+      }
+
+      .slide-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .slide-controls button {
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .slide-controls button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .slide-controls span {
+        color: #475569;
+        font-size: 0.95rem;
       }
 
       .preview-shell .ooxml-render--xlsx {
@@ -90,7 +143,7 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas {
         position: relative;
         width: 100%;
-        max-width: 960px;
+        max-width: 1280px;
         margin: 0 auto;
         border-radius: 18px;
         border: 1px solid #cbd5e1;
@@ -179,14 +232,14 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
-        font-size: 3.8rem;
+        font-size: 4.8rem;
         font-weight: 800;
         color: #ffffff;
         line-height: 1.15;
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
-        font-size: 1.35rem;
+        font-size: 1.6rem;
         font-weight: 500;
         color: #93c5fd;
         line-height: 1.4;
@@ -217,6 +270,19 @@ app.innerHTML = `
         font-size: 0.95rem;
       }
 
+      .preview-shell .ooxml-pptx-shape.is-image-frame {
+        padding: 0;
+        border: none;
+        background: transparent;
+      }
+
+      .preview-shell .ooxml-pptx-shape.is-image-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
       .preview-shell .ooxml-pptx-shape p,
       .preview-shell .ooxml-pptx-notes,
       .preview-shell .ooxml-pptx-comments,
@@ -224,11 +290,11 @@ app.innerHTML = `
         margin: 0;
       }
     </style>
-    <header style="display: grid; gap: 8px;">
+    <header id="example-intro" style="display: grid; gap: 8px;">
       <h1 style="margin: 0;">OOXML file-input rendering example</h1>
       <p style="margin: 0; color: #475569;">Pick a <code>.docx</code>, <code>.xlsx</code>, or <code>.pptx</code> file with the file input below. The example opens it with <code>@ooxml/browser</code>, shows package/document summaries, visually previews the parsed output, and lets you download a round-tripped copy.</p>
     </header>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd5e1;">
+    <div id="toolbar" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; background: #f8fafc; padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd5e1;">
       <label style="display: inline-flex; gap: 12px; align-items: center;">
         <span>Select OOXML file</span>
         <input id="file-input" type="file" accept=".docx,.xlsx,.pptx" />
@@ -236,8 +302,13 @@ app.innerHTML = `
       <button id="download-button" disabled>Download round-tripped file</button>
     </div>
     <p id="status" style="margin: 0; color: #334155;">Waiting for a file…</p>
-    <div style="display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 16px; align-items: start;">
-      <div style="display: grid; gap: 16px;">
+    <div id="slide-controls" class="slide-controls" hidden>
+      <button id="slide-prev-button" disabled>← Prev slide</button>
+      <button id="slide-next-button" disabled>Next slide →</button>
+      <span id="slide-indicator"></span>
+    </div>
+    <div id="content-area" style="display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 16px; align-items: start;">
+      <div id="sidebar" style="display: grid; gap: 16px;">
         <section style="background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 16px;">
           <h2 style="margin-top: 0;">Session summary</h2>
           <pre id="summary" style="margin: 0; overflow: auto; min-height: 120px; white-space: pre-wrap;"></pre>
@@ -256,13 +327,22 @@ app.innerHTML = `
 `;
 
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
+const exampleRoot = document.getElementById('example-root') as HTMLElement;
+const contentArea = document.getElementById('content-area') as HTMLDivElement;
+const sidebar = document.getElementById('sidebar') as HTMLDivElement;
 const downloadButton = document.getElementById('download-button') as HTMLButtonElement;
 const status = document.getElementById('status') as HTMLParagraphElement;
+const slideControls = document.getElementById('slide-controls') as HTMLDivElement;
+const slidePrevButton = document.getElementById('slide-prev-button') as HTMLButtonElement;
+const slideNextButton = document.getElementById('slide-next-button') as HTMLButtonElement;
+const slideIndicator = document.getElementById('slide-indicator') as HTMLSpanElement;
 const summary = document.getElementById('summary') as HTMLPreElement;
 const htmlOutput = document.getElementById('html-output') as HTMLPreElement;
 const preview = document.getElementById('preview') as HTMLDivElement;
 let currentSession: Awaited<ReturnType<typeof createBrowserSession>> | null = null;
 let currentFileName = 'document.ooxml';
+let currentSlideIndex = 0;
+const mediaUrlCache = new Map<string, string>();
 
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
@@ -270,19 +350,14 @@ fileInput.addEventListener('change', async () => {
     return;
   }
 
+  resetMediaUrlCache();
   currentFileName = file.name;
+  currentSlideIndex = 0;
   status.textContent = `Opening ${file.name}…`;
   try {
     const session = await createBrowserSession(file);
     currentSession = session;
-    const html = session.renderToHtml();
-    summary.textContent = JSON.stringify({
-      packageSummary: session.packageSummary,
-      documentSummary: session.documentSummary
-    }, null, 2);
-    htmlOutput.textContent = html;
-    session.mount(preview);
-    enhanceRenderedPreview();
+    renderLoadedDocument();
     downloadButton.disabled = false;
     status.textContent = `Loaded ${file.name}`;
   } catch (error) {
@@ -290,6 +365,7 @@ fileInput.addEventListener('change', async () => {
     preview.innerHTML = '';
     summary.textContent = '';
     htmlOutput.textContent = '';
+    slideControls.hidden = true;
     downloadButton.disabled = true;
     status.textContent = error instanceof Error ? error.message : 'Failed to load file.';
   }
@@ -309,6 +385,76 @@ downloadButton.addEventListener('click', () => {
   URL.revokeObjectURL(url);
   status.textContent = `Downloaded round-tripped ${currentFileName}`;
 });
+
+slidePrevButton.addEventListener('click', () => {
+  if (!currentSession || currentSession.document.kind !== 'pptx' || currentSlideIndex <= 0) {
+    return;
+  }
+
+  currentSlideIndex -= 1;
+  renderLoadedDocument();
+});
+
+slideNextButton.addEventListener('click', () => {
+  if (!currentSession || currentSession.document.kind !== 'pptx') {
+    return;
+  }
+
+  const maxIndex = currentSession.document.slides.length - 1;
+  if (currentSlideIndex >= maxIndex) {
+    return;
+  }
+
+  currentSlideIndex += 1;
+  renderLoadedDocument();
+});
+
+function renderLoadedDocument(): void {
+  if (!currentSession) {
+    return;
+  }
+
+  const renderOptions = currentSession.document.kind === 'pptx'
+    ? { activeSlideIndex: currentSlideIndex }
+    : {};
+  const html = currentSession.renderToHtml(renderOptions);
+  summary.textContent = JSON.stringify({
+    packageSummary: currentSession.packageSummary,
+    documentSummary: currentSession.documentSummary,
+    ...(currentSession.document.kind === 'pptx'
+      ? {
+          activeSlideIndex: currentSlideIndex,
+          activeSlideTitle: currentSession.document.slides[currentSlideIndex]?.title ?? null
+        }
+      : {})
+  }, null, 2);
+  htmlOutput.textContent = html;
+  currentSession.mount(preview, renderOptions);
+  syncSlideControls();
+  enhanceRenderedPreview();
+}
+
+function syncSlideControls(): void {
+  if (!currentSession || currentSession.document.kind !== 'pptx') {
+    exampleRoot.classList.remove('is-presentation-mode');
+    contentArea.style.gridTemplateColumns = 'minmax(280px, 360px) 1fr';
+    sidebar.style.display = 'grid';
+    sidebar.style.order = '0';
+    sidebar.style.maxWidth = '';
+    sidebar.style.margin = '';
+    slideControls.hidden = true;
+    return;
+  }
+
+  exampleRoot.classList.add('is-presentation-mode');
+  contentArea.style.gridTemplateColumns = '1fr';
+  sidebar.style.display = 'none';
+  const slideCount = currentSession.document.slides.length;
+  slideControls.hidden = false;
+  slidePrevButton.disabled = currentSlideIndex <= 0;
+  slideNextButton.disabled = currentSlideIndex >= slideCount - 1;
+  slideIndicator.textContent = `Slide ${currentSlideIndex + 1} / ${slideCount}: ${currentSession.document.slides[currentSlideIndex]?.title ?? ''}`;
+}
 
 function enhanceRenderedPreview(): void {
   enhanceWorkbookPreview();
@@ -347,6 +493,13 @@ function enhancePresentationPreview(): void {
   const presentation = preview.querySelector('.ooxml-render--pptx') as HTMLElement | null;
   if (!presentation) {
     return;
+  }
+
+  for (const selector of ['.ooxml-pptx-inheritance', '.ooxml-pptx-timing', '.ooxml-pptx-comments', '.ooxml-pptx-notes']) {
+    const node = presentation.querySelector(selector) as HTMLElement | null;
+    if (node) {
+      node.style.display = 'none';
+    }
   }
 
   const shapes = Array.from(presentation.querySelectorAll('.ooxml-pptx-shape')) as HTMLElement[];
@@ -397,7 +550,7 @@ function enhancePresentationPreview(): void {
     const width = Number(shape.dataset.cx ?? 0);
     const height = Number(shape.dataset.cy ?? 0);
 
-    shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media');
+    shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media', 'is-image-frame');
     shape.style.removeProperty('--accent');
 
     if (width > 0 && height > 0) {
@@ -413,8 +566,15 @@ function enhancePresentationPreview(): void {
     }
 
     if (mediaType) {
-      shape.classList.add('is-media');
-      shape.style.setProperty('--accent', accentPalette[index % accentPalette.length]);
+      const mediaUri = shape.dataset.mediaUri;
+      const imageUrl = mediaType === 'image' && mediaUri ? getPackagePartObjectUrl(mediaUri) : null;
+      if (imageUrl) {
+        shape.classList.add('is-image-frame');
+        shape.innerHTML = `<img src="${imageUrl}" alt="">`;
+      } else {
+        shape.classList.add('is-media');
+        shape.style.setProperty('--accent', accentPalette[index % accentPalette.length]);
+      }
       continue;
     }
 
@@ -461,4 +621,32 @@ function escapeHtmlText(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function getPackagePartObjectUrl(uri: string): string | null {
+  if (!currentSession) {
+    return null;
+  }
+
+  const cached = mediaUrlCache.get(uri);
+  if (cached) {
+    return cached;
+  }
+
+  const part = currentSession.packageGraph.parts[uri];
+  if (!part) {
+    return null;
+  }
+
+  const blob = new Blob([part.data.slice()], { type: part.contentType || 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  mediaUrlCache.set(uri, url);
+  return url;
+}
+
+function resetMediaUrlCache(): void {
+  for (const url of mediaUrlCache.values()) {
+    URL.revokeObjectURL(url);
+  }
+  mediaUrlCache.clear();
 }
