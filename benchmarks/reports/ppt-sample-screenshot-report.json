@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-29T06:47:29.022Z",
+  "generatedAt": "2026-03-29T07:08:08.553Z",
   "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
   "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
   "results": [
@@ -17,8 +17,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.147379,
-      "score": 85.26
+      "normalizedRmse": 0.137838,
+      "score": 86.22
     },
     {
       "sample": "sample1",
@@ -34,8 +34,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.158461,
-      "score": 84.15
+      "normalizedRmse": 0.155952,
+      "score": 84.4
     },
     {
       "sample": "sample1",
@@ -68,8 +68,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.136751,
-      "score": 86.32
+      "normalizedRmse": 0.122373,
+      "score": 87.76
     },
     {
       "sample": "sample2",
@@ -102,8 +102,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.14133,
-      "score": 85.87
+      "normalizedRmse": 0.132977,
+      "score": 86.7
     },
     {
       "sample": "sample3",
@@ -119,8 +119,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.142968,
-      "score": 85.7
+      "normalizedRmse": 0.122574,
+      "score": 87.74
     },
     {
       "sample": "sample3",
@@ -153,8 +153,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.230706,
-      "score": 76.93
+      "normalizedRmse": 0.229327,
+      "score": 77.07
     },
     {
       "sample": "sample4",
@@ -187,8 +187,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.128112,
-      "score": 87.19
+      "normalizedRmse": 0.138967,
+      "score": 86.1
     },
     {
       "sample": "sample5",
@@ -221,8 +221,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.101346,
-      "score": 89.87
+      "normalizedRmse": 0.0976628,
+      "score": 90.23
     },
     {
       "sample": "sample6",

@@ -262,6 +262,50 @@ app.innerHTML = `
         color: #334155;
       }
 
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-yellow .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
+        font-size: 3.2rem;
+        font-weight: 800;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
+        color: #2f3b52;
+        line-height: 1.05;
+        text-align: left;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-yellow .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
+        font-size: 1.05rem;
+        font-weight: 700;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
+        color: #2f3b52;
+        line-height: 1.2;
+        text-align: left;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-yellow .ooxml-pptx-shape.kind-footer .ooxml-pptx-shape-content {
+        font-size: 0.72rem;
+        font-weight: 500;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
+        color: #374151;
+        text-align: center;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
+        font-size: 3.5rem;
+        font-weight: 800;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
+        color: #57A7BD;
+        line-height: 1.05;
+        text-align: center;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
+        font-size: 1.15rem;
+        font-weight: 700;
+        font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
+        color: #57A7BD;
+        line-height: 1.15;
+        text-align: center;
+      }
+
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-body .ooxml-pptx-shape-content,
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
         font-size: 1.05rem;
@@ -569,11 +613,23 @@ function enhancePresentationPreview(): void {
   const accentPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
   const textBearingShapes = shapes.filter((shape) => {
     const text = shape.querySelector('p')?.textContent?.trim() ?? '';
-    return text.length > 0;
+    return text.length > 0 && !shape.dataset.mediaType;
   });
-  const titleLike = textBearingShapes.length > 0
-    && textBearingShapes.length <= 4
-    && textBearingShapes.every((shape) => !shape.dataset.mediaType);
+  const principalTextShapes = textBearingShapes.filter((shape) => {
+    const text = shape.querySelector('p')?.textContent?.trim() ?? '';
+    const xRatio = Number(shape.dataset.x ?? 0) / cx;
+    const yRatio = Number(shape.dataset.y ?? 0) / cy;
+    if (/^https?:\/\//i.test(text)) {
+      return false;
+    }
+    if (text.length <= 16 && xRatio > 0.65 && yRatio < 0.2) {
+      return false;
+    }
+    return true;
+  });
+  const titleLike = principalTextShapes.length > 0
+    && principalTextShapes.length <= 3
+    && principalTextShapes.every((shape) => !shape.dataset.mediaType);
   const darkBackground = backgroundColor ? isDarkColor(backgroundColor) : true;
   const yellowTheme = !darkBackground && ['#FFCE29', '#F2BF27'].includes((backgroundColor ?? '').toUpperCase());
   const circleBadgeShape = titleLike
@@ -588,6 +644,8 @@ function enhancePresentationPreview(): void {
     : null;
   canvas.classList.toggle('is-title-slide', titleLike && darkBackground);
   canvas.classList.toggle('is-title-slide-light', titleLike && !darkBackground);
+  canvas.classList.toggle('is-title-slide-yellow', titleLike && yellowTheme && !circleBadgeShape);
+  canvas.classList.toggle('is-title-slide-badge', titleLike && Boolean(circleBadgeShape));
   canvas.classList.toggle('is-content-slide', !titleLike);
   const header = presentation.querySelector('header') as HTMLElement | null;
   if (header) {
@@ -600,11 +658,8 @@ function enhancePresentationPreview(): void {
     return topDiff !== 0 ? topDiff : Number(left.dataset.x ?? 0) - Number(right.dataset.x ?? 0);
   });
   const positionRank = new Map(orderedShapes.map((shape, index) => [shape, index]));
-  const textBearingOrderedShapes = orderedShapes.filter((shape) => {
-    const body = shape.querySelector('p')?.textContent?.trim() ?? '';
-    return body.length > 0 && !shape.dataset.mediaType;
-  });
-  const textBearingRank = new Map(textBearingOrderedShapes.map((shape, index) => [shape, index]));
+  const principalOrderedShapes = orderedShapes.filter((shape) => principalTextShapes.includes(shape));
+  const textBearingRank = new Map(principalOrderedShapes.map((shape, index) => [shape, index]));
 
   for (const [index, shape] of shapes.entries()) {
     if (shape.parentElement !== canvas) {
@@ -714,6 +769,10 @@ function enhancePresentationPreview(): void {
     }
 
     if (content) {
+      if (titleLike && (yellowTheme || circleBadgeShape) && body.trim().split(/\s+/).length === 3 && !shape.classList.contains('kind-footer')) {
+        const parts = body.trim().split(/\s+/);
+        content.textContent = `${parts[0]} ${parts[1]}\n${parts[2]}`;
+      }
       content.style.color = textColor || '';
       content.style.fontFamily = fontFamily || '';
       content.style.textAlign = textAlign === 'ctr' ? 'center' : textAlign === 'r' ? 'right' : textAlign === 'just' ? 'justify' : 'left';
@@ -730,7 +789,8 @@ function enhancePresentationPreview(): void {
 
     if (titleLike) {
       if (content) {
-        content.style.textAlign = 'center';
+        content.style.textAlign = yellowTheme && !circleBadgeShape ? 'left' : 'center';
+        content.style.fontFamily = 'Arial, "Malgun Gothic", system-ui, sans-serif';
       }
       const rank = textBearingRank.get(shape);
       if (rank === undefined) {
@@ -738,7 +798,7 @@ function enhancePresentationPreview(): void {
       }
       if (rank === 0) {
         shape.classList.add('kind-title');
-      } else if (rank === textBearingOrderedShapes.length - 1 && y / cy > 0.75) {
+      } else if (rank === principalOrderedShapes.length - 1 && y / cy > 0.75) {
         shape.classList.add('kind-footer');
       } else {
         shape.classList.add('kind-subtitle');
@@ -746,15 +806,29 @@ function enhancePresentationPreview(): void {
           content.style.color = darkBackground ? '#93c5fd' : '#57A7BD';
         }
       }
-      if (circleBadgeShape && content) {
+      if (circleBadgeShape && content && !shape.classList.contains('kind-footer')) {
         const circleX = (Number(circleBadgeShape.dataset.x ?? 0) / cx) * 100;
         const circleY = (Number(circleBadgeShape.dataset.y ?? 0) / cy) * 100;
         const circleW = (Number(circleBadgeShape.dataset.cx ?? 0) / cx) * 100;
         const circleH = (Number(circleBadgeShape.dataset.cy ?? 0) / cy) * 100;
         shape.style.left = `${circleX + circleW * 0.12}%`;
         shape.style.width = `${circleW * 0.76}%`;
-        shape.style.height = rank === 0 ? `${circleH * 0.24}%` : `${circleH * 0.18}%`;
-        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.26 : circleH * 0.56)}%`;
+        shape.style.height = rank === 0 ? `${circleH * 0.22}%` : `${circleH * 0.16}%`;
+        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.30 : circleH * 0.58)}%`;
+      }
+      if (yellowTheme && !circleBadgeShape && content) {
+        if (shape.classList.contains('kind-title')) {
+          content.style.color = '#2f3b52';
+        } else if (shape.classList.contains('kind-subtitle')) {
+          content.style.color = '#2f3b52';
+        } else if (shape.classList.contains('kind-footer')) {
+          content.style.color = '#374151';
+        }
+      } else if (shape.classList.contains('kind-title') && content) {
+        content.style.color = '#57A7BD';
+      }
+      if (shape.classList.contains('kind-subtitle') && content) {
+        content.style.color = darkBackground ? '#93c5fd' : '#57A7BD';
       }
       continue;
     }
