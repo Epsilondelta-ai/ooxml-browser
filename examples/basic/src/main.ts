@@ -696,6 +696,8 @@ function enhancePresentationPreview(): void {
   const darkBackground = backgroundColor ? isDarkColor(backgroundColor) : true;
   const yellowTheme = !darkBackground && ['#FFCE29', '#F2BF27'].includes((backgroundColor ?? '').toUpperCase());
   const industrialTheme = titleLike && darkBackground && shapes.some((shape) => Boolean(shape.dataset.fillGradientStops) && Number(shape.dataset.cx ?? 0) / cx > 0.35);
+  const slideTitleText = presentation.querySelector('header h2')?.textContent?.trim() ?? '';
+  const yellowAgendaTheme = yellowTheme && !titleLike && /Agenda Style/i.test(slideTitleText);
   const circleBadgeShape = titleLike
     ? shapes.find((shape) => {
         if (shape.dataset.shapeType !== 'ellipse' || (shape.querySelector('p')?.textContent?.trim())) {
@@ -765,6 +767,7 @@ function enhancePresentationPreview(): void {
     const rotationDeg = Number(shape.dataset.rotationDeg ?? 0);
     const flipH = shape.dataset.flipH === 'true';
     const flipV = shape.dataset.flipV === 'true';
+    const isYellowAgendaShape = yellowAgendaTheme && ['Block Arc 14', 'Rectangle 18', 'Rectangle 19', 'Freeform 13', 'Freeform 23'].includes(name);
 
     shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media', 'is-image-frame', 'is-decorative');
     shape.style.removeProperty('--accent');
@@ -841,6 +844,30 @@ function enhancePresentationPreview(): void {
     const content = shape.querySelector('.ooxml-pptx-shape-content') as HTMLElement | null;
     if (!text) {
       shape.classList.add('is-decorative');
+      if (isYellowAgendaShape) {
+        if (name.includes('Block Arc')) {
+          shape.style.left = `${(x / cx) * 100 + 0.6}%`;
+          shape.style.top = `${(y / cy) * 100 - 0.7}%`;
+          shape.style.width = `${(width / cx) * 100 * 0.92}%`;
+          shape.style.height = `${(height / cy) * 100 * 0.92}%`;
+        } else if (name.includes('Rectangle 18')) {
+          shape.style.left = `${(x / cx) * 100 + 0.35}%`;
+          shape.style.width = `${(width / cx) * 100 * 0.8}%`;
+        } else if (name.includes('Rectangle 19')) {
+          shape.style.left = `${(x / cx) * 100 + 0.35}%`;
+          shape.style.width = `${(width / cx) * 100 * 0.8}%`;
+        } else if (name.includes('Freeform 13')) {
+          shape.style.left = `${(x / cx) * 100 + 0.55}%`;
+          shape.style.top = `${(y / cy) * 100 - 0.75}%`;
+          shape.style.width = `${(width / cx) * 100 * 1.04}%`;
+          shape.style.height = `${(height / cy) * 100 * 0.98}%`;
+        } else if (name.includes('Freeform 23')) {
+          shape.style.left = `${(x / cx) * 100 + 0.45}%`;
+          shape.style.top = `${(y / cy) * 100 - 0.55}%`;
+          shape.style.width = `${(width / cx) * 100 * 1.04}%`;
+          shape.style.height = `${(height / cy) * 100 * 1.04}%`;
+        }
+      }
       if (industrialTheme && fillColor === '#FFFFFF' && fillOpacity <= 0.15 && (width / cx) > 0.9 && (height / cy) > 0.5) {
         shape.style.background = 'transparent';
         shape.style.border = 'none';
@@ -865,7 +892,7 @@ function enhancePresentationPreview(): void {
         }
         continue;
       }
-      if (yellowTheme && !titleLike && name.includes('Block Arc')) {
+      if (yellowTheme && !titleLike && name.includes('Block Arc') && !yellowAgendaTheme) {
         shape.style.background = 'transparent';
         shape.style.border = '12px solid #FFFFFF';
         shape.style.borderRadius = '999px';
@@ -884,6 +911,7 @@ function enhancePresentationPreview(): void {
         continue;
       }
       const pathCommands = shape.dataset.pathCommands;
+      const renderFillColor = isYellowAgendaShape && name.includes('Freeform 13') ? '#56595e' : fillColor;
       const lightTitlePathCandidate = titleLike
         && !darkBackground
         && (fillGradientStops.length > 0 || (fillColor !== undefined && fillColor !== '#FFFFFF'));
@@ -898,7 +926,7 @@ function enhancePresentationPreview(): void {
       const shouldRenderPath = Boolean(
         pathCommands
         && (lightTitlePathCandidate || rocketCoverPathCandidate || industrialPathCandidate || (yellowTheme && (x / cx) < 0.35))
-        && (fillColor || fillGradientStops.length > 0)
+        && (renderFillColor || fillGradientStops.length > 0)
         && shape.dataset.shapeType === 'custom'
       );
       if (titleLike && yellowTheme && fillColor === '#FFFFFF' && (width / cx) > 0.35 && (height / cy) > 0.35) {
@@ -906,7 +934,7 @@ function enhancePresentationPreview(): void {
         shape.style.borderRadius = '36% 36% 0 0 / 24% 24% 0 0';
       }
       if (shouldRenderPath) {
-        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', fillColor, lineColor, lineWidth, fillGradientStops, fillGradientAngle, fillGradientStops.length > 0);
+        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', renderFillColor, lineColor, lineWidth, fillGradientStops, fillGradientAngle, fillGradientStops.length > 0);
         if (svgMarkup) {
           shape.style.background = 'transparent';
           shape.style.border = 'none';
