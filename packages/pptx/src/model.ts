@@ -5,13 +5,18 @@ export interface SlideShapeTransform {
   y?: number;
   cx?: number;
   cy?: number;
+  rotationDeg?: number;
+  flipH?: boolean;
+  flipV?: boolean;
 }
 
 export interface PresentationFill {
-  kind: 'solid' | 'none' | 'image';
+  kind: 'solid' | 'none' | 'image' | 'gradient';
   color?: string;
   opacity?: number;
   targetUri?: string;
+  gradientStops?: { position: number; color?: string; opacity?: number }[];
+  angleDeg?: number;
 }
 
 export interface PresentationLine {

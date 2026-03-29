@@ -46,10 +46,11 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const commonSlideData = xmlChild<Record<string, unknown>>(slide, 'p:cSld');
   const shapeTree = xmlChild<Record<string, unknown>>(commonSlideData, 'p:spTree');
   const slideRelationships = relationshipsFor(graph, uri);
+  const rawShapeXmlById = buildRawShapeXmlIndex(xml.source);
   const layoutRelationship = slideRelationships.find((relationship) => relationship.type.includes('/slideLayout'));
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
   const theme = layoutInfo?.themeUri ? themeCache[layoutInfo.themeUri] : undefined;
-  const baseShapes = collectShapes(shapeTree, slideRelationships, theme);
+  const baseShapes = collectShapes(shapeTree, slideRelationships, theme, undefined, rawShapeXmlById);
   const inheritedShapes = [
     ...(layoutInfo?.masterShapes ?? []),
     ...(layoutInfo?.layoutShapes ?? [])
@@ -135,23 +136,27 @@ interface TransformContext {
   offsetY: number;
   scaleX: number;
   scaleY: number;
+  rotationDeg: number;
+  flipH: boolean;
+  flipV: boolean;
 }
 
 function collectShapes(
   container: Record<string, unknown> | undefined,
   relationships: ReturnType<typeof relationshipsFor>,
   theme?: PresentationTheme,
-  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 }
+  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, rotationDeg: 0, flipH: false, flipV: false },
+  rawShapeXmlById?: Record<string, string>
 ): SlideShape[] {
   if (!container) {
     return [];
   }
 
   return [
-    ...xmlChildren<Record<string, unknown>>(container, 'p:sp').map((shape) => parseShape(shape, relationships, theme, context)),
-    ...xmlChildren<Record<string, unknown>>(container, 'p:pic').map((picture) => parsePicture(picture, relationships, theme, context)),
+    ...xmlChildren<Record<string, unknown>>(container, 'p:sp').map((shape) => parseShape(shape, relationships, theme, context, rawShapeXmlById)),
+    ...xmlChildren<Record<string, unknown>>(container, 'p:pic').map((picture) => parsePicture(picture, relationships, theme, context, rawShapeXmlById)),
     ...xmlChildren<Record<string, unknown>>(container, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, relationships, theme, context)),
-    ...xmlChildren<Record<string, unknown>>(container, 'p:grpSp').flatMap((group) => collectShapes(group, relationships, theme, composeGroupContext(group, context)))
+    ...xmlChildren<Record<string, unknown>>(container, 'p:grpSp').flatMap((group) => collectShapes(group, relationships, theme, composeGroupContext(group, context), rawShapeXmlById))
   ];
 }
 
@@ -159,7 +164,8 @@ function parseShape(
   shape: Record<string, unknown>,
   relationships: ReturnType<typeof relationshipsFor>,
   theme?: PresentationTheme,
-  context?: TransformContext
+  context?: TransformContext,
+  rawShapeXmlById?: Record<string, string>
 ): SlideShape {
   const nvSpPr = xmlChild<Record<string, unknown>>(shape, 'p:nvSpPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:cNvPr');
@@ -181,7 +187,7 @@ function parseShape(
     fill: parseFill(shapeProperties, relationships, theme, style, shapeType),
     line: parseLine(shapeProperties, theme, style),
     textStyle: parseTextStyle(shape, theme),
-    pathCommands: parsePathCommands(shapeProperties)
+    pathCommands: parsePathCommands(shapeProperties, rawShapeXmlById?.[xmlAttr(cNvPr, 'id') ?? ''])
   };
 }
 
@@ -197,7 +203,13 @@ function extractShapeText(shape: Record<string, unknown>): string {
     .join('\n');
 }
 
-function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, theme?: PresentationTheme, context?: TransformContext): SlideShape {
+function parsePicture(
+  picture: Record<string, unknown>,
+  relationships: ReturnType<typeof relationshipsFor>,
+  theme?: PresentationTheme,
+  context?: TransformContext,
+  rawShapeXmlById?: Record<string, string>
+): SlideShape {
   const nvPicPr = xmlChild<Record<string, unknown>>(picture, 'p:nvPicPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvPicPr, 'p:cNvPr');
   const blipFill = xmlChild<Record<string, unknown>>(picture, 'p:blipFill');
@@ -216,7 +228,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
     transform,
     fill: parseFill(shapeProperties, relationships, theme, style, 'picture'),
     line: parseLine(shapeProperties, theme, style),
-    pathCommands: undefined,
+    pathCommands: parsePathCommands(shapeProperties, rawShapeXmlById?.[xmlAttr(cNvPr, 'id') ?? '']),
     media: {
       type: 'image',
       targetUri: target ?? undefined
@@ -265,7 +277,10 @@ function parseTransform(shapeProperties: Record<string, unknown> | undefined): S
     x: (() => { const value = xmlAttr(off, 'x'); return value ? Number(value) : undefined; })(),
     y: (() => { const value = xmlAttr(off, 'y'); return value ? Number(value) : undefined; })(),
     cx: (() => { const value = xmlAttr(ext, 'cx'); return value ? Number(value) : undefined; })(),
-    cy: (() => { const value = xmlAttr(ext, 'cy'); return value ? Number(value) : undefined; })()
+    cy: (() => { const value = xmlAttr(ext, 'cy'); return value ? Number(value) : undefined; })(),
+    rotationDeg: (() => { const value = xmlAttr(xfrm, 'rot'); return value ? Number(value) / 60_000 : undefined; })(),
+    flipH: xmlAttr(xfrm, 'flipH') === '1' || undefined,
+    flipV: xmlAttr(xfrm, 'flipV') === '1' || undefined
   };
 }
 
@@ -287,18 +302,24 @@ function composeGroupContext(group: Record<string, unknown>, parent: TransformCo
   const childExtY = Number(xmlAttr(chExt, 'cy') ?? 0);
   const scaleX = childExtX ? extX / childExtX : 1;
   const scaleY = childExtY ? extY / childExtY : 1;
+  const rotationDeg = Number(xmlAttr(xfrm, 'rot') ?? 0) / 60_000;
+  const flipH = xmlAttr(xfrm, 'flipH') === '1';
+  const flipV = xmlAttr(xfrm, 'flipV') === '1';
 
   return {
     offsetX: parent.offsetX + (offsetX - childOffsetX * scaleX) * parent.scaleX,
     offsetY: parent.offsetY + (offsetY - childOffsetY * scaleY) * parent.scaleY,
     scaleX: parent.scaleX * scaleX,
-    scaleY: parent.scaleY * scaleY
+    scaleY: parent.scaleY * scaleY,
+    rotationDeg: parent.rotationDeg + rotationDeg,
+    flipH: parent.flipH !== flipH,
+    flipV: parent.flipV !== flipV
   };
 }
 
 function applyTransformContext(
   transform: SlideShapeTransform | undefined,
-  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 }
+  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1, rotationDeg: 0, flipH: false, flipV: false }
 ): SlideShapeTransform | undefined {
   if (!transform) {
     return undefined;
@@ -308,7 +329,10 @@ function applyTransformContext(
     x: transform.x !== undefined ? context.offsetX + transform.x * context.scaleX : undefined,
     y: transform.y !== undefined ? context.offsetY + transform.y * context.scaleY : undefined,
     cx: transform.cx !== undefined ? transform.cx * context.scaleX : undefined,
-    cy: transform.cy !== undefined ? transform.cy * context.scaleY : undefined
+    cy: transform.cy !== undefined ? transform.cy * context.scaleY : undefined,
+    rotationDeg: (transform.rotationDeg ?? 0) + context.rotationDeg || undefined,
+    flipH: context.flipH !== Boolean(transform.flipH) || undefined,
+    flipV: context.flipV !== Boolean(transform.flipV) || undefined
   };
 }
 
@@ -321,7 +345,13 @@ function parseShapeType(shapeProperties: Record<string, unknown> | undefined): s
   return xmlAttr(preset, 'prst') ?? undefined;
 }
 
-function parsePathCommands(shapeProperties: Record<string, unknown> | undefined): PresentationPathCommand[] | undefined {
+function parsePathCommands(shapeProperties: Record<string, unknown> | undefined, rawShapeXml?: string): PresentationPathCommand[] | undefined {
+  const orderedCommands = rawShapeXml && (rawShapeXml.includes('<a:gradFill') || rawShapeXml.includes('txBox="1"'))
+    ? parseOrderedPathCommands(rawShapeXml)
+    : undefined;
+  if (orderedCommands?.length) {
+    return orderedCommands;
+  }
   const customGeometry = xmlChild<Record<string, unknown>>(shapeProperties, 'a:custGeom');
   const pathList = xmlChild<Record<string, unknown>>(customGeometry, 'a:pathLst');
   const pathNode = xmlChild<Record<string, unknown>>(pathList, 'a:path');
@@ -358,6 +388,63 @@ function parsePathCommands(shapeProperties: Record<string, unknown> | undefined)
       } else if (key === 'a:close') {
         commands.push({ type: 'close' });
       }
+    }
+  }
+
+  return commands.length ? commands : undefined;
+}
+
+function buildRawShapeXmlIndex(source: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+  for (const tag of ['sp', 'pic']) {
+    const pattern = new RegExp(`<p:${tag}\\b[\\s\\S]*?<p:cNvPr[^>]*\\bid="([^"]+)"[^>]*>[\\s\\S]*?<\\/p:${tag}>`, 'g');
+    for (const match of source.matchAll(pattern)) {
+      const id = match[1];
+      const xml = match[0];
+      if (id && xml) {
+        entries[id] = xml;
+      }
+    }
+  }
+  return entries;
+}
+
+function parseOrderedPathCommands(rawShapeXml: string): PresentationPathCommand[] | undefined {
+  const pathMatch = rawShapeXml.match(/<a:path\b[^>]*>([\s\S]*?)<\/a:path>/);
+  if (!pathMatch) {
+    return undefined;
+  }
+
+  const commands: PresentationPathCommand[] = [];
+  const commandPattern = /<(a:moveTo|a:lnTo|a:cubicBezTo|a:close)\b[^>]*>([\s\S]*?)<\/\1>|<a:close\b[^>]*\/>/g;
+  for (const match of pathMatch[0].matchAll(commandPattern)) {
+    const type = match[1] ?? 'a:close';
+    const body = match[2] ?? '';
+    if (type === 'a:close') {
+      commands.push({ type: 'close' });
+      continue;
+    }
+    const points = [...body.matchAll(/<a:pt\b[^>]*x="([^"]+)"[^>]*y="([^"]+)"[^>]*\/>/g)].map((point) => ({
+      x: Number(point[1]),
+      y: Number(point[2])
+    }));
+    if (type === 'a:moveTo' || type === 'a:lnTo') {
+      const point = points[0];
+      if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
+        commands.push({ type: type === 'a:moveTo' ? 'moveTo' : 'lineTo', x: point.x, y: point.y });
+      }
+      continue;
+    }
+    if (type === 'a:cubicBezTo' && points.length >= 3) {
+      commands.push({
+        type: 'cubicTo',
+        x1: points[0]?.x,
+        y1: points[0]?.y,
+        x2: points[1]?.x,
+        y2: points[1]?.y,
+        x: points[2]?.x,
+        y: points[2]?.y
+      });
     }
   }
 
@@ -548,6 +635,24 @@ function parseFill(
       kind: 'solid',
       color: resolved?.color,
       opacity: resolved?.opacity
+    };
+  }
+
+  const gradientFill = xmlChild<Record<string, unknown>>(shapeProperties, 'a:gradFill');
+  if (gradientFill) {
+    return {
+      kind: 'gradient',
+      gradientStops: xmlChildren<Record<string, unknown>>(xmlChild<Record<string, unknown>>(gradientFill, 'a:gsLst'), 'a:gs')
+        .map((stop) => ({
+          position: Number(xmlAttr(stop, 'pos') ?? 0) / 1000,
+          ...resolveColor(stop, theme)
+        }))
+        .filter((stop) => stop.color),
+      angleDeg: (() => {
+        const linear = xmlChild<Record<string, unknown>>(gradientFill, 'a:lin');
+        const value = xmlAttr(linear, 'ang');
+        return value ? Number(value) / 60_000 : undefined;
+      })()
     };
   }
 

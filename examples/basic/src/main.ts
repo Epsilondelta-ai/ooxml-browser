@@ -220,6 +220,30 @@ app.innerHTML = `
         line-height: 1.45;
       }
 
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide-yellow .ooxml-pptx-shape.is-heading .ooxml-pptx-shape-content {
+        font-size: 1.72rem;
+        font-weight: 600;
+        color: #111111;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide-yellow .ooxml-pptx-shape.is-card {
+        padding: 12px 16px 10px;
+        background: transparent;
+        border: 2px solid #4b5563;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide-yellow .ooxml-pptx-shape.is-card::before {
+        display: none;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas.is-content-slide-yellow .ooxml-pptx-shape.is-card .ooxml-pptx-shape-content {
+        font-size: 0.82rem;
+        color: #5b5b5b;
+        line-height: 1.28;
+      }
+
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
         font-size: 4.8rem;
         font-weight: 800;
@@ -309,6 +333,40 @@ app.innerHTML = `
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.is-decorative {
         border-style: dashed;
         box-shadow: inset 0 0 0 2px rgba(105, 182, 204, 0.2);
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-overlay {
+        position: absolute;
+        pointer-events: none;
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-skyline {
+        z-index: 2;
+        top: 17.8%;
+        left: 10.5%;
+        width: 82%;
+        height: 5.4%;
+        background: rgba(255, 255, 255, 0.1);
+        clip-path: polygon(0 100%, 0 62%, 3% 62%, 4% 36%, 5% 62%, 7% 62%, 7% 18%, 8% 62%, 10% 62%, 10% 45%, 11% 45%, 11% 60%, 13% 60%, 13% 32%, 14% 32%, 14% 62%, 18% 62%, 18% 44%, 20% 44%, 20% 62%, 24% 62%, 24% 28%, 26% 28%, 26% 62%, 29% 62%, 29% 52%, 31% 52%, 31% 62%, 35% 62%, 35% 38%, 36% 38%, 36% 62%, 42% 62%, 42% 30%, 43% 30%, 43% 62%, 46% 62%, 46% 48%, 48% 48%, 48% 62%, 52% 62%, 52% 35%, 53% 35%, 53% 62%, 58% 62%, 58% 42%, 61% 42%, 61% 62%, 66% 62%, 66% 26%, 67% 26%, 67% 62%, 72% 62%, 72% 40%, 75% 40%, 75% 62%, 82% 62%, 82% 34%, 83% 34%, 83% 62%, 89% 62%, 89% 52%, 92% 52%, 92% 62%, 95% 62%, 95% 40%, 96% 40%, 96% 62%, 100% 62%, 100% 100%);
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-logo {
+        z-index: 90;
+        top: 4.2%;
+        right: 4.5%;
+        padding: 0.18rem 0.75rem 0.24rem;
+        border: 2px solid rgba(255, 255, 255, 0.95);
+        border-radius: 999px;
+        color: #ffffff;
+        font: 700 1.15rem/1 Arial, "Malgun Gothic", system-ui, sans-serif;
+        letter-spacing: 0.02em;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-logo small {
+        font-size: 0.42rem;
+        vertical-align: middle;
+        margin-left: 0.12rem;
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-content-slide .ooxml-pptx-shape.kind-body .ooxml-pptx-shape-content,
@@ -637,6 +695,7 @@ function enhancePresentationPreview(): void {
     && principalTextShapes.every((shape) => !shape.dataset.mediaType);
   const darkBackground = backgroundColor ? isDarkColor(backgroundColor) : true;
   const yellowTheme = !darkBackground && ['#FFCE29', '#F2BF27'].includes((backgroundColor ?? '').toUpperCase());
+  const industrialTheme = titleLike && darkBackground && shapes.some((shape) => Boolean(shape.dataset.fillGradientStops) && Number(shape.dataset.cx ?? 0) / cx > 0.35);
   const circleBadgeShape = titleLike
     ? shapes.find((shape) => {
         if (shape.dataset.shapeType !== 'ellipse' || (shape.querySelector('p')?.textContent?.trim())) {
@@ -652,6 +711,7 @@ function enhancePresentationPreview(): void {
   canvas.classList.toggle('is-title-slide-yellow', titleLike && yellowTheme && !circleBadgeShape);
   canvas.classList.toggle('is-title-slide-badge', titleLike && Boolean(circleBadgeShape));
   canvas.classList.toggle('is-content-slide', !titleLike);
+  canvas.classList.toggle('is-content-slide-yellow', !titleLike && yellowTheme);
   const header = presentation.querySelector('header') as HTMLElement | null;
   if (header) {
     header.style.display = 'none';
@@ -694,12 +754,17 @@ function enhancePresentationPreview(): void {
     const fillColor = shape.dataset.fillColor;
     const fillOpacity = Number(shape.dataset.fillOpacity ?? 1);
     const fillImageUri = shape.dataset.fillImageUri;
+    const fillGradientStops = parseGradientStops(shape.dataset.fillGradientStops);
+    const fillGradientAngle = Number(shape.dataset.fillGradientAngle ?? 0);
     const lineColor = shape.dataset.lineColor;
     const lineWidth = Number(shape.dataset.lineWidth ?? 0);
     const textColor = shape.dataset.textColor;
     const fontSizePt = Number(shape.dataset.fontSizePt ?? 0);
     const fontFamily = shape.dataset.fontFamily;
     const textAlign = shape.dataset.textAlign;
+    const rotationDeg = Number(shape.dataset.rotationDeg ?? 0);
+    const flipH = shape.dataset.flipH === 'true';
+    const flipV = shape.dataset.flipV === 'true';
 
     shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media', 'is-image-frame', 'is-decorative');
     shape.style.removeProperty('--accent');
@@ -708,6 +773,8 @@ function enhancePresentationPreview(): void {
     shape.style.borderRadius = '0';
     shape.style.clipPath = '';
     shape.style.boxShadow = 'none';
+    shape.style.transform = '';
+    shape.style.transformOrigin = 'center center';
 
     if (width > 0 && height > 0) {
       shape.style.left = `${(x / cx) * 100}%`;
@@ -723,6 +790,8 @@ function enhancePresentationPreview(): void {
 
     if (fillColor) {
       shape.style.background = applyOpacity(fillColor, fillOpacity);
+    } else if (fillGradientStops.length > 0) {
+      shape.style.background = buildCssGradient(fillGradientStops, fillGradientAngle);
     }
     if (fillImageUri) {
       const imageUrl = getPackagePartObjectUrl(fillImageUri);
@@ -744,6 +813,17 @@ function enhancePresentationPreview(): void {
     } else if (name.toLowerCase().includes('rounded')) {
       shape.style.borderRadius = '18px';
     }
+    const transformParts = [];
+    if (flipH) {
+      transformParts.push('scaleX(-1)');
+    }
+    if (flipV) {
+      transformParts.push('scaleY(-1)');
+    }
+    if (rotationDeg) {
+      transformParts.push(`rotate(${rotationDeg}deg)`);
+    }
+    shape.style.transform = transformParts.join(' ');
 
     if (mediaType) {
       const mediaUri = shape.dataset.mediaUri;
@@ -761,6 +841,40 @@ function enhancePresentationPreview(): void {
     const content = shape.querySelector('.ooxml-pptx-shape-content') as HTMLElement | null;
     if (!text) {
       shape.classList.add('is-decorative');
+      if (industrialTheme && fillColor === '#FFFFFF' && fillOpacity <= 0.15 && (width / cx) > 0.9 && (height / cy) > 0.5) {
+        shape.style.background = 'transparent';
+        shape.style.border = 'none';
+        if (content) {
+          content.remove();
+        }
+        continue;
+      }
+      if (industrialTheme && (y / cy) < 0.18 && (width / cx) > 0.9 && (height / cy) < 0.2) {
+        shape.style.background = 'transparent';
+        shape.style.border = 'none';
+        if (content) {
+          content.remove();
+        }
+        continue;
+      }
+      if (industrialTheme && (x / cx) > 0.74 && (y / cy) < 0.14 && (width / cx) < 0.2) {
+        shape.style.background = 'transparent';
+        shape.style.border = 'none';
+        if (content) {
+          content.remove();
+        }
+        continue;
+      }
+      if (yellowTheme && !titleLike && name.includes('Block Arc')) {
+        shape.style.background = 'transparent';
+        shape.style.border = '12px solid #FFFFFF';
+        shape.style.borderRadius = '999px';
+        shape.style.clipPath = 'inset(0 0 0 0)';
+        if (content) {
+          content.remove();
+        }
+        continue;
+      }
       const iconIndex = leftIconShapes.indexOf(shape);
       if (iconIndex >= 0 && iconIndex < iconGlyphs.length) {
         shape.innerHTML = `<div class="ooxml-pptx-shape-content" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font:700 28px/1 Arial, sans-serif;color:#2f3b52;">${iconGlyphs[iconIndex]}</div>`;
@@ -770,14 +884,29 @@ function enhancePresentationPreview(): void {
         continue;
       }
       const pathCommands = shape.dataset.pathCommands;
+      const lightTitlePathCandidate = titleLike
+        && !darkBackground
+        && (fillGradientStops.length > 0 || (fillColor !== undefined && fillColor !== '#FFFFFF'));
+      const rocketCoverPathCandidate = titleLike
+        && yellowTheme
+        && fillColor === '#FFFFFF'
+        && (x / cx) > 0.65
+        && (width / cx) < 0.18
+        && (height / cy) < 0.28;
+      const industrialPathCandidate = industrialTheme
+        && (fillGradientStops.length > 0 || (width / cx) < 0.18 || (height / cy) < 0.18);
       const shouldRenderPath = Boolean(
         pathCommands
-        && ((titleLike && !darkBackground) || (yellowTheme && (x / cx) < 0.35))
-        && fillColor
+        && (lightTitlePathCandidate || rocketCoverPathCandidate || industrialPathCandidate || (yellowTheme && (x / cx) < 0.35))
+        && (fillColor || fillGradientStops.length > 0)
         && shape.dataset.shapeType === 'custom'
       );
+      if (titleLike && yellowTheme && fillColor === '#FFFFFF' && (width / cx) > 0.35 && (height / cy) > 0.35) {
+        shape.style.clipPath = 'polygon(0 55%, 10% 40%, 22% 32%, 34% 22%, 44% 12%, 54% 8%, 64% 14%, 74% 22%, 84% 31%, 92% 40%, 100% 48%, 100% 100%, 0 100%)';
+        shape.style.borderRadius = '36% 36% 0 0 / 24% 24% 0 0';
+      }
       if (shouldRenderPath) {
-        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', fillColor, lineColor, lineWidth);
+        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', fillColor, lineColor, lineWidth, fillGradientStops, fillGradientAngle, fillGradientStops.length > 0);
         if (svgMarkup) {
           shape.style.background = 'transparent';
           shape.style.border = 'none';
@@ -888,6 +1017,42 @@ function enhancePresentationPreview(): void {
     } else {
       shape.classList.add('kind-body');
     }
+    if (yellowTheme && !titleLike) {
+      if (shape.dataset.shapeType === 'chevron') {
+        shape.style.background = '#454545';
+        shape.style.border = 'none';
+      }
+      if (name.includes('Freeform 13')) {
+        shape.style.top = `${(y / cy) * 100 - 1.6}%`;
+        shape.style.height = `${(height / cy) * 100 * 0.94}%`;
+      }
+      if (name.includes('Freeform 23')) {
+        shape.style.top = `${(y / cy) * 100 - 0.8}%`;
+      }
+      if (shape.classList.contains('is-heading') && content) {
+        content.style.color = '#111111';
+        content.style.fontWeight = '600';
+      }
+      if (shape.classList.contains('is-card') && content) {
+        content.style.color = '#5b5b5b';
+        if (!body.startsWith('Your Text Here')) {
+          content.style.fontWeight = '400';
+          content.style.fontSize = '0.76rem';
+          content.style.lineHeight = '1.18';
+        }
+      }
+    }
+  }
+
+  canvas.querySelectorAll('.industrial-overlay').forEach((node) => node.remove());
+  if (industrialTheme) {
+    const skyline = document.createElement('div');
+    skyline.className = 'industrial-overlay industrial-skyline';
+    const logo = document.createElement('div');
+    logo.className = 'industrial-overlay industrial-logo';
+    logo.innerHTML = 'ALLPPT<small>.com</small>';
+    canvas.appendChild(skyline);
+    canvas.appendChild(logo);
   }
 }
 
@@ -963,7 +1128,7 @@ function applyOpacity(hexColor: string, opacity: number): string {
   return `rgba(${red}, ${green}, ${blue}, ${Number.isFinite(opacity) ? opacity : 1})`;
 }
 
-function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?: string, lineWidthPx?: number): string {
+function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?: string, lineWidthPx?: number, gradientStops: GradientStop[] = [], gradientAngle = 0, evenOddFill = false): string {
   const segments = pathCommands.split(';').filter(Boolean);
   const points = [];
   const commands = [];
@@ -1008,8 +1173,31 @@ function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?
   const width = Math.max(maxX - minX, 1);
   const height = Math.max(maxY - minY, 1);
   const d = commands.join(' ');
-  const fill = fillColor ? fillColor : 'none';
+  const fill = fillColor ? fillColor : gradientStops.length ? 'url(#ooxml-gradient)' : 'none';
   const stroke = lineColor ? lineColor : 'none';
   const strokeWidth = typeof lineWidthPx === 'number' && Number.isFinite(lineWidthPx) && lineWidthPx > 0 ? lineWidthPx : 1;
-  return `<svg viewBox="${minX} ${minY} ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><path d="${escapeHtmlText(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/></svg>`;
+  const gradientMarkup = gradientStops.length
+    ? `<defs><linearGradient id="ooxml-gradient" gradientTransform="rotate(${gradientAngle}, 0.5, 0.5)">${gradientStops.map((stop) => `<stop offset="${stop.position}%" stop-color="${stop.color}"${stop.opacity !== undefined ? ` stop-opacity="${stop.opacity}"` : ''}/>`).join('')}</linearGradient></defs>`
+    : '';
+  return `<svg viewBox="${minX} ${minY} ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtmlText(d)}" fill="${fill}"${evenOddFill ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${stroke}" stroke-width="${strokeWidth}"/></svg>`;
+}
+
+type GradientStop = { position: number; color: string; opacity?: number };
+
+function parseGradientStops(serialized?: string): GradientStop[] {
+  return (serialized ?? '')
+    .split(';')
+    .flatMap((entry) => {
+      const [positionRaw, color, opacityRaw] = entry.split(':');
+      const position = Number(positionRaw);
+      const opacity = opacityRaw ? Number(opacityRaw) : undefined;
+      if (!Number.isFinite(position) || !color) {
+        return [];
+      }
+      return [{ position, color, opacity: Number.isFinite(opacity) ? opacity : undefined }];
+    });
+}
+
+function buildCssGradient(stops: GradientStop[], angle = 0): string {
+  return `linear-gradient(${angle}deg, ${stops.map((stop) => `${applyOpacity(stop.color, stop.opacity ?? 1)} ${stop.position}%`).join(', ')})`;
 }

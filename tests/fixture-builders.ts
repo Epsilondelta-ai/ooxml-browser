@@ -281,7 +281,7 @@ export function createGroupedPptxFixture(): Uint8Array {
       <p:grpSp>
         <p:nvGrpSpPr><p:cNvPr id="2" name="Grouped"/></p:nvGrpSpPr>
         <p:grpSpPr>
-          <a:xfrm>
+          <a:xfrm rot="5400000" flipH="1">
             <a:off x="1000" y="2000"/>
             <a:ext cx="4000" cy="6000"/>
             <a:chOff x="100" y="200"/>
@@ -291,7 +291,7 @@ export function createGroupedPptxFixture(): Uint8Array {
         <p:sp>
           <p:nvSpPr><p:cNvPr id="3" name="Grouped Title"/></p:nvSpPr>
           <p:spPr>
-            <a:xfrm><a:off x="600" y="700"/><a:ext cx="800" cy="900"/></a:xfrm>
+            <a:xfrm rot="1800000"><a:off x="600" y="700"/><a:ext cx="800" cy="900"/></a:xfrm>
             <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
           </p:spPr>
           <p:txBody><a:bodyPr/><a:p><a:r><a:t>Grouped text</a:t></a:r></a:p></p:txBody>
@@ -1000,7 +1000,7 @@ export function createTransformedPptxFixture(): Uint8Array {
     'ppt/_rels/presentation.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/></Relationships>`,
     'ppt/slides/slide1.xml': `<?xml version="1.0" encoding="UTF-8"?>
-<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree><p:sp><p:nvSpPr><p:cNvPr id="2" name="Body"/></p:nvSpPr><p:spPr><a:xfrm><a:off x="100" y="200"/><a:ext cx="3000" cy="4000"/></a:xfrm></p:spPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>Transformed text</a:t></a:r></a:p></p:txBody></p:sp><p:pic><p:nvPicPr><p:cNvPr id="5" name="Hero Image"/></p:nvPicPr><p:spPr><a:xfrm><a:off x="500" y="600"/><a:ext cx="7000" cy="8000"/></a:xfrm></p:spPr><p:blipFill><a:blip r:embed="rIdImage"/></p:blipFill></p:pic></p:spTree></p:cSld></p:sld>`,
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree><p:sp><p:nvSpPr><p:cNvPr id="2" name="Body"/></p:nvSpPr><p:spPr><a:xfrm rot="1800000" flipV="1"><a:off x="100" y="200"/><a:ext cx="3000" cy="4000"/></a:xfrm><a:gradFill><a:gsLst><a:gs pos="0"><a:srgbClr val="FF0000"/></a:gs><a:gs pos="100000"><a:srgbClr val="0000FF"/></a:gs></a:gsLst><a:lin ang="2700000" scaled="1"/></a:gradFill></p:spPr><p:txBody><a:bodyPr/><a:p><a:r><a:t>Transformed text</a:t></a:r></a:p></p:txBody></p:sp><p:pic><p:nvPicPr><p:cNvPr id="5" name="Hero Image"/></p:nvPicPr><p:spPr><a:xfrm rot="2700000" flipH="1"><a:off x="500" y="600"/><a:ext cx="7000" cy="8000"/></a:xfrm></p:spPr><p:blipFill><a:blip r:embed="rIdImage"/></p:blipFill></p:pic></p:spTree></p:cSld></p:sld>`,
     'ppt/slides/_rels/slide1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdImage" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/></Relationships>`,
     'ppt/media/image1.png': 'PNGDATA'
