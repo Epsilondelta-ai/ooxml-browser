@@ -49,13 +49,9 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const layoutRelationship = slideRelationships.find((relationship) => relationship.type.includes('/slideLayout'));
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
   const theme = layoutInfo?.themeUri ? themeCache[layoutInfo.themeUri] : undefined;
-  const shapes = [
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:sp').map((shape) => parseShape(shape, theme)),
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:pic').map((picture) => parsePicture(picture, slideRelationships, theme)),
-    ...xmlChildren<Record<string, unknown>>(shapeTree, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, slideRelationships, theme))
-  ];
+  const shapes = collectShapes(shapeTree, slideRelationships, theme);
   const notesInfo = parseNotesInfo(graph, uri);
-  const title = shapes.find((shape) => shape.text.trim())?.text ?? 'Slide';
+  const title = selectSlideTitle(shapes);
   const comments = parseSlideComments(graph, uri);
 
   return {
@@ -76,14 +72,89 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   };
 }
 
-function parseShape(shape: Record<string, unknown>, theme?: PresentationTheme): SlideShape {
+function selectSlideTitle(shapes: SlideShape[]): string {
+  const candidates = shapes
+    .map((shape) => ({ shape, text: shape.text.trim() }))
+    .filter((entry) => entry.text.length > 0);
+
+  if (!candidates.length) {
+    return 'Slide';
+  }
+
+  const maxBottom = Math.max(
+    ...candidates.map(({ shape }) => {
+      const y = shape.transform?.y ?? 0;
+      const cy = shape.transform?.cy ?? 0;
+      return y + cy;
+    }),
+    1
+  );
+
+  const scored = candidates.map(({ shape, text }) => {
+    const y = shape.transform?.y ?? 0;
+    const cx = shape.transform?.cx ?? Math.max(text.length * 10_000, 1);
+    const cy = shape.transform?.cy ?? Math.max(text.length * 2_000, 1);
+    const bottomRatio = (y + cy) / maxBottom;
+    let score = 0;
+
+    if (shape.placeholderType === 'title' || shape.placeholderType === 'ctrTitle') {
+      score += 10_000;
+    }
+
+    if (/^https?:\/\//i.test(text)) {
+      score -= 8_000;
+    }
+
+    if (bottomRatio > 0.88) {
+      score -= 4_000;
+    }
+
+    if (text.length < 4) {
+      score -= 1_000;
+    }
+
+    score += Math.min((cx * cy) / 50_000_000, 6_000);
+    score -= y / 2_000;
+
+    return { text, score };
+  });
+
+  return scored.sort((left, right) => right.score - left.score)[0]?.text ?? 'Slide';
+}
+
+interface TransformContext {
+  offsetX: number;
+  offsetY: number;
+  scaleX: number;
+  scaleY: number;
+}
+
+function collectShapes(
+  container: Record<string, unknown> | undefined,
+  relationships: ReturnType<typeof relationshipsFor>,
+  theme?: PresentationTheme,
+  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 }
+): SlideShape[] {
+  if (!container) {
+    return [];
+  }
+
+  return [
+    ...xmlChildren<Record<string, unknown>>(container, 'p:sp').map((shape) => parseShape(shape, theme, context)),
+    ...xmlChildren<Record<string, unknown>>(container, 'p:pic').map((picture) => parsePicture(picture, relationships, theme, context)),
+    ...xmlChildren<Record<string, unknown>>(container, 'p:graphicFrame').flatMap((frame) => parseGraphicFrame(frame, relationships, theme, context)),
+    ...xmlChildren<Record<string, unknown>>(container, 'p:grpSp').flatMap((group) => collectShapes(group, relationships, theme, composeGroupContext(group, context)))
+  ];
+}
+
+function parseShape(shape: Record<string, unknown>, theme?: PresentationTheme, context?: TransformContext): SlideShape {
   const nvSpPr = xmlChild<Record<string, unknown>>(shape, 'p:nvSpPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:cNvPr');
   const nvPr = xmlChild<Record<string, unknown>>(nvSpPr, 'p:nvPr');
   const placeholder = xmlChild<Record<string, unknown>>(nvPr, 'p:ph');
   const textNodes = findElementsByLocalName(shape, 't');
   const shapeProperties = xmlChild<Record<string, unknown>>(shape, 'p:spPr');
-  const transform = parseTransform(shapeProperties);
+  const transform = applyTransformContext(parseTransform(shapeProperties), context);
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
@@ -98,7 +169,7 @@ function parseShape(shape: Record<string, unknown>, theme?: PresentationTheme): 
   };
 }
 
-function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, theme?: PresentationTheme): SlideShape {
+function parsePicture(picture: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, theme?: PresentationTheme, context?: TransformContext): SlideShape {
   const nvPicPr = xmlChild<Record<string, unknown>>(picture, 'p:nvPicPr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvPicPr, 'p:cNvPr');
   const blipFill = xmlChild<Record<string, unknown>>(picture, 'p:blipFill');
@@ -106,7 +177,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
   const relationshipId = xmlAttr(blip, 'r:embed');
   const target = relationshipId ? relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget : undefined;
   const shapeProperties = xmlChild<Record<string, unknown>>(picture, 'p:spPr');
-  const transform = parseTransform(shapeProperties);
+  const transform = applyTransformContext(parseTransform(shapeProperties), context);
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
@@ -123,10 +194,10 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
   };
 }
 
-function parseGraphicFrame(frame: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, _theme?: PresentationTheme): SlideShape[] {
+function parseGraphicFrame(frame: Record<string, unknown>, relationships: ReturnType<typeof relationshipsFor>, _theme?: PresentationTheme, context?: TransformContext): SlideShape[] {
   const nvGraphicFramePr = xmlChild<Record<string, unknown>>(frame, 'p:nvGraphicFramePr');
   const cNvPr = xmlChild<Record<string, unknown>>(nvGraphicFramePr, 'p:cNvPr');
-  const transform = parseTransform(xmlChild<Record<string, unknown>>(frame, 'p:xfrm'));
+  const transform = applyTransformContext(parseTransform(xmlChild<Record<string, unknown>>(frame, 'p:xfrm')), context);
   const oleObj = findElementsByLocalName(frame, 'oleObj')[0] as Record<string, unknown> | undefined;
   if (!oleObj) {
     return [];
@@ -164,6 +235,49 @@ function parseTransform(shapeProperties: Record<string, unknown> | undefined): S
     y: (() => { const value = xmlAttr(off, 'y'); return value ? Number(value) : undefined; })(),
     cx: (() => { const value = xmlAttr(ext, 'cx'); return value ? Number(value) : undefined; })(),
     cy: (() => { const value = xmlAttr(ext, 'cy'); return value ? Number(value) : undefined; })()
+  };
+}
+
+function composeGroupContext(group: Record<string, unknown>, parent: TransformContext): TransformContext {
+  const groupProperties = xmlChild<Record<string, unknown>>(group, 'p:grpSpPr');
+  const xfrm = xmlChild<Record<string, unknown>>(groupProperties, 'a:xfrm');
+  const off = xmlChild<Record<string, unknown>>(xfrm, 'a:off');
+  const ext = xmlChild<Record<string, unknown>>(xfrm, 'a:ext');
+  const chOff = xmlChild<Record<string, unknown>>(xfrm, 'a:chOff');
+  const chExt = xmlChild<Record<string, unknown>>(xfrm, 'a:chExt');
+
+  const offsetX = Number(xmlAttr(off, 'x') ?? 0);
+  const offsetY = Number(xmlAttr(off, 'y') ?? 0);
+  const childOffsetX = Number(xmlAttr(chOff, 'x') ?? 0);
+  const childOffsetY = Number(xmlAttr(chOff, 'y') ?? 0);
+  const extX = Number(xmlAttr(ext, 'cx') ?? 0);
+  const extY = Number(xmlAttr(ext, 'cy') ?? 0);
+  const childExtX = Number(xmlAttr(chExt, 'cx') ?? 0);
+  const childExtY = Number(xmlAttr(chExt, 'cy') ?? 0);
+  const scaleX = childExtX ? extX / childExtX : 1;
+  const scaleY = childExtY ? extY / childExtY : 1;
+
+  return {
+    offsetX: parent.offsetX + (offsetX - childOffsetX * scaleX) * parent.scaleX,
+    offsetY: parent.offsetY + (offsetY - childOffsetY * scaleY) * parent.scaleY,
+    scaleX: parent.scaleX * scaleX,
+    scaleY: parent.scaleY * scaleY
+  };
+}
+
+function applyTransformContext(
+  transform: SlideShapeTransform | undefined,
+  context: TransformContext = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 }
+): SlideShapeTransform | undefined {
+  if (!transform) {
+    return undefined;
+  }
+
+  return {
+    x: transform.x !== undefined ? context.offsetX + transform.x * context.scaleX : undefined,
+    y: transform.y !== undefined ? context.offsetY + transform.y * context.scaleY : undefined,
+    cx: transform.cx !== undefined ? transform.cx * context.scaleX : undefined,
+    cy: transform.cy !== undefined ? transform.cy * context.scaleY : undefined
   };
 }
 
