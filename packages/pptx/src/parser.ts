@@ -457,7 +457,7 @@ function parseShapeType(shapeProperties: Record<string, unknown> | undefined): s
 }
 
 function parsePathGeometry(shapeProperties: Record<string, unknown> | undefined, rawShapeXml?: string): PathGeometry {
-  const orderedCommands = rawShapeXml && (rawShapeXml.includes('<a:gradFill') || rawShapeXml.includes('txBox="1"'))
+  const orderedCommands = rawShapeXml
     ? parseOrderedPathGeometry(rawShapeXml)
     : undefined;
   if (orderedCommands?.commands?.length) {
@@ -693,13 +693,27 @@ function applyInheritedPlaceholderProperties(slideShapes: SlideShape[], inherite
     return {
       ...match,
       ...shape,
-      transform: shape.transform ?? match.transform,
-      fill: shape.fill ?? match.fill,
-      line: shape.line ?? match.line,
-      textStyle: shape.textStyle ?? match.textStyle,
+      transform: mergeDefined(match.transform, shape.transform),
+      fill: mergeDefined(match.fill, shape.fill),
+      line: mergeDefined(match.line, shape.line),
+      textStyle: mergeDefined(match.textStyle, shape.textStyle),
       shapeType: shape.shapeType ?? match.shapeType
     };
   });
+}
+
+function mergeDefined<T extends object>(base: T | undefined, override: T | undefined): T | undefined {
+  if (!base) {
+    return override;
+  }
+  if (!override) {
+    return base;
+  }
+
+  return {
+    ...base,
+    ...Object.fromEntries(Object.entries(override as Record<string, unknown>).filter(([, value]) => value !== undefined))
+  } as T;
 }
 
 function parseThemeInfo(graph: PackageGraph, themeUri: string): PresentationTheme {

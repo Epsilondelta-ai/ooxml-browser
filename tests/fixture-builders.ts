@@ -303,6 +303,62 @@ export function createGroupedPptxFixture(): Uint8Array {
   }));
 }
 
+export function createMultiPathCustomGeometryPptxFixture(): Uint8Array {
+  return zipSync(encodedEntries({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+  <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+</Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
+</Relationships>`,
+    'ppt/presentation.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:sldSz cx="9144000" cy="6858000"/>
+  <p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst>
+</p:presentation>`,
+    'ppt/_rels/presentation.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+</Relationships>`,
+    'ppt/slides/slide1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="2" name="Multi Path"/></p:nvSpPr>
+        <p:spPr>
+          <a:xfrm><a:off x="100" y="200"/><a:ext cx="3000" cy="3000"/></a:xfrm>
+          <a:custGeom>
+            <a:avLst/>
+            <a:pathLst>
+              <a:path w="1000" h="1000">
+                <a:moveTo><a:pt x="0" y="0"/></a:moveTo>
+                <a:lnTo><a:pt x="1000" y="0"/></a:lnTo>
+                <a:lnTo><a:pt x="1000" y="1000"/></a:lnTo>
+                <a:close/>
+              </a:path>
+              <a:path w="2000" h="1500">
+                <a:moveTo><a:pt x="250" y="250"/></a:moveTo>
+                <a:lnTo><a:pt x="1500" y="250"/></a:lnTo>
+                <a:lnTo><a:pt x="1500" y="1250"/></a:lnTo>
+                <a:close/>
+              </a:path>
+            </a:pathLst>
+          </a:custGeom>
+        </p:spPr>
+        <p:txBody><a:bodyPr/><a:p><a:r><a:t>Multi Path</a:t></a:r></a:p></p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`
+  }));
+}
+
 export function createLayoutInheritedPlaceholderPptxFixture(): Uint8Array {
   return zipSync(encodedEntries({
     '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
@@ -337,7 +393,7 @@ export function createLayoutInheritedPlaceholderPptxFixture(): Uint8Array {
           <p:cNvPr id="2" name="Body Placeholder"/>
           <p:nvPr><p:ph type="body" idx="10"/></p:nvPr>
         </p:nvSpPr>
-        <p:txBody><a:bodyPr/><a:p><a:r><a:t>Inherited body</a:t></a:r></a:p></p:txBody>
+        <p:txBody><a:bodyPr/><a:p><a:r><a:rPr b="1"/><a:t>Inherited body</a:t></a:r></a:p></p:txBody>
       </p:sp>
     </p:spTree>
   </p:cSld>

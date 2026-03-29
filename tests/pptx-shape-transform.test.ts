@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parsePptx } from '@ooxml/pptx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createGroupedPptxFixture, createLayoutInheritedPlaceholderPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createGroupedPptxFixture, createLayoutInheritedPlaceholderPptxFixture, createMultiPathCustomGeometryPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx richer shape metadata', () => {
   it('parses text and picture transforms into shape metadata', async () => {
@@ -57,5 +57,25 @@ describe('pptx richer shape metadata', () => {
     expect(inheritedShape?.fill?.color).toBe('#123456');
     expect(inheritedShape?.textStyle?.color).toBe('#FFFFFF');
     expect(inheritedShape?.textStyle?.fontSizePt).toBe(32);
+    expect(inheritedShape?.textStyle?.bold).toBe(true);
+  });
+
+  it('preserves multi-path custom geometry command order and viewport metadata', async () => {
+    const presentation = parsePptx(await openPackage(createMultiPathCustomGeometryPptxFixture()));
+    const shape = presentation.slides[0]?.shapes.find((entry) => entry.name === 'Multi Path');
+    const html = renderOfficeDocumentToHtml(presentation);
+
+    expect(shape?.pathCommands).toEqual([
+      { type: 'moveTo', x: 0, y: 0 },
+      { type: 'lineTo', x: 1000, y: 0 },
+      { type: 'lineTo', x: 1000, y: 1000 },
+      { type: 'close' },
+      { type: 'moveTo', x: 250, y: 250 },
+      { type: 'lineTo', x: 1500, y: 250 },
+      { type: 'lineTo', x: 1500, y: 1250 },
+      { type: 'close' }
+    ]);
+    expect(shape?.pathViewport).toEqual({ width: 2000, height: 1500 });
+    expect(html).toContain('data-path-viewport="2000:1500"');
   });
 });
