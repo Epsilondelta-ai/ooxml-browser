@@ -168,6 +168,7 @@ function parseShape(
   const textNodes = findElementsByLocalName(shape, 't');
   const shapeProperties = xmlChild<Record<string, unknown>>(shape, 'p:spPr');
   const style = xmlChild<Record<string, unknown>>(shape, 'p:style');
+  const shapeType = parseShapeType(shapeProperties);
   const transform = applyTransformContext(parseTransform(shapeProperties), context);
 
   return {
@@ -176,9 +177,9 @@ function parseShape(
     text: textNodes.map((node) => xmlText(node)).join(''),
     placeholderType: xmlAttr(placeholder, 'type'),
     placeholderIndex: xmlAttr(placeholder, 'idx') ?? undefined,
-    shapeType: parseShapeType(shapeProperties),
+    shapeType,
     transform,
-    fill: parseFill(shapeProperties, relationships, theme, style),
+    fill: parseFill(shapeProperties, relationships, theme, style, shapeType),
     line: parseLine(shapeProperties, theme, style),
     textStyle: parseTextStyle(shape, theme)
   };
@@ -201,7 +202,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
     text: '',
     shapeType: 'picture',
     transform,
-    fill: parseFill(shapeProperties, relationships, theme, style),
+    fill: parseFill(shapeProperties, relationships, theme, style, 'picture'),
     line: parseLine(shapeProperties, theme, style),
     media: {
       type: 'image',
@@ -460,7 +461,8 @@ function parseFill(
   shapeProperties: Record<string, unknown> | undefined,
   relationships: ReturnType<typeof relationshipsFor>,
   theme?: PresentationTheme,
-  styleNode?: Record<string, unknown>
+  styleNode?: Record<string, unknown>,
+  shapeType?: string
 ): PresentationFill | undefined {
   if (!shapeProperties) {
     return undefined;
@@ -500,6 +502,9 @@ function parseFill(
   }
 
   const styleFill = xmlChild<Record<string, unknown>>(styleNode, 'a:fillRef');
+  if (shapeType === 'custom' && xmlChild<Record<string, unknown>>(shapeProperties, 'a:ln')) {
+    return undefined;
+  }
   const styleFillColor = resolveColor(styleFill, theme);
   if (styleFillColor?.color) {
     return {
