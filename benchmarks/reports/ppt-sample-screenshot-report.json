@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-29T09:48:39.240Z",
+  "generatedAt": "2026-03-29T10:43:14.558Z",
   "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
   "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
   "results": [
@@ -34,8 +34,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.151679,
-      "score": 84.83
+      "normalizedRmse": 0.151883,
+      "score": 84.81
     },
     {
       "sample": "sample1",
@@ -51,8 +51,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.157607,
-      "score": 84.24
+      "normalizedRmse": 0.151273,
+      "score": 84.87
     },
     {
       "sample": "sample2",
@@ -119,8 +119,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.135564,
-      "score": 86.44
+      "normalizedRmse": 0.121849,
+      "score": 87.82
     },
     {
       "sample": "sample3",
@@ -136,8 +136,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.227564,
-      "score": 77.24
+      "normalizedRmse": 0.19578,
+      "score": 80.42
     },
     {
       "sample": "sample4",
@@ -153,8 +153,8 @@
         "width": 962,
         "height": 542
       },
-      "normalizedRmse": 0.166278,
-      "score": 83.37
+      "normalizedRmse": 0.165183,
+      "score": 83.48
     },
     {
       "sample": "sample4",
@@ -187,8 +187,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.160337,
-      "score": 83.97
+      "normalizedRmse": 0.159125,
+      "score": 84.09
     },
     {
       "sample": "sample5",
@@ -204,8 +204,8 @@
         "width": 722,
         "height": 407
       },
-      "normalizedRmse": 0.227134,
-      "score": 77.29
+      "normalizedRmse": 0.188605,
+      "score": 81.14
     },
     {
       "sample": "sample6",

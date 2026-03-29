@@ -724,7 +724,7 @@ function resolveColor(parent: Record<string, unknown> | undefined, theme?: Prese
   const srgb = xmlChild<Record<string, unknown>>(parent, 'a:srgbClr');
   if (srgb) {
     return {
-      color: `#${xmlAttr(srgb, 'val') ?? ''}`.replace(/^#$/, ''),
+      color: applyColorTransforms(`#{val}`.replace('{val}', xmlAttr(srgb, 'val') ?? '').replace(/^#$/, ''), srgb),
       opacity: parseAlpha(srgb)
     };
   }
@@ -733,7 +733,7 @@ function resolveColor(parent: Record<string, unknown> | undefined, theme?: Prese
   if (scheme) {
     const schemeValue = xmlAttr(scheme, 'val') ?? '';
     return {
-      color: theme?.colors?.[schemeValue] ?? defaultThemeColors[schemeValue],
+      color: applyColorTransforms(theme?.colors?.[schemeValue] ?? defaultThemeColors[schemeValue], scheme),
       opacity: parseAlpha(scheme)
     };
   }
@@ -741,12 +741,36 @@ function resolveColor(parent: Record<string, unknown> | undefined, theme?: Prese
   const sys = xmlChild<Record<string, unknown>>(parent, 'a:sysClr');
   if (sys) {
     return {
-      color: `#${xmlAttr(sys, 'lastClr') ?? ''}`.replace(/^#$/, ''),
+      color: applyColorTransforms(`#{val}`.replace('{val}', xmlAttr(sys, 'lastClr') ?? '').replace(/^#$/, ''), sys),
       opacity: parseAlpha(sys)
     };
   }
 
   return undefined;
+}
+
+function applyColorTransforms(color: string | undefined, node: Record<string, unknown>): string | undefined {
+  if (!color || !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+    return color;
+  }
+
+  let [r, g, b] = [color.slice(1, 3), color.slice(3, 5), color.slice(5, 7)].map((value) => Number.parseInt(value, 16));
+  const lumMod = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:lumMod'), 'val') ?? 100000) / 100000;
+  const lumOff = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:lumOff'), 'val') ?? 0) / 100000;
+  const shade = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:shade'), 'val') ?? 100000) / 100000;
+  const tint = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:tint'), 'val') ?? 0) / 100000;
+
+  const transformChannel = (channel: number): number => {
+    let value = channel * lumMod + 255 * lumOff;
+    value *= shade;
+    value = value + (255 - value) * tint;
+    return Math.max(0, Math.min(255, Math.round(value)));
+  };
+
+  r = transformChannel(r);
+  g = transformChannel(g);
+  b = transformChannel(b);
+  return `#${[r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
 }
 
 function parseAlpha(node: Record<string, unknown>): number | undefined {
