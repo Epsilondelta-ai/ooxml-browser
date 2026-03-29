@@ -31,6 +31,14 @@ function escapeHtml(value: string): string {
 
 function serializePathCommands(commands: NonNullable<PresentationDocument['slides'][number]['shapes'][number]['pathCommands']>): string {
   return commands
-    .map((command) => command.type === 'close' ? 'Z' : `${command.type === 'moveTo' ? 'M' : 'L'}:${command.x ?? ''},${command.y ?? ''}`)
+    .map((command) => {
+      if (command.type === 'close') {
+        return 'Z';
+      }
+      if (command.type === 'cubicTo') {
+        return `C:${command.x1 ?? ''},${command.y1 ?? ''}|${command.x2 ?? ''},${command.y2 ?? ''}|${command.x ?? ''},${command.y ?? ''}`;
+      }
+      return `${command.type === 'moveTo' ? 'M' : 'L'}:${command.x ?? ''},${command.y ?? ''}`;
+    })
     .join(';');
 }

@@ -344,6 +344,17 @@ function parsePathCommands(shapeProperties: Record<string, unknown> | undefined)
           x: (() => { const raw = xmlAttr(point, 'x'); return raw ? Number(raw) : undefined; })(),
           y: (() => { const raw = xmlAttr(point, 'y'); return raw ? Number(raw) : undefined; })()
         });
+      } else if (key === 'a:cubicBezTo') {
+        const points = xmlChildren<Record<string, unknown>>(entry, 'a:pt');
+        commands.push({
+          type: 'cubicTo',
+          x1: (() => { const raw = xmlAttr(points[0], 'x'); return raw ? Number(raw) : undefined; })(),
+          y1: (() => { const raw = xmlAttr(points[0], 'y'); return raw ? Number(raw) : undefined; })(),
+          x2: (() => { const raw = xmlAttr(points[1], 'x'); return raw ? Number(raw) : undefined; })(),
+          y2: (() => { const raw = xmlAttr(points[1], 'y'); return raw ? Number(raw) : undefined; })(),
+          x: (() => { const raw = xmlAttr(points[2], 'x'); return raw ? Number(raw) : undefined; })(),
+          y: (() => { const raw = xmlAttr(points[2], 'y'); return raw ? Number(raw) : undefined; })()
+        });
       } else if (key === 'a:close') {
         commands.push({ type: 'close' });
       }
