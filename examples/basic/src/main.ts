@@ -263,7 +263,7 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-yellow .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
-        font-size: 3.2rem;
+        font-size: 2.8rem;
         font-weight: 800;
         font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #2f3b52;
@@ -272,7 +272,7 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-yellow .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         font-weight: 700;
         font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #2f3b52;
@@ -289,7 +289,7 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
-        font-size: 3.5rem;
+        font-size: 2.9rem;
         font-weight: 800;
         font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #57A7BD;
@@ -298,7 +298,7 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
-        font-size: 1.15rem;
+        font-size: 0.95rem;
         font-weight: 700;
         font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #57A7BD;
@@ -813,8 +813,8 @@ function enhancePresentationPreview(): void {
         const circleH = (Number(circleBadgeShape.dataset.cy ?? 0) / cy) * 100;
         shape.style.left = `${circleX + circleW * 0.12}%`;
         shape.style.width = `${circleW * 0.76}%`;
-        shape.style.height = rank === 0 ? `${circleH * 0.22}%` : `${circleH * 0.16}%`;
-        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.30 : circleH * 0.58)}%`;
+        shape.style.height = rank === 0 ? `${circleH * 0.30}%` : `${circleH * 0.14}%`;
+        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.22 : circleH * 0.60)}%`;
       }
       if (yellowTheme && !circleBadgeShape && content) {
         if (shape.classList.contains('kind-title')) {
