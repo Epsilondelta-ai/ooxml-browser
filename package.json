@@ -18,7 +18,8 @@
     "quality:fixtures": "vite-node tools/generate-fixture-results.mjs",
     "quality:attestations": "vite-node tools/generate-attestation-report.mjs",
     "quality:artifacts": "vite-node tools/generate-quality-artifacts.mjs",
-    "quality:ppt-samples": "vite-node tools/generate-ppt-sample-report.mjs"
+    "quality:ppt-samples": "vite-node tools/generate-ppt-sample-report.mjs",
+    "quality:ppt-sample-screenshots": "node tools/generate-ppt-sample-screenshot-report.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

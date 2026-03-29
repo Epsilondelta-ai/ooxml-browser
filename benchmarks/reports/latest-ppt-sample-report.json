@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-03-29T03:28:19.433Z",
+  "corpusRoot": "/Users/juunini/Desktop/ppt-samples",
+  "sampleCount": 6,
+  "results": [
+    {
+      "sample": "sample1",
+      "sampleDirectory": "/Users/juunini/Desktop/ppt-samples/sample1",
+      "pptxPath": "/Users/juunini/Desktop/ppt-samples/sample1/sample.pptx",
+      "pptxCount": 1,
+      "pngCount": 48,
+      "parsedSlideCount": 48,
+      "officeDocumentKind": "pptx",
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "deckSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "imageShapeCount": 0,
+      "embeddedObjectCount": 0,
+      "textShapeCount": 554,
+      "firstSlideTitle": "http://www.free-powerpoint-templates-design.com",
+      "diagnostics": []
+    },
+    {
+      "sample": "sample2",
+      "sampleDirectory": "/Users/juunini/Desktop/ppt-samples/sample2",
+      "pptxPath": "/Users/juunini/Desktop/ppt-samples/sample2/sample.pptx",
+      "pptxCount": 1,
+      "pngCount": 48,
+      "parsedSlideCount": 48,
+      "officeDocumentKind": "pptx",
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "deckSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "imageShapeCount": 4,
+      "embeddedObjectCount": 0,
+      "textShapeCount": 777,
+      "firstSlideTitle": "http://www.free-powerpoint-templates-design.com",
+      "diagnostics": []
+    },
+    {
+      "sample": "sample3",
+      "sampleDirectory": "/Users/juunini/Desktop/ppt-samples/sample3",
+      "pptxPath": "/Users/juunini/Desktop/ppt-samples/sample3/sample.pptx",
+      "pptxCount": 1,
+      "pngCount": 48,
+      "parsedSlideCount": 48,
+      "officeDocumentKind": "pptx",
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "deckSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "imageShapeCount": 1,
+      "embeddedObjectCount": 0,
+      "textShapeCount": 639,
+      "firstSlideTitle": "http://www.free-powerpoint-templates-design.com",
+      "diagnostics": []
+    },
+    {
+      "sample": "sample4",
+      "sampleDirectory": "/Users/juunini/Desktop/ppt-samples/sample4",
+      "pptxPath": "/Users/juunini/Desktop/ppt-samples/sample4/sample.pptx",
+      "pptxCount": 1,
+      "pngCount": 48,
+      "parsedSlideCount": 48,
+      "officeDocumentKind": "pptx",
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "deckSize": {
+        "cx": 12192000,
+        "cy": 6858000
+      },
+      "imageShapeCount": 2,
+      "embeddedObjectCount": 0,
+      "textShapeCount": 550,
+      "firstSlideTitle": "http://www.free-powerpoint-templates-design.com",
+      "diagnostics": []
+    },
+    {
+      "sample": "sample5",
+      "sampleDirectory": "/Users/juunini/Desktop/ppt-samples/sample5",
+      "pptxPath": "/Users/juunini/Desktop/ppt-samples/sample5/sample.pptx",
+      "pptxCount": 1,
+      "pngCount": 37,
+      "parsedSlideCount": 37,
+      "officeDocumentKind": "pptx",
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "deckSize": {
+        "cx": 9144000,
+        "cy": 5143500
+      },
+      "imageShapeCount": 0,
+      "embeddedObjectCount": 0,
+      "textShapeCount": 391,
+      "firstSlideTitle": "FREE PPT TEMPLATES",
+      "diagnostics": []
+    },
+    {
+      "sample": "sample6",
+      "sampleDirectory": "/Users/juunini/Desktop/ppt-samples/sample6",
+      "pptxPath": "/Users/juunini/Desktop/ppt-samples/sample6/sample.pptx",
+      "pptxCount": 1,
+      "pngCount": 36,
+      "parsedSlideCount": 36,
+      "officeDocumentKind": "pptx",
+      "rootDocumentUri": "/ppt/presentation.xml",
+      "deckSize": {
+        "cx": 9144000,
+        "cy": 5143500
+      },
+      "imageShapeCount": 1,
+      "embeddedObjectCount": 0,
+      "textShapeCount": 409,
+      "firstSlideTitle": "http://www.free-powerpoint-templates-design.com",
+      "diagnostics": []
+    }
+  ]
+}

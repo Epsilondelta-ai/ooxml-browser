@@ -1,0 +1,203 @@
+{
+  "generatedAt": "2026-03-29T03:27:15.127Z",
+  "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
+  "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
+  "results": [
+    {
+      "sample": "sample1",
+      "slide": 1,
+      "referencePath": "../../../ppt-samples/sample1/sample.001.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample1/sample.001.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample1",
+      "slide": 2,
+      "referencePath": "../../../ppt-samples/sample1/sample.002.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample1/sample.002.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample1",
+      "slide": 10,
+      "referencePath": "../../../ppt-samples/sample1/sample.010.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample1/sample.010.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample2",
+      "slide": 1,
+      "referencePath": "../../../ppt-samples/sample2/sample.001.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample2/sample.001.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample2",
+      "slide": 2,
+      "referencePath": "../../../ppt-samples/sample2/sample.002.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample2/sample.002.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample2",
+      "slide": 3,
+      "referencePath": "../../../ppt-samples/sample2/sample.003.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample2/sample.003.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample3",
+      "slide": 1,
+      "referencePath": "../../../ppt-samples/sample3/sample.001.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample3/sample.001.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample3",
+      "slide": 2,
+      "referencePath": "../../../ppt-samples/sample3/sample.002.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample3/sample.002.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample4",
+      "slide": 1,
+      "referencePath": "../../../ppt-samples/sample4/sample.001.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample4/sample.001.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample4",
+      "slide": 2,
+      "referencePath": "../../../ppt-samples/sample4/sample.002.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample4/sample.002.png",
+      "referenceSize": {
+        "width": 960,
+        "height": 540
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample5",
+      "slide": 1,
+      "referencePath": "../../../ppt-samples/sample5/sample.001.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample5/sample.001.png",
+      "referenceSize": {
+        "width": 720,
+        "height": 405
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample5",
+      "slide": 2,
+      "referencePath": "../../../ppt-samples/sample5/sample.002.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample5/sample.002.png",
+      "referenceSize": {
+        "width": 720,
+        "height": 405
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample6",
+      "slide": 1,
+      "referencePath": "../../../ppt-samples/sample6/sample.001.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample6/sample.001.png",
+      "referenceSize": {
+        "width": 720,
+        "height": 405
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    },
+    {
+      "sample": "sample6",
+      "slide": 2,
+      "referencePath": "../../../ppt-samples/sample6/sample.002.png",
+      "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample6/sample.002.png",
+      "referenceSize": {
+        "width": 720,
+        "height": 405
+      },
+      "screenshotSize": {
+        "width": 1240,
+        "height": 699
+      }
+    }
+  ]
+}
