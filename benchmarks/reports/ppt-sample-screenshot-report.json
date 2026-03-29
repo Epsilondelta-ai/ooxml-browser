@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-29T03:34:15.458Z",
+  "generatedAt": "2026-03-29T03:36:48.830Z",
   "sampleRoot": "/Users/juunini/Desktop/ppt-samples",
   "screenshotRoot": "benchmarks/reports/ppt-sample-screenshots",
   "results": [
@@ -8,6 +8,7 @@
       "slide": 1,
       "referencePath": "../../../ppt-samples/sample1/sample.001.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample1/sample.001.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample1/sample.001.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -15,13 +16,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.177061,
+      "score": 82.29
     },
     {
       "sample": "sample1",
       "slide": 2,
       "referencePath": "../../../ppt-samples/sample1/sample.002.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample1/sample.002.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample1/sample.002.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -29,13 +33,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.567157,
+      "score": 43.28
     },
     {
       "sample": "sample1",
       "slide": 10,
       "referencePath": "../../../ppt-samples/sample1/sample.010.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample1/sample.010.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample1/sample.010.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -43,13 +50,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.156722,
+      "score": 84.33
     },
     {
       "sample": "sample2",
       "slide": 1,
       "referencePath": "../../../ppt-samples/sample2/sample.001.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample2/sample.001.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample2/sample.001.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -57,13 +67,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.502766,
+      "score": 49.72
     },
     {
       "sample": "sample2",
       "slide": 2,
       "referencePath": "../../../ppt-samples/sample2/sample.002.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample2/sample.002.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample2/sample.002.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -71,13 +84,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.507327,
+      "score": 49.27
     },
     {
       "sample": "sample2",
       "slide": 3,
       "referencePath": "../../../ppt-samples/sample2/sample.003.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample2/sample.003.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample2/sample.003.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -85,13 +101,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.323687,
+      "score": 67.63
     },
     {
       "sample": "sample3",
       "slide": 1,
       "referencePath": "../../../ppt-samples/sample3/sample.001.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample3/sample.001.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample3/sample.001.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -99,13 +118,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.520666,
+      "score": 47.93
     },
     {
       "sample": "sample3",
       "slide": 2,
       "referencePath": "../../../ppt-samples/sample3/sample.002.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample3/sample.002.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample3/sample.002.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -113,13 +135,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.28479,
+      "score": 71.52
     },
     {
       "sample": "sample4",
       "slide": 1,
       "referencePath": "../../../ppt-samples/sample4/sample.001.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample4/sample.001.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample4/sample.001.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -127,13 +152,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.382206,
+      "score": 61.78
     },
     {
       "sample": "sample4",
       "slide": 2,
       "referencePath": "../../../ppt-samples/sample4/sample.002.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample4/sample.002.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample4/sample.002.png",
       "referenceSize": {
         "width": 960,
         "height": 540
@@ -141,13 +169,16 @@
       "screenshotSize": {
         "width": 962,
         "height": 542
-      }
+      },
+      "normalizedRmse": 0.354384,
+      "score": 64.56
     },
     {
       "sample": "sample5",
       "slide": 1,
       "referencePath": "../../../ppt-samples/sample5/sample.001.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample5/sample.001.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample5/sample.001.png",
       "referenceSize": {
         "width": 720,
         "height": 405
@@ -155,13 +186,16 @@
       "screenshotSize": {
         "width": 722,
         "height": 407
-      }
+      },
+      "normalizedRmse": 0.66702,
+      "score": 33.3
     },
     {
       "sample": "sample5",
       "slide": 2,
       "referencePath": "../../../ppt-samples/sample5/sample.002.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample5/sample.002.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample5/sample.002.png",
       "referenceSize": {
         "width": 720,
         "height": 405
@@ -169,13 +203,16 @@
       "screenshotSize": {
         "width": 722,
         "height": 407
-      }
+      },
+      "normalizedRmse": 0.440487,
+      "score": 55.95
     },
     {
       "sample": "sample6",
       "slide": 1,
       "referencePath": "../../../ppt-samples/sample6/sample.001.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample6/sample.001.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample6/sample.001.png",
       "referenceSize": {
         "width": 720,
         "height": 405
@@ -183,13 +220,16 @@
       "screenshotSize": {
         "width": 722,
         "height": 407
-      }
+      },
+      "normalizedRmse": 0.29568,
+      "score": 70.43
     },
     {
       "sample": "sample6",
       "slide": 2,
       "referencePath": "../../../ppt-samples/sample6/sample.002.png",
       "screenshotPath": "benchmarks/reports/ppt-sample-screenshots/sample6/sample.002.png",
+      "diffPath": "benchmarks/reports/ppt-sample-diffs/sample6/sample.002.png",
       "referenceSize": {
         "width": 720,
         "height": 405
@@ -197,7 +237,9 @@
       "screenshotSize": {
         "width": 722,
         "height": 407
-      }
+      },
+      "normalizedRmse": 0.326747,
+      "score": 67.33
     }
   ]
 }

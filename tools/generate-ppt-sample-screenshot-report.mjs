@@ -11,6 +11,7 @@ const distRoot = path.join(root, 'examples', 'basic', 'dist');
 const sampleRoot = process.env.PPT_SAMPLE_ROOT ?? path.join(process.env.HOME ?? '', 'Desktop', 'ppt-samples');
 const cacheRoot = path.join(root, '.omx', 'cache', 'playwright-runner');
 const screenshotRoot = path.join(root, 'benchmarks', 'reports', 'ppt-sample-screenshots');
+const diffRoot = path.join(root, 'benchmarks', 'reports', 'ppt-sample-diffs');
 const reportPath = path.join(root, 'benchmarks', 'reports', 'ppt-sample-screenshot-report.json');
 const port = Number(process.env.PPT_SAMPLE_SCREENSHOT_PORT ?? 4174);
 
@@ -73,6 +74,7 @@ function readPngSize(bytes) {
 }
 
 await ensurePlaywright();
+await mkdir(diffRoot, { recursive: true });
 
 const server = staticServer(distRoot);
 await new Promise((resolve) => server.listen(port, '127.0.0.1', resolve));
@@ -108,11 +110,13 @@ await browser.close();
     const pptxPath = path.join(sampleDir, 'sample.pptx');
     for (const slideNumber of slideNumbers) {
       const screenshotPath = path.join(screenshotRoot, sampleName, `sample.${String(slideNumber).padStart(3, '0')}.png`);
+      const diffPath = path.join(diffRoot, sampleName, `sample.${String(slideNumber).padStart(3, '0')}.png`);
       const referencePath = path.join(sampleDir, `sample.${String(slideNumber).padStart(3, '0')}.png`);
       const referenceBytes = await readFile(referencePath);
       const referenceSize = readPngSize(referenceBytes);
 
       await mkdir(path.dirname(screenshotPath), { recursive: true });
+      await mkdir(path.dirname(diffPath), { recursive: true });
       await execFileAsync(
         'node',
         [runnerPath, `http://127.0.0.1:${port}/`, pptxPath, screenshotPath, String(slideNumber - 1), String(referenceSize?.width ?? 960)],
@@ -120,13 +124,24 @@ await browser.close();
       );
 
       const screenshotBytes = await readFile(screenshotPath);
+      const { stderr } = await execFileAsync(
+        'compare',
+        ['-metric', 'RMSE', screenshotPath, referencePath, diffPath]
+      ).catch((error) => ({
+        stderr: error.stderr ?? error.message ?? String(error)
+      }));
+      const match = String(stderr).match(/([0-9.]+)\s+\(([0-9.]+)\)/);
+      const normalizedRmse = match ? Number(match[2]) : null;
       results.push({
         sample: sampleName,
         slide: slideNumber,
         referencePath: path.relative(root, referencePath).replaceAll('\\', '/'),
         screenshotPath: path.relative(root, screenshotPath).replaceAll('\\', '/'),
+        diffPath: path.relative(root, diffPath).replaceAll('\\', '/'),
         referenceSize,
-        screenshotSize: readPngSize(screenshotBytes)
+        screenshotSize: readPngSize(screenshotBytes),
+        normalizedRmse,
+        score: normalizedRmse === null ? null : Number(((1 - normalizedRmse) * 100).toFixed(2))
       });
     }
   }
