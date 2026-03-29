@@ -32,8 +32,8 @@ describe('pptx serializer persistence', () => {
     const textShape = slide?.shapes.find((shape) => shape.name === 'Body');
     const imageShape = slide?.shapes.find((shape) => shape.media?.type === 'image');
 
-    expect(textShape?.transform).toEqual({ x: 100, y: 200, cx: 3000, cy: 4000 });
-    expect(imageShape?.transform).toEqual({ x: 500, y: 600, cx: 7000, cy: 8000 });
+    expect(textShape?.transform).toEqual({ x: 100, y: 200, cx: 3000, cy: 4000, rotationDeg: 30, flipV: true });
+    expect(imageShape?.transform).toEqual({ x: 500, y: 600, cx: 7000, cy: 8000, rotationDeg: 45, flipH: true });
   });
 
   it('preserves timing and transition metadata through serialize/reopen', async () => {
