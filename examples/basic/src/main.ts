@@ -862,10 +862,10 @@ function enhancePresentationPreview(): void {
           content.style.color = '#374151';
         }
       } else if (shape.classList.contains('kind-title') && content) {
-        content.style.color = '#57A7BD';
+        content.style.color = circleBadgeShape ? '#57A7BD' : darkBackground ? '#FFFFFF' : '#1e293b';
       }
-      if (shape.classList.contains('kind-subtitle') && content) {
-        content.style.color = darkBackground ? '#93c5fd' : '#57A7BD';
+      if (shape.classList.contains('kind-subtitle') && content && !yellowTheme) {
+        content.style.color = circleBadgeShape ? '#57A7BD' : darkBackground ? '#FFFFFF' : '#57A7BD';
       }
       continue;
     }
