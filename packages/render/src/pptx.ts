@@ -235,7 +235,7 @@ function buildPresetSceneSvgMarkup(
     case 'ellipse':
       return `<ellipse cx="500" cy="500" rx="500" ry="500" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'chevron':
-      return `<path d="M 0 0 L 760 0 L 1000 500 L 760 1000 L 0 1000 L 180 500 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
+      return `<path d="M 0 0 L 750 0 L 1000 500 L 750 1000 L 0 1000 L 250 500 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'trapezoid':
       return `<path d="M 180 0 L 820 0 L 1000 1000 L 0 1000 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'roundRect':

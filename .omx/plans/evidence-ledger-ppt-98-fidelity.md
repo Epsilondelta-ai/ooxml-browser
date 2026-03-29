@@ -171,6 +171,16 @@
   - `sample6/1`: `92.05 -> 92.03`
 - **Decision:** accepted under mixed-evidence rule because the sample5 target improved materially, sample1 also improved slightly, and the sample6 drift stayed negligible.
 
+## Stage 15 — refine the preset chevron primitive
+- **Status:** accepted
+- **What changed:** the scene-svg preset chevron now uses a slightly deeper inset and narrower shoulder, which better matches the rotated agenda chevrons visible in the current sample5 hotspot blocks.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4295 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.30 -> 91.30`
+  - `sample5/2`: `87.26 -> 87.47`
+  - `sample6/1`: `92.03 -> 92.03`
+- **Decision:** accepted because the targeted agenda-slide chevron lane improved while the other two targets stayed flat.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
