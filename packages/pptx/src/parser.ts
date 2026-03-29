@@ -666,6 +666,7 @@ function parseLayoutInfo(
   const layoutXml = getParsedXmlPart(graph, layoutUri);
   const layoutRoot = layoutXml?.document['p:sldLayout'] as Record<string, unknown> | undefined;
   const layoutCommonSlideData = xmlChild<Record<string, unknown>>(layoutRoot, 'p:cSld');
+  const layoutRawShapeXmlById = buildRawShapeXmlIndex(layoutXml?.source ?? '');
   const layoutName = layoutRoot ? xmlAttr(layoutRoot, 'matchingName') ?? xmlAttr(layoutRoot, 'type') : undefined;
   const masterRelationship = relationshipsFor(graph, layoutUri).find((relationship) => relationship.type.includes('/slideMaster'));
   const masterUri = masterRelationship?.resolvedTarget ?? undefined;
@@ -678,6 +679,7 @@ function parseLayoutInfo(
     const masterXml = getParsedXmlPart(graph, masterUri);
     const masterRoot = masterXml?.document['p:sldMaster'] as Record<string, unknown> | undefined;
     const masterCommonSlideData = xmlChild<Record<string, unknown>>(masterRoot, 'p:cSld');
+    const masterRawShapeXmlById = buildRawShapeXmlIndex(masterXml?.source ?? '');
     masterName = masterRoot ? xmlAttr(masterRoot, 'preserve') ?? 'slide-master' : 'slide-master';
     const themeRelationship = relationshipsFor(graph, masterUri).find((relationship) => relationship.type.includes('/theme'));
     themeUri = themeRelationship?.resolvedTarget ?? undefined;
@@ -686,12 +688,24 @@ function parseLayoutInfo(
     }
     const theme = themeUri ? themeCache[themeUri] : undefined;
     masterBackground = parseBackground(masterCommonSlideData, relationshipsFor(graph, masterUri), theme);
-    masterShapes = collectShapes(xmlChild<Record<string, unknown>>(masterCommonSlideData, 'p:spTree'), relationshipsFor(graph, masterUri), theme);
+    masterShapes = collectShapes(
+      xmlChild<Record<string, unknown>>(masterCommonSlideData, 'p:spTree'),
+      relationshipsFor(graph, masterUri),
+      theme,
+      undefined,
+      masterRawShapeXmlById
+    );
   }
 
   const theme = themeUri ? themeCache[themeUri] : undefined;
   const layoutBackground = parseBackground(layoutCommonSlideData, relationshipsFor(graph, layoutUri), theme);
-  const layoutShapes = collectShapes(xmlChild<Record<string, unknown>>(layoutCommonSlideData, 'p:spTree'), relationshipsFor(graph, layoutUri), theme);
+  const layoutShapes = collectShapes(
+    xmlChild<Record<string, unknown>>(layoutCommonSlideData, 'p:spTree'),
+    relationshipsFor(graph, layoutUri),
+    theme,
+    undefined,
+    layoutRawShapeXmlById
+  );
 
   return { layoutUri, layoutName, masterUri, masterName, themeUri, layoutBackground, masterBackground, layoutShapes, masterShapes };
 }

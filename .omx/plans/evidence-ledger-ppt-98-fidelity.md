@@ -311,6 +311,16 @@
   - `sample6/1`: `93.37 -> 93.45`
 - **Decision:** accepted because the compact badge-title lane improved again while the other two targets stayed flat.
 
+## Stage 29 — parse ordered raw paths for inherited layout/master shapes
+- **Status:** accepted
+- **What changed:** layout/master inherited shapes now also use the raw ordered-path extraction path instead of only slide-local shapes doing so, which improves custom geometry fidelity for inherited industrial-cluster shapes on sample1.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4375 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.80 -> 91.87`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `93.46 -> 93.46`
+- **Decision:** accepted because it produced a clean parser-grounded gain on sample1 while leaving the other two targets flat.
+
 ## Stage 29 — local-search compact centered title text to 96.1%
 - **Status:** accepted
 - **What changed:** compact centered title-sized text now uses `96.1%` effective sizing, a bracketed local-search step between the accepted `96.0%` and rejected neighboring values.
