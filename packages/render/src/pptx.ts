@@ -292,11 +292,16 @@ function toCssAnchor(value: string | undefined): string {
 
 function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: boolean): string {
   const isCentered = isSlideTitle || shape.textStyle?.align === 'ctr';
+  const compactCenteredLongText = isCentered
+    && (shape.transform?.cx ?? Number.POSITIVE_INFINITY) < 4_000_000
+    && (shape.textStyle?.fontSizePt ?? 0) <= 36
+    && shape.text.trim().length > 10;
   const style = [
     `text-align:${isCentered ? 'center' : toCssAlign(shape.textStyle?.align)}`,
     overlay ? `align-items:${toCssAnchor(shape.textStyle?.anchor)}` : '',
     overlay ? (isCentered ? 'justify-content:center' : 'justify-content:flex-start') : '',
     isCentered ? 'padding:0' : '',
+    compactCenteredLongText ? 'line-height:1.05' : '',
     isCentered ? 'box-sizing:border-box' : '',
     isCentered ? 'width:100%' : '',
     isCentered ? '' : 'padding:6px 18px 6px 18px',

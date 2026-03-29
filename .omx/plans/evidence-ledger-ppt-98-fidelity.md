@@ -221,6 +221,16 @@
   - `sample6/1`: `92.03 -> 92.03`
 - **Decision:** accepted because the agenda-slide chevron lane still moved upward, however slightly, while the other two targets stayed flat.
 
+## Stage 20 — tighten compact centered long text
+- **Status:** accepted
+- **What changed:** centered scene text now gets a slightly tighter line-height only for compact centered text boxes with longer content, which targets the sample6 badge title/subtitle without affecting the wide title bands or agenda numerals.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4309 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.30 -> 91.30`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `92.03 -> 92.96`
+- **Decision:** accepted because it materially improved the sample6 badge-text lane while leaving the other two targets unchanged.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
