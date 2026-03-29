@@ -96,13 +96,14 @@ function renderSceneShapeSvg(shape: SlideShape): string {
   const strokeWidth = Math.max(1, emuToPx(shape.line?.width ?? 0));
   const strokeDashArray = sceneStrokeDashArray(shape.line);
   const strokeAttrs = `${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''}${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}`;
+  const preserveAspectRatio = shouldUseIntrinsicAspectRatio(shape) ? 'xMidYMid meet' : 'none';
   const gradientMarkup = gradientId
     ? `<defs><linearGradient id="${gradientId}" gradientTransform="rotate(${shape.fill?.angleDeg ?? 0}, 0.5, 0.5)">${(shape.fill?.gradientStops ?? []).map((stop) => `<stop offset="${stop.position}%" stop-color="${escapeHtml(stop.color ?? '#000000')}"${stop.opacity !== undefined ? ` stop-opacity="${stop.opacity}"` : ''}/>`).join('')}</linearGradient></defs>`
     : '';
   if (shape.pathCommands?.length) {
     const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands);
     const evenOdd = shouldUseEvenOddFill(shape);
-    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''}${evenOdd ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/></svg>`;
+    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="${preserveAspectRatio}" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''}${evenOdd ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/></svg>`;
   }
 
   const presetMarkup = buildPresetSceneSvgMarkup(shape.shapeType, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
@@ -191,6 +192,30 @@ function shouldUseEvenOddFill(shape: SlideShape): boolean {
     && firstYRatio > 0.35 && firstYRatio < 0.7
     && secondXRatio > 0.25 && secondXRatio < 0.75
     && secondYRatio < 0.1;
+}
+
+function shouldUseIntrinsicAspectRatio(shape: SlideShape): boolean {
+  const transform = shape.transform;
+  if (!shape.pathCommands?.length || !shape.pathViewport || !transform) {
+    return false;
+  }
+  const cx = transform.cx;
+  const cy = transform.cy;
+  const x = transform.x;
+  const y = transform.y;
+  if (cx === undefined || cy === undefined || x === undefined || y === undefined) {
+    return false;
+  }
+  const viewportAspect = shape.pathViewport.width / Math.max(shape.pathViewport.height, 1);
+  const transformAspect = cx / Math.max(cy, 1);
+  if (Math.abs(viewportAspect - transformAspect) < 0.18) {
+    return false;
+  }
+  const widthRatio = cx / 12192000;
+  const heightRatio = cy / 6858000;
+  const topRight = (x / 12192000) > 0.75 && (y / 6858000) < 0.14;
+  const whiteVector = shape.fill?.color === '#FFFFFF' || shape.line?.color === '#FFFFFF';
+  return topRight && whiteVector && widthRatio < 0.18 && heightRatio < 0.08;
 }
 
 function isPresetSceneVectorShape(shapeType: string | undefined): boolean {
