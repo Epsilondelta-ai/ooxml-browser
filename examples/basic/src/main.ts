@@ -575,6 +575,17 @@ function enhancePresentationPreview(): void {
     && textBearingShapes.length <= 4
     && textBearingShapes.every((shape) => !shape.dataset.mediaType);
   const darkBackground = backgroundColor ? isDarkColor(backgroundColor) : true;
+  const yellowTheme = !darkBackground && ['#FFCE29', '#F2BF27'].includes((backgroundColor ?? '').toUpperCase());
+  const circleBadgeShape = titleLike
+    ? shapes.find((shape) => {
+        if (shape.dataset.shapeType !== 'ellipse' || (shape.querySelector('p')?.textContent?.trim())) {
+          return false;
+        }
+        const widthRatio = Number(shape.dataset.cx ?? 0) / cx;
+        const heightRatio = Number(shape.dataset.cy ?? 0) / cy;
+        return widthRatio > 0.2 && heightRatio > 0.2;
+      })
+    : null;
   canvas.classList.toggle('is-title-slide', titleLike && darkBackground);
   canvas.classList.toggle('is-title-slide-light', titleLike && !darkBackground);
   canvas.classList.toggle('is-content-slide', !titleLike);
@@ -589,6 +600,11 @@ function enhancePresentationPreview(): void {
     return topDiff !== 0 ? topDiff : Number(left.dataset.x ?? 0) - Number(right.dataset.x ?? 0);
   });
   const positionRank = new Map(orderedShapes.map((shape, index) => [shape, index]));
+  const textBearingOrderedShapes = orderedShapes.filter((shape) => {
+    const body = shape.querySelector('p')?.textContent?.trim() ?? '';
+    return body.length > 0 && !shape.dataset.mediaType;
+  });
+  const textBearingRank = new Map(textBearingOrderedShapes.map((shape, index) => [shape, index]));
 
   for (const [index, shape] of shapes.entries()) {
     if (shape.parentElement !== canvas) {
@@ -679,14 +695,15 @@ function enhancePresentationPreview(): void {
       const pathCommands = shape.dataset.pathCommands;
       const shouldRenderPath = Boolean(
         pathCommands
-        && titleLike
+        && ((titleLike && !darkBackground) || (yellowTheme && (x / cx) < 0.35))
         && fillColor
-        && !darkBackground
         && shape.dataset.shapeType === 'custom'
       );
       if (shouldRenderPath) {
         const svgMarkup = buildDecorativeSvg(pathCommands ?? '', fillColor, lineColor, lineWidth);
         if (svgMarkup) {
+          shape.style.background = 'transparent';
+          shape.style.border = 'none';
           shape.innerHTML = svgMarkup;
         }
       }
@@ -715,16 +732,29 @@ function enhancePresentationPreview(): void {
       if (content) {
         content.style.textAlign = 'center';
       }
-      const rank = positionRank.get(shape) ?? index;
+      const rank = textBearingRank.get(shape);
+      if (rank === undefined) {
+        continue;
+      }
       if (rank === 0) {
         shape.classList.add('kind-title');
-      } else if (rank === orderedShapes.length - 1 && y / cy > 0.75) {
+      } else if (rank === textBearingOrderedShapes.length - 1 && y / cy > 0.75) {
         shape.classList.add('kind-footer');
       } else {
         shape.classList.add('kind-subtitle');
         if (content && !textColor) {
           content.style.color = darkBackground ? '#93c5fd' : '#57A7BD';
         }
+      }
+      if (circleBadgeShape && content) {
+        const circleX = (Number(circleBadgeShape.dataset.x ?? 0) / cx) * 100;
+        const circleY = (Number(circleBadgeShape.dataset.y ?? 0) / cy) * 100;
+        const circleW = (Number(circleBadgeShape.dataset.cx ?? 0) / cx) * 100;
+        const circleH = (Number(circleBadgeShape.dataset.cy ?? 0) / cy) * 100;
+        shape.style.left = `${circleX + circleW * 0.12}%`;
+        shape.style.width = `${circleW * 0.76}%`;
+        shape.style.height = rank === 0 ? `${circleH * 0.24}%` : `${circleH * 0.18}%`;
+        shape.style.top = `${circleY + (rank === 0 ? circleH * 0.26 : circleH * 0.56)}%`;
       }
       continue;
     }
