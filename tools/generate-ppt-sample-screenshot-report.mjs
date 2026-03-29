@@ -95,12 +95,13 @@ for (let step = 0; step < Number(slideIndex); step += 1) {
   await page.click('#slide-next-button');
   await page.waitForTimeout(250);
 }
-await page.locator('#preview .ooxml-pptx-slide-canvas').evaluate((node, width) => {
+const slideNode = page.locator('#preview .ooxml-pptx-slide-canvas, #preview .ooxml-pptx-scene').first();
+await slideNode.evaluate((node, width) => {
   node.style.width = \`\${width}px\`;
   node.style.maxWidth = \`\${width}px\`;
 }, Number(targetWidth));
 await page.waitForTimeout(100);
-await page.locator('#preview .ooxml-pptx-slide-canvas').screenshot({ path: outputPath });
+await slideNode.screenshot({ path: outputPath });
 await browser.close();
 `);
 

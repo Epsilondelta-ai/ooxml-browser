@@ -1,6 +1,9 @@
-import type { PresentationDocument } from '@ooxml/pptx';
+import type { PresentationDocument, SlideShape } from '@ooxml/pptx';
 
 import type { RenderOptions } from './types';
+
+type PresentationFill = PresentationDocument['slides'][number]['background'];
+type PresentationPathCommand = NonNullable<PresentationDocument['slides'][number]['shapes'][number]['pathCommands']>[number];
 
 export function renderPresentation(presentation: PresentationDocument, options: RenderOptions): string {
   const slideIndex = Math.min(options.activeSlideIndex ?? 0, Math.max(presentation.slides.length - 1, 0));
@@ -11,13 +14,135 @@ export function renderPresentation(presentation: PresentationDocument, options: 
   }
 
   const theme = slide.themeUri ? presentation.themes[slide.themeUri] : undefined;
-  const shapeMarkup = slide.shapes.map((shape) => `<div class="ooxml-pptx-shape"${shape.placeholderType ? ` data-placeholder-type="${escapeHtml(shape.placeholderType)}"` : ''}${shape.placeholderIndex ? ` data-placeholder-index="${escapeHtml(shape.placeholderIndex)}"` : ''}${shape.shapeType ? ` data-shape-type="${escapeHtml(shape.shapeType)}"` : ''}${shape.fill?.color ? ` data-fill-color="${escapeHtml(shape.fill.color)}"` : ''}${shape.fill?.opacity !== undefined ? ` data-fill-opacity="${shape.fill.opacity}"` : ''}${shape.fill?.targetUri ? ` data-fill-image-uri="${escapeHtml(shape.fill.targetUri)}"` : ''}${shape.fill?.gradientStops?.length ? ` data-fill-gradient-stops="${escapeHtml(serializeGradientStops(shape.fill.gradientStops))}"` : ''}${shape.fill?.angleDeg !== undefined ? ` data-fill-gradient-angle="${shape.fill.angleDeg}"` : ''}${shape.line?.color ? ` data-line-color="${escapeHtml(shape.line.color)}"` : ''}${shape.line?.opacity !== undefined ? ` data-line-opacity="${shape.line.opacity}"` : ''}${shape.line?.width !== undefined ? ` data-line-width="${shape.line.width}"` : ''}${shape.textStyle?.color ? ` data-text-color="${escapeHtml(shape.textStyle.color)}"` : ''}${shape.textStyle?.fontSizePt !== undefined ? ` data-font-size-pt="${shape.textStyle.fontSizePt}"` : ''}${shape.textStyle?.fontFamily ? ` data-font-family="${escapeHtml(shape.textStyle.fontFamily)}"` : ''}${shape.textStyle?.bold !== undefined ? ` data-font-bold="${shape.textStyle.bold}"` : ''}${shape.textStyle?.italic !== undefined ? ` data-font-italic="${shape.textStyle.italic}"` : ''}${shape.textStyle?.align ? ` data-text-align="${escapeHtml(shape.textStyle.align)}"` : ''}${shape.pathCommands ? ` data-path-commands="${escapeHtml(serializePathCommands(shape.pathCommands))}"` : ''}${shape.pathViewport ? ` data-path-viewport="${shape.pathViewport.width}:${shape.pathViewport.height}"` : ''}${shape.media?.targetUri ? ` data-media-uri="${escapeHtml(shape.media.targetUri)}"` : ''}${shape.media?.type ? ` data-media-type="${escapeHtml(shape.media.type)}"` : ''}${shape.media?.progId ? ` data-prog-id="${escapeHtml(shape.media.progId)}"` : ''}${shape.transform?.x !== undefined ? ` data-x="${shape.transform.x}"` : ''}${shape.transform?.y !== undefined ? ` data-y="${shape.transform.y}"` : ''}${shape.transform?.cx !== undefined ? ` data-cx="${shape.transform.cx}"` : ''}${shape.transform?.cy !== undefined ? ` data-cy="${shape.transform.cy}"` : ''}${shape.transform?.rotationDeg !== undefined ? ` data-rotation-deg="${shape.transform.rotationDeg}"` : ''}${shape.transform?.flipH ? ' data-flip-h="true"' : ''}${shape.transform?.flipV ? ' data-flip-v="true"' : ''}><h3>${escapeHtml(shape.name ?? 'Shape')}</h3><p>${escapeHtml(shape.text || (shape.media?.type === 'embeddedObject' ? '[embedded-object]' : shape.media ? '[image]' : ''))}</p></div>`).join('');
+  if (options.pptxRenderer === 'scene-svg') {
+    const sceneBackgroundStyle = buildSceneBackgroundStyle(slide.background);
+    const sceneShapes = slide.shapes.map((shape) => renderSceneShape(shape, presentation.size.cx, presentation.size.cy)).join('');
+    return `<section class="ooxml-render ooxml-render--pptx ooxml-render--pptx-scene" data-presentation-cx="${presentation.size.cx}" data-presentation-cy="${presentation.size.cy}"${slide.background?.color ? ` data-background-color="${escapeHtml(slide.background.color)}"` : ''}${slide.background?.opacity !== undefined ? ` data-background-opacity="${slide.background.opacity}"` : ''}${slide.background?.targetUri ? ` data-background-image-uri="${escapeHtml(slide.background.targetUri)}"` : ''}${slide.layoutUri ? ` data-layout-uri="${escapeHtml(slide.layoutUri)}"` : ''}${slide.masterUri ? ` data-master-uri="${escapeHtml(slide.masterUri)}"` : ''}${slide.themeUri ? ` data-theme-uri="${escapeHtml(slide.themeUri)}"` : ''}><header><h2>${escapeHtml(slide.title)}</h2><p>${presentation.size.cx} × ${presentation.size.cy}</p></header><div class="ooxml-pptx-scene" style="${sceneBackgroundStyle};aspect-ratio:${presentation.size.cx} / ${presentation.size.cy};"${slide.background?.targetUri ? ` data-background-image-uri="${escapeHtml(slide.background.targetUri)}"` : ''}>${sceneShapes}</div><dl class="ooxml-pptx-inheritance"><dt>Layout</dt><dd>${escapeHtml(slide.layoutName ?? slide.layoutUri ?? 'none')}</dd><dt>Master</dt><dd>${escapeHtml(slide.masterName ?? slide.masterUri ?? 'none')}</dd><dt>Theme</dt><dd>${escapeHtml(theme?.name ?? theme?.colorSchemeName ?? slide.themeUri ?? 'none')}</dd></dl></section>`;
+  }
+
+  const shapeMarkup = slide.shapes.map((shape) => `<div class="ooxml-pptx-shape"${shape.placeholderType ? ` data-placeholder-type="${escapeHtml(shape.placeholderType)}"` : ''}${shape.placeholderIndex ? ` data-placeholder-index="${escapeHtml(shape.placeholderIndex)}"` : ''}${shape.shapeType ? ` data-shape-type="${escapeHtml(shape.shapeType)}"` : ''}${shape.fill?.color ? ` data-fill-color="${escapeHtml(shape.fill.color)}"` : ''}${shape.fill?.opacity !== undefined ? ` data-fill-opacity="${shape.fill.opacity}"` : ''}${shape.fill?.targetUri ? ` data-fill-image-uri="${escapeHtml(shape.fill.targetUri)}"` : ''}${shape.fill?.gradientStops?.length ? ` data-fill-gradient-stops="${escapeHtml(serializeGradientStops(shape.fill.gradientStops))}"` : ''}${shape.fill?.angleDeg !== undefined ? ` data-fill-gradient-angle="${shape.fill.angleDeg}"` : ''}${shape.line?.color ? ` data-line-color="${escapeHtml(shape.line.color)}"` : ''}${shape.line?.opacity !== undefined ? ` data-line-opacity="${shape.line.opacity}"` : ''}${shape.line?.width !== undefined ? ` data-line-width="${shape.line.width}"` : ''}${shape.line?.dash ? ` data-line-dash="${escapeHtml(shape.line.dash)}"` : ''}${shape.textStyle?.color ? ` data-text-color="${escapeHtml(shape.textStyle.color)}"` : ''}${shape.textStyle?.fontSizePt !== undefined ? ` data-font-size-pt="${shape.textStyle.fontSizePt}"` : ''}${shape.textStyle?.fontFamily ? ` data-font-family="${escapeHtml(shape.textStyle.fontFamily)}"` : ''}${shape.textStyle?.bold !== undefined ? ` data-font-bold="${shape.textStyle.bold}"` : ''}${shape.textStyle?.italic !== undefined ? ` data-font-italic="${shape.textStyle.italic}"` : ''}${shape.textStyle?.align ? ` data-text-align="${escapeHtml(shape.textStyle.align)}"` : ''}${shape.pathCommands ? ` data-path-commands="${escapeHtml(serializePathCommands(shape.pathCommands))}"` : ''}${shape.pathViewport ? ` data-path-viewport="${shape.pathViewport.width}:${shape.pathViewport.height}"` : ''}${shape.media?.targetUri ? ` data-media-uri="${escapeHtml(shape.media.targetUri)}"` : ''}${shape.media?.type ? ` data-media-type="${escapeHtml(shape.media.type)}"` : ''}${shape.media?.progId ? ` data-prog-id="${escapeHtml(shape.media.progId)}"` : ''}${shape.transform?.x !== undefined ? ` data-x="${shape.transform.x}"` : ''}${shape.transform?.y !== undefined ? ` data-y="${shape.transform.y}"` : ''}${shape.transform?.cx !== undefined ? ` data-cx="${shape.transform.cx}"` : ''}${shape.transform?.cy !== undefined ? ` data-cy="${shape.transform.cy}"` : ''}${shape.transform?.rotationDeg !== undefined ? ` data-rotation-deg="${shape.transform.rotationDeg}"` : ''}${shape.transform?.flipH ? ' data-flip-h="true"' : ''}${shape.transform?.flipV ? ' data-flip-v="true"' : ''}><h3>${escapeHtml(shape.name ?? 'Shape')}</h3><p>${escapeHtml(shape.text || (shape.media?.type === 'embeddedObject' ? '[embedded-object]' : shape.media ? '[image]' : ''))}</p></div>`).join('');
   const notes = slide.notesText ? `<aside class="ooxml-pptx-notes">${escapeHtml(slide.notesText)}</aside>` : '';
   const commentsMarkup = slide.comments.length ? `<ul class="ooxml-pptx-comments">${slide.comments.map((comment) => `<li data-comment-index="${comment.index}">${escapeHtml(comment.text)}${comment.author ? ` — ${escapeHtml(comment.author)}` : ''}</li>`).join('')}</ul>` : '';
   const timingMarkup = slide.transition || slide.timing ? `<dl class="ooxml-pptx-timing">${slide.transition?.type ? `<dt>Transition</dt><dd data-transition-type="${escapeHtml(slide.transition.type)}">${escapeHtml(slide.transition.type)}${slide.transition.speed ? ` (${escapeHtml(slide.transition.speed)})` : ''}${slide.transition.advanceOnClick !== undefined ? ` click:${escapeHtml(String(slide.transition.advanceOnClick))}` : ''}${slide.transition.advanceAfterMs !== undefined ? ` after:${escapeHtml(String(slide.transition.advanceAfterMs))}` : ''}</dd>` : ''}${slide.timing ? `<dt>Timing nodes</dt><dd data-timing-count="${slide.timing.nodeCount}">${slide.timing.nodes.map((node) => `${escapeHtml(node.nodeType)}${node.presetClass ? `:${escapeHtml(node.presetClass)}` : ''}${node.concurrent !== undefined ? ` concurrent:${escapeHtml(String(node.concurrent))}` : ''}${node.nextAction ? ` next:${escapeHtml(node.nextAction)}` : ''}${node.previousAction ? ` prev:${escapeHtml(node.previousAction)}` : ''}${node.id ? `#${escapeHtml(node.id)}` : ''}${node.duration ? `@${escapeHtml(node.duration)}` : ''}${node.repeatDuration ? ` repeatDur:${escapeHtml(node.repeatDuration)}` : ''}${node.repeatCount ? `×${escapeHtml(node.repeatCount)}` : ''}${node.restart ? ` restart:${escapeHtml(node.restart)}` : ''}${node.fill ? ` fill:${escapeHtml(node.fill)}` : ''}${node.autoReverse !== undefined ? ` autoRev:${escapeHtml(String(node.autoReverse))}` : ''}${node.acceleration ? ` accel:${escapeHtml(node.acceleration)}` : ''}${node.deceleration ? ` decel:${escapeHtml(node.deceleration)}` : ''}${node.colorSpace ? ` clr:${escapeHtml(node.colorSpace)}` : ''}${node.colorDirection ? ` dir:${escapeHtml(node.colorDirection)}` : ''}${node.motionOrigin ? ` origin:${escapeHtml(node.motionOrigin)}` : ''}${node.motionPath ? ` path:${escapeHtml(node.motionPath)}` : ''}${node.motionPathEditMode ? ` pathEdit:${escapeHtml(node.motionPathEditMode)}` : ''}${node.commandName ? ` cmd:${escapeHtml(node.commandName)}` : ''}${node.commandType ? ` cmdType:${escapeHtml(node.commandType)}` : ''}${node.triggerEvent ? `!${escapeHtml(node.triggerEvent)}` : ''}${node.triggerDelay ? `+${escapeHtml(node.triggerDelay)}` : ''}${node.triggerShapeId ? `^${escapeHtml(node.triggerShapeId)}` : ''}${node.endTriggerEvent ? ` ~${escapeHtml(node.endTriggerEvent)}` : ''}${node.endTriggerDelay ? `=${escapeHtml(node.endTriggerDelay)}` : ''}${node.endTriggerShapeId ? `^${escapeHtml(node.endTriggerShapeId)}` : ''}${node.targetShapeId ? `->${escapeHtml(node.targetShapeId)}` : ''}`).join(', ')}</dd>` : ''}</dl>` : '';
   const inheritanceMarkup = `<dl class="ooxml-pptx-inheritance"><dt>Layout</dt><dd>${escapeHtml(slide.layoutName ?? slide.layoutUri ?? 'none')}</dd><dt>Master</dt><dd>${escapeHtml(slide.masterName ?? slide.masterUri ?? 'none')}</dd><dt>Theme</dt><dd>${escapeHtml(theme?.name ?? theme?.colorSchemeName ?? slide.themeUri ?? 'none')}</dd>${theme?.majorLatinFont ? `<dt>Major font</dt><dd>${escapeHtml(theme.majorLatinFont)}</dd>` : ''}${theme?.minorLatinFont ? `<dt>Minor font</dt><dd>${escapeHtml(theme.minorLatinFont)}</dd>` : ''}</dl>`;
 
   return `<section class="ooxml-render ooxml-render--pptx" data-presentation-cx="${presentation.size.cx}" data-presentation-cy="${presentation.size.cy}"${slide.background?.color ? ` data-background-color="${escapeHtml(slide.background.color)}"` : ''}${slide.background?.opacity !== undefined ? ` data-background-opacity="${slide.background.opacity}"` : ''}${slide.background?.targetUri ? ` data-background-image-uri="${escapeHtml(slide.background.targetUri)}"` : ''}${slide.layoutUri ? ` data-layout-uri="${escapeHtml(slide.layoutUri)}"` : ''}${slide.masterUri ? ` data-master-uri="${escapeHtml(slide.masterUri)}"` : ''}${slide.themeUri ? ` data-theme-uri="${escapeHtml(slide.themeUri)}"` : ''}><header><h2>${escapeHtml(slide.title)}</h2><p>${presentation.size.cx} × ${presentation.size.cy}</p></header>${inheritanceMarkup}${timingMarkup}${shapeMarkup}${commentsMarkup}${notes}</section>`;
+}
+
+function renderSceneShape(shape: SlideShape, presentationCx: number, presentationCy: number): string {
+  const x = shape.transform?.x ?? 0;
+  const y = shape.transform?.y ?? 0;
+  const width = shape.transform?.cx ?? Math.max(presentationCx * 0.1, 1);
+  const height = shape.transform?.cy ?? Math.max(presentationCy * 0.05, 1);
+  const style = [
+    'position:absolute',
+    `left:${(x / presentationCx) * 100}%`,
+    `top:${(y / presentationCy) * 100}%`,
+    `width:${(width / presentationCx) * 100}%`,
+    `height:${(height / presentationCy) * 100}%`,
+    'box-sizing:border-box',
+    'overflow:hidden',
+    shape.fill?.color ? `background:${applyOpacity(shape.fill.color, shape.fill.opacity)}` : '',
+    shape.line?.color ? `border:${Math.max(1, Math.round((shape.line.width ?? 0) / 12700))}px solid ${applyOpacity(shape.line.color, shape.line.opacity)}` : '',
+    shape.shapeType === 'ellipse' ? 'border-radius:999px' : '',
+    shape.shapeType === 'chevron' ? 'clip-path:polygon(0 0, 76% 0, 100% 50%, 76% 100%, 0 100%, 18% 50%)' : '',
+    buildTransformStyle(shape),
+    shape.textStyle?.color ? `color:${shape.textStyle.color}` : '',
+    shape.textStyle?.fontFamily ? `font-family:${escapeHtml(shape.textStyle.fontFamily)}` : '',
+    shape.textStyle?.fontSizePt !== undefined ? `font-size:${Math.max(shape.textStyle.fontSizePt, 12)}px` : '',
+    shape.textStyle?.bold ? 'font-weight:700' : '',
+    shape.textStyle?.italic ? 'font-style:italic' : '',
+    `text-align:${toCssAlign(shape.textStyle?.align)}`,
+    'display:flex',
+    'align-items:center',
+    'justify-content:center'
+  ].filter(Boolean).join(';');
+
+  if (shape.media?.type === 'image' && shape.media.targetUri) {
+    return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--image" style="${style}"><img src="${escapeHtml(shape.media.targetUri)}" alt="" data-media-uri="${escapeHtml(shape.media.targetUri)}"></div>`;
+  }
+
+  if (shape.pathCommands?.length) {
+    return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--vector" style="${style}">${renderSceneShapeSvg(shape)}</div>`;
+  }
+
+  const text = shape.text ? `<div class="ooxml-pptx-scene-text">${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>` : '';
+  return `<div class="ooxml-pptx-scene-node" style="${style}">${text}</div>`;
+}
+
+function renderSceneShapeSvg(shape: SlideShape): string {
+  const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands ?? []);
+  const fill = shape.fill?.gradientStops?.length ? 'none' : shape.fill?.color ?? 'none';
+  const stroke = shape.line?.color ?? 'none';
+  const strokeWidth = Math.max(1, Math.round((shape.line?.width ?? 0) / 12700));
+  return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true"><path d="${escapeHtml(toSvgPath(shape.pathCommands ?? []))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''} stroke-width="${strokeWidth}"/></svg>`;
+}
+
+function buildSceneBackgroundStyle(fill: PresentationFill | undefined): string {
+  const styles = ['position:relative', 'width:min(100%, 960px)', 'margin:0 auto', 'overflow:hidden'];
+  if (fill?.color) {
+    styles.push(`background:${applyOpacity(fill.color, fill.opacity)}`);
+  }
+  return styles.join(';');
+}
+
+function buildTransformStyle(shape: SlideShape): string {
+  const parts: string[] = [];
+  if (shape.transform?.flipH) parts.push('scaleX(-1)');
+  if (shape.transform?.flipV) parts.push('scaleY(-1)');
+  if (shape.transform?.rotationDeg) parts.push(`rotate(${shape.transform.rotationDeg}deg)`);
+  return parts.length ? `transform:${parts.join(' ')};transform-origin:center center` : '';
+}
+
+function toSvgPath(commands: PresentationPathCommand[]): string {
+  return commands.map((command) => {
+    if (command.type === 'close') return 'Z';
+    if (command.type === 'cubicTo') return `C ${command.x1 ?? 0} ${command.y1 ?? 0} ${command.x2 ?? 0} ${command.y2 ?? 0} ${command.x ?? 0} ${command.y ?? 0}`;
+    return `${command.type === 'moveTo' ? 'M' : 'L'} ${command.x ?? 0} ${command.y ?? 0}`;
+  }).join(' ');
+}
+
+function buildPathViewBox(commands: PresentationPathCommand[]): string {
+  const points = commands.flatMap((command) => {
+    if (command.type === 'cubicTo') {
+      return [
+        { x: command.x1 ?? 0, y: command.y1 ?? 0 },
+        { x: command.x2 ?? 0, y: command.y2 ?? 0 },
+        { x: command.x ?? 0, y: command.y ?? 0 }
+      ];
+    }
+    if (command.type === 'close') {
+      return [];
+    }
+    return [{ x: command.x ?? 0, y: command.y ?? 0 }];
+  });
+  if (!points.length) {
+    return '0 0 1 1';
+  }
+  const minX = Math.min(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const maxY = Math.max(...points.map((point) => point.y));
+  return `${minX} ${minY} ${Math.max(1, maxX - minX)} ${Math.max(1, maxY - minY)}`;
+}
+
+function toCssAlign(value: string | undefined): string {
+  switch (value) {
+    case 'ctr': return 'center';
+    case 'r': return 'right';
+    case 'just': return 'justify';
+    default: return 'left';
+  }
+}
+
+function applyOpacity(color: string, opacity: number | undefined): string {
+  if (!color.startsWith('#') || color.length !== 7 || opacity === undefined) {
+    return color;
+  }
+  const red = Number.parseInt(color.slice(1, 3), 16);
+  const green = Number.parseInt(color.slice(3, 5), 16);
+  const blue = Number.parseInt(color.slice(5, 7), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${opacity})`;
 }
 
 function escapeHtml(value: string): string {

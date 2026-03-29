@@ -20,3 +20,13 @@
 1. Introduce a scene-renderer path behind fallback.
 2. Keep the current preview path as baseline until the new path wins on all three target slides.
 3. Update this ledger after every accepted/reverted stage.
+
+## Stage 1 — scene renderer scaffold
+- **Status:** partial scaffold kept, default-on attempt rejected
+- **What landed:** a real `scene-svg` PPT render mode exists behind opt-in (`?pptxRenderer=scene-svg`) while metadata mode stays default/fallback.
+- **Why default-on was rejected:** the first default-on screenshot loop produced severe visual regressions despite infrastructure progress.
+- **Rejected attempt evidence:**
+  - `sample1/1`: `85.20 -> 85.74` but vision regressed badly (white placeholder blocks / broken machinery silhouette)
+  - `sample5/2`: `81.14 -> 82.37` but vision regressed badly (rocket/ring collapse and black block artifacts)
+  - `sample6/1`: `89.88 -> 88.87` with text/layout degradation
+- **Decision:** revert default usage, keep scaffold hidden behind fallback, and continue toward inheritance/text + geometry completion before re-enabling it for evidence runs.

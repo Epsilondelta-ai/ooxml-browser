@@ -134,6 +134,39 @@ app.innerHTML = `
         gap: 16px;
       }
 
+      .preview-shell .ooxml-render--pptx-scene > header,
+      .preview-shell .ooxml-render--pptx-scene .ooxml-pptx-inheritance {
+        display: none;
+      }
+
+      .preview-shell .ooxml-pptx-scene {
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+      }
+
+      .preview-shell .ooxml-pptx-scene-node,
+      .preview-shell .ooxml-pptx-scene-node svg,
+      .preview-shell .ooxml-pptx-scene-node img {
+        display: block;
+      }
+
+      .preview-shell .ooxml-pptx-scene-node img,
+      .preview-shell .ooxml-pptx-scene-node svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .preview-shell .ooxml-pptx-scene-node img {
+        object-fit: cover;
+      }
+
+      .preview-shell .ooxml-pptx-scene-text {
+        width: 100%;
+        padding: 2px 4px;
+        white-space: pre-wrap;
+        word-break: keep-all;
+      }
+
       .preview-shell .ooxml-xlsx-grid thead th {
         position: sticky;
         top: 0;
@@ -471,6 +504,9 @@ const slideIndicator = document.getElementById('slide-indicator') as HTMLSpanEle
 const summary = document.getElementById('summary') as HTMLPreElement;
 const htmlOutput = document.getElementById('html-output') as HTMLPreElement;
 const preview = document.getElementById('preview') as HTMLDivElement;
+const defaultPptxRenderer: 'metadata' | 'scene-svg' = new URLSearchParams(window.location.search).get('pptxRenderer') === 'scene-svg'
+  ? 'scene-svg'
+  : 'metadata';
 let currentSession: Awaited<ReturnType<typeof createBrowserSession>> | null = null;
 let currentFileName = 'document.ooxml';
 let currentSlideIndex = 0;
@@ -547,7 +583,7 @@ function renderLoadedDocument(): void {
   }
 
   const renderOptions = currentSession.document.kind === 'pptx'
-    ? { activeSlideIndex: currentSlideIndex }
+    ? { activeSlideIndex: currentSlideIndex, pptxRenderer: defaultPptxRenderer }
     : {};
   const html = currentSession.renderToHtml(renderOptions);
   summary.textContent = JSON.stringify({
@@ -624,6 +660,11 @@ function enhanceWorkbookPreview(): void {
 function enhancePresentationPreview(): void {
   const presentation = preview.querySelector('.ooxml-render--pptx') as HTMLElement | null;
   if (!presentation) {
+    return;
+  }
+
+  if (presentation.classList.contains('ooxml-render--pptx-scene')) {
+    preparePresentationScenePreview(presentation);
     return;
   }
 
@@ -1082,6 +1123,35 @@ function enhancePresentationPreview(): void {
     logo.innerHTML = 'ALLPPT<small>.com</small>';
     canvas.appendChild(skyline);
     canvas.appendChild(logo);
+  }
+}
+
+function preparePresentationScenePreview(presentation: HTMLElement): void {
+  const scene = presentation.querySelector('.ooxml-pptx-scene') as HTMLDivElement | null;
+  if (!scene) {
+    return;
+  }
+
+  const backgroundImageUri = scene.dataset.backgroundImageUri ?? presentation.dataset.backgroundImageUri;
+  if (backgroundImageUri) {
+    const imageUrl = getPackagePartObjectUrl(backgroundImageUri);
+    if (imageUrl) {
+      scene.style.backgroundImage = `url(${imageUrl})`;
+      scene.style.backgroundSize = 'cover';
+      scene.style.backgroundPosition = 'center';
+      scene.style.backgroundRepeat = 'no-repeat';
+    }
+  }
+
+  for (const image of Array.from(scene.querySelectorAll('img[data-media-uri]')) as HTMLImageElement[]) {
+    const mediaUri = image.dataset.mediaUri;
+    if (!mediaUri) {
+      continue;
+    }
+    const imageUrl = getPackagePartObjectUrl(mediaUri);
+    if (imageUrl) {
+      image.src = imageUrl;
+    }
   }
 }
 

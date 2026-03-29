@@ -7,5 +7,6 @@ export type RenderableOfficeDocument = DocxDocument | XlsxWorkbook | Presentatio
 export interface RenderOptions {
   activeSheetIndex?: number;
   activeSlideIndex?: number;
+  pptxRenderer?: 'metadata' | 'scene-svg';
   showComments?: boolean;
 }

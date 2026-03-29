@@ -26,6 +26,8 @@ describe('renderers', () => {
     expect(workbookSession.renderToHtml()).toContain('Sheet1');
     expect(presentationSession.renderToHtml()).toContain('Hello Deck');
     expect(presentationSession.renderToHtml()).toContain('Speaker note');
+    expect(presentationSession.renderToHtml({ pptxRenderer: 'scene-svg' })).toContain('ooxml-render--pptx-scene');
+    expect(presentationSession.renderToHtml({ pptxRenderer: 'scene-svg' })).toContain('ooxml-pptx-scene');
   });
 });
 
