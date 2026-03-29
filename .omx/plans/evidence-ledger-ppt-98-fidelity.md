@@ -81,6 +81,16 @@
   - `sample6/1`: `91.20 -> 91.20`
 - **Decision:** accepted because all target slides stayed neutral-to-better and the stroke conversion is a more principled renderer baseline for later geometry work.
 
+## Stage 7 — exact slide capture sizing
+- **Status:** accepted
+- **What changed:** the screenshot harness now forces the rendered slide node to the exact reference-derived width/height and strips stray node chrome before capture, eliminating the 2px size mismatch that was polluting RMSE.
+- **Verification:** `PPT_SAMPLE_SCREENSHOT_PORT=4282 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `89.47 -> 91.27`
+  - `sample5/2`: `84.94 -> 86.06`
+  - `sample6/1`: `91.20 -> 92.07`
+- **Decision:** accepted because all three target slides improved materially and the evidence path now measures slide content at the correct output size.
+
 ## Stage 7 — remove generic scene chrome from evidence captures
 - **Status:** accepted
 - **What changed:** removed the generic preview border and box-shadow from the scene renderer surface so screenshot captures match the reference image bounds instead of inheriting preview chrome.

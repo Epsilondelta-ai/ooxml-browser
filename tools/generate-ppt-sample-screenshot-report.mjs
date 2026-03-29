@@ -101,6 +101,14 @@ const slideNode = page.locator('#preview .ooxml-pptx-slide-canvas, #preview .oox
 await slideNode.evaluate((node, width) => {
   node.style.width = \`\${width}px\`;
   node.style.maxWidth = \`\${width}px\`;
+  const presentationCx = Number(node.getAttribute('data-presentation-cx') ?? node.closest('[data-presentation-cx]')?.getAttribute('data-presentation-cx') ?? 0);
+  const presentationCy = Number(node.getAttribute('data-presentation-cy') ?? node.closest('[data-presentation-cy]')?.getAttribute('data-presentation-cy') ?? 0);
+  if (presentationCx > 0 && presentationCy > 0) {
+    node.style.height = \`\${Math.round((Number(width) * presentationCy) / presentationCx)}px\`;
+  }
+  node.style.border = 'none';
+  node.style.outline = 'none';
+  node.style.boxShadow = 'none';
 }, Number(targetWidth));
 await page.waitForTimeout(100);
 await slideNode.screenshot({ path: outputPath });
