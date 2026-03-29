@@ -283,6 +283,12 @@ app.innerHTML = `
         display: block;
       }
 
+      .preview-shell .ooxml-pptx-shape.is-decorative {
+        box-shadow: none;
+        padding: 0;
+        overflow: hidden;
+      }
+
       .preview-shell .ooxml-pptx-shape p,
       .preview-shell .ooxml-pptx-notes,
       .preview-shell .ooxml-pptx-comments,
@@ -547,7 +553,7 @@ function enhancePresentationPreview(): void {
     const name = shape.querySelector('h3')?.textContent?.trim() ?? '';
     const body = shape.querySelector('p')?.textContent?.trim() ?? '';
     const mediaType = shape.dataset.mediaType;
-    const text = body || name || (mediaType === 'embeddedObject' ? '[embedded object]' : mediaType === 'image' ? '[image]' : '');
+    const text = body || (mediaType === 'embeddedObject' ? '[embedded object]' : mediaType === 'image' ? '[image]' : '');
     shape.innerHTML = `<div class="ooxml-pptx-shape-content">${escapeHtmlText(text)}</div>`;
 
     const x = Number(shape.dataset.x ?? 0);
@@ -563,10 +569,12 @@ function enhancePresentationPreview(): void {
     const fontFamily = shape.dataset.fontFamily;
     const textAlign = shape.dataset.textAlign;
 
-    shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media', 'is-image-frame');
+    shape.classList.remove('kind-title', 'kind-subtitle', 'kind-footer', 'kind-body', 'is-card', 'is-heading', 'is-media', 'is-image-frame', 'is-decorative');
     shape.style.removeProperty('--accent');
     shape.style.background = 'transparent';
     shape.style.border = 'none';
+    shape.style.borderRadius = '0';
+    shape.style.boxShadow = 'none';
 
     if (width > 0 && height > 0) {
       shape.style.left = `${(x / cx) * 100}%`;
@@ -586,6 +594,11 @@ function enhancePresentationPreview(): void {
     if (lineColor) {
       shape.style.border = `${Math.max(1, Math.round(lineWidth / 12700))}px solid ${lineColor}`;
     }
+    if (shape.dataset.shapeType === 'ellipse') {
+      shape.style.borderRadius = '999px';
+    } else if (name.toLowerCase().includes('rounded')) {
+      shape.style.borderRadius = '18px';
+    }
 
     if (mediaType) {
       const mediaUri = shape.dataset.mediaUri;
@@ -601,6 +614,14 @@ function enhancePresentationPreview(): void {
     }
 
     const content = shape.querySelector('.ooxml-pptx-shape-content') as HTMLElement | null;
+    if (!text) {
+      shape.classList.add('is-decorative');
+      if (content) {
+        content.remove();
+      }
+      continue;
+    }
+
     if (content) {
       content.style.color = textColor || '';
       content.style.fontFamily = fontFamily || '';

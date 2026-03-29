@@ -82,7 +82,7 @@ try {
   await writeFile(runnerPath, `
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
-const [,, baseUrl, samplePath, outputPath, slideIndex] = process.argv;
+const [,, baseUrl, samplePath, outputPath, slideIndex, targetWidth] = process.argv;
 await mkdir(new URL('file://' + outputPath).pathname.split('/').slice(0, -1).join('/'), { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1500, height: 1300, deviceScaleFactor: 1 } });
@@ -93,6 +93,11 @@ for (let step = 0; step < Number(slideIndex); step += 1) {
   await page.click('#slide-next-button');
   await page.waitForTimeout(250);
 }
+await page.locator('#preview .ooxml-pptx-slide-canvas').evaluate((node, width) => {
+  node.style.width = \`\${width}px\`;
+  node.style.maxWidth = \`\${width}px\`;
+}, Number(targetWidth));
+await page.waitForTimeout(100);
 await page.locator('#preview .ooxml-pptx-slide-canvas').screenshot({ path: outputPath });
 await browser.close();
 `);
@@ -104,22 +109,23 @@ await browser.close();
     for (const slideNumber of slideNumbers) {
       const screenshotPath = path.join(screenshotRoot, sampleName, `sample.${String(slideNumber).padStart(3, '0')}.png`);
       const referencePath = path.join(sampleDir, `sample.${String(slideNumber).padStart(3, '0')}.png`);
+      const referenceBytes = await readFile(referencePath);
+      const referenceSize = readPngSize(referenceBytes);
 
       await mkdir(path.dirname(screenshotPath), { recursive: true });
       await execFileAsync(
         'node',
-        [runnerPath, `http://127.0.0.1:${port}/`, pptxPath, screenshotPath, String(slideNumber - 1)],
+        [runnerPath, `http://127.0.0.1:${port}/`, pptxPath, screenshotPath, String(slideNumber - 1), String(referenceSize?.width ?? 960)],
         { cwd: cacheRoot }
       );
 
-      const referenceBytes = await readFile(referencePath);
       const screenshotBytes = await readFile(screenshotPath);
       results.push({
         sample: sampleName,
         slide: slideNumber,
         referencePath: path.relative(root, referencePath).replaceAll('\\', '/'),
         screenshotPath: path.relative(root, screenshotPath).replaceAll('\\', '/'),
-        referenceSize: readPngSize(referenceBytes),
+        referenceSize,
         screenshotSize: readPngSize(screenshotBytes)
       });
     }
