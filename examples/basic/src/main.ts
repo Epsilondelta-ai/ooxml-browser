@@ -769,6 +769,7 @@ function enhancePresentationPreview(): void {
     }
 
     if (content) {
+      const isUrlText = /^https?:\/\//i.test(body.trim());
       if (titleLike && (yellowTheme || circleBadgeShape) && body.trim().split(/\s+/).length === 3 && !shape.classList.contains('kind-footer')) {
         const parts = body.trim().split(/\s+/);
         content.textContent = `${parts[0]} ${parts[1]}\n${parts[2]}`;
@@ -784,6 +785,16 @@ function enhancePresentationPreview(): void {
       }
       if (shape.dataset.fontItalic === 'true') {
         content.style.fontStyle = 'italic';
+      }
+      if (isUrlText) {
+        content.style.fontFamily = 'Arial, "Malgun Gothic", system-ui, sans-serif';
+        content.style.fontSize = titleLike ? '11px' : '10px';
+        content.style.lineHeight = '1.2';
+        content.style.textAlign = 'center';
+        content.style.color = darkBackground ? '#60A5FA' : '#374151';
+        if (shape.dataset.fontBold !== 'true') {
+          content.style.fontWeight = '500';
+        }
       }
     }
 
