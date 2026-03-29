@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-03-29T04:25:00Z",
+  "status": "partial",
+  "notes": [
+    "LLM image review was completed for sample1-6 declared subset via vision agents.",
+    "The vision verdicts are stricter than the pixel-diff threshold and still flag major template-semantic gaps on several slides.",
+    "This wave therefore remains in iterate mode from the LLM-visual-fidelity perspective."
+  ],
+  "results": [
+    {"sample":"sample1","slide":1,"score":34,"verdict":"fail","category_match":true,"reasoning":"Industrial template family matches, but core layout, imagery, and title hierarchy are still substantially wrong."},
+    {"sample":"sample1","slide":2,"score":29,"verdict":"fail","category_match":true,"reasoning":"Dark/teal section-break category matches, but the central composition is blocked by incorrect vertical bars and misplaced text."},
+    {"sample":"sample1","slide":10,"score":41,"verdict":"fail","category_match":true,"reasoning":"Infographic category matches, but connector lines, icon layout, and factory illustration are still materially different."},
+    {"sample":"sample2","slide":1,"score":58,"verdict":"revise","category_match":true,"reasoning":"Main composition and mood are present, but iconography and title layout are still too far from the reference."},
+    {"sample":"sample2","slide":2,"score":63,"verdict":"revise","category_match":true,"reasoning":"Structural layout is close, but square overlays and compressed typography still hurt fidelity."},
+    {"sample":"sample2","slide":3,"score":46,"verdict":"fail","category_match":true,"reasoning":"Split blue/photo template family matches, but the bracket frame and title area are materially incorrect."},
+    {"sample":"sample3","slide":1,"score":72,"verdict":"revise","category_match":true,"reasoning":"Category and imagery are close, but banner/text placement and extra decorative framing still differ visibly."},
+    {"sample":"sample3","slide":2,"score":41,"verdict":"fail","category_match":true,"reasoning":"Agenda-slide category matches, but the missing curved arc motif and wrong divider system remain major fidelity misses."},
+    {"sample":"sample4","slide":1,"score":74,"verdict":"revise","category_match":true,"reasoning":"Theme and imagery are strong, but banner geometry, title formatting, and some missing details still hold it below pass."},
+    {"sample":"sample4","slide":2,"score":68,"verdict":"revise","category_match":true,"reasoning":"Overall split-layout agenda concept matches, but panel blending, title scale, and spacing remain off."},
+    {"sample":"sample5","slide":1,"score":29,"verdict":"fail","category_match":true,"reasoning":"Yellow title-slide category matches, but rocket/cloud composition and typography hierarchy are fundamentally wrong."},
+    {"sample":"sample5","slide":2,"score":72,"verdict":"revise","category_match":true,"reasoning":"Agenda structure matches, but rocket silhouette, chevron markers, and left-side white-ring composition are still oversimplified."},
+    {"sample":"sample6","slide":1,"score":41,"verdict":"fail","category_match":true,"reasoning":"Blue watercolor title-slide category matches, but the central circular badge composition is still materially wrong."},
+    {"sample":"sample6","slide":2,"score":68,"verdict":"revise","category_match":true,"reasoning":"Layout is close, but iconography and some decorative/background details still differ too much."}
+  ]
+}
