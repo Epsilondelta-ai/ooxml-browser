@@ -162,7 +162,7 @@ console.log(inspectOfficeDocument(document));
 npm run dev --workspace @ooxml/example-basic
 ```
 
-This example shows the minimal upload -> summary -> preview flow using `createBrowserSession`.
+This example shows the file-input -> open -> summary -> visual preview -> round-trip download flow using `createBrowserSession`. The preview is tuned to feel more like a document page, spreadsheet grid, or slide canvas instead of just exposing the generated markup, while the raw HTML remains available as an optional debug panel.
 
 ### Playground
 

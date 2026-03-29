@@ -52,7 +52,7 @@ For full usage documentation, package-selection guidance, and lower-level exampl
 - `npm run bench` - micro benchmark harness for open/parse/render/serialize timings
 
 ## Examples
-- `examples/basic` - upload and preview an OOXML file
+- `examples/basic` - file-input preview example with page-like DOCX, spreadsheet-like XLSX, slide-like PPTX rendering, summary, optional HTML debug view, and round-trip download
 - `playground` - upload, inspect summaries, apply text/metadata edits, preview, and save
 
 ## Documentation
