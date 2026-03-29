@@ -660,6 +660,15 @@ function enhancePresentationPreview(): void {
   const positionRank = new Map(orderedShapes.map((shape, index) => [shape, index]));
   const principalOrderedShapes = orderedShapes.filter((shape) => principalTextShapes.includes(shape));
   const textBearingRank = new Map(principalOrderedShapes.map((shape, index) => [shape, index]));
+  const leftIconShapes = !titleLike
+    ? orderedShapes.filter((shape) => {
+        const hasText = (shape.querySelector('p')?.textContent?.trim() ?? '').length > 0;
+        const xRatio = Number(shape.dataset.x ?? 0) / cx;
+        const widthRatio = Number(shape.dataset.cx ?? 0) / cx;
+        return !hasText && !shape.dataset.mediaType && shape.dataset.shapeType === 'ellipse' && xRatio < 0.22 && widthRatio < 0.1;
+      })
+    : [];
+  const iconGlyphs = ['📷', '📹', '⚙', '📘'];
 
   for (const [index, shape] of shapes.entries()) {
     if (shape.parentElement !== canvas) {
@@ -747,6 +756,14 @@ function enhancePresentationPreview(): void {
     const content = shape.querySelector('.ooxml-pptx-shape-content') as HTMLElement | null;
     if (!text) {
       shape.classList.add('is-decorative');
+      const iconIndex = leftIconShapes.indexOf(shape);
+      if (iconIndex >= 0 && iconIndex < iconGlyphs.length) {
+        shape.innerHTML = `<div class="ooxml-pptx-shape-content" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font:700 28px/1 Arial, sans-serif;color:#2f3b52;">${iconGlyphs[iconIndex]}</div>`;
+        shape.style.background = '#FFFFFF';
+        shape.style.border = 'none';
+        shape.style.borderRadius = '999px';
+        continue;
+      }
       const pathCommands = shape.dataset.pathCommands;
       const shouldRenderPath = Boolean(
         pathCommands
