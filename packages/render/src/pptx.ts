@@ -308,6 +308,11 @@ function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: bool
     && (shape.transform?.cx ?? Number.POSITIVE_INFINITY) < 4_000_000
     && (shape.textStyle?.fontSizePt ?? 0) <= 36
     && shape.text.trim().length > 10;
+  const compactCenteredTitleText = isCentered
+    && (shape.transform?.cx ?? Number.POSITIVE_INFINITY) < 4_000_000
+    && (shape.textStyle?.fontSizePt ?? 0) >= 30
+    && (shape.textStyle?.fontSizePt ?? 0) <= 40
+    && shape.text.trim().length > 8;
   const wideCenteredSmallText = isCentered
     && (shape.transform?.cx ?? 0) > 8_000_000
     && (shape.textStyle?.fontSizePt ?? Number.POSITIVE_INFINITY) <= 24
@@ -318,6 +323,7 @@ function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: bool
     overlay ? (isCentered ? 'justify-content:center' : 'justify-content:flex-start') : '',
     isCentered ? 'padding:0' : '',
     compactCenteredLongText ? 'line-height:1.05' : '',
+    compactCenteredTitleText ? 'font-size:98%' : '',
     wideCenteredSmallText ? 'line-height:1.03' : '',
     wideCenteredSmallText ? 'font-size:96%' : '',
     isCentered ? 'box-sizing:border-box' : '',
