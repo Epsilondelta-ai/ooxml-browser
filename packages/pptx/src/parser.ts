@@ -167,6 +167,7 @@ function parseShape(
   const placeholder = xmlChild<Record<string, unknown>>(nvPr, 'p:ph');
   const textNodes = findElementsByLocalName(shape, 't');
   const shapeProperties = xmlChild<Record<string, unknown>>(shape, 'p:spPr');
+  const style = xmlChild<Record<string, unknown>>(shape, 'p:style');
   const transform = applyTransformContext(parseTransform(shapeProperties), context);
 
   return {
@@ -177,8 +178,8 @@ function parseShape(
     placeholderIndex: xmlAttr(placeholder, 'idx') ?? undefined,
     shapeType: parseShapeType(shapeProperties),
     transform,
-    fill: parseFill(shapeProperties, relationships, theme),
-    line: parseLine(shapeProperties, theme),
+    fill: parseFill(shapeProperties, relationships, theme, style),
+    line: parseLine(shapeProperties, theme, style),
     textStyle: parseTextStyle(shape, theme)
   };
 }
@@ -191,6 +192,7 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
   const relationshipId = xmlAttr(blip, 'r:embed');
   const target = relationshipId ? relationships.find((relationship) => relationship.id === relationshipId)?.resolvedTarget : undefined;
   const shapeProperties = xmlChild<Record<string, unknown>>(picture, 'p:spPr');
+  const style = xmlChild<Record<string, unknown>>(picture, 'p:style');
   const transform = applyTransformContext(parseTransform(shapeProperties), context);
 
   return {
@@ -199,8 +201,8 @@ function parsePicture(picture: Record<string, unknown>, relationships: ReturnTyp
     text: '',
     shapeType: 'picture',
     transform,
-    fill: parseFill(shapeProperties, relationships, theme),
-    line: parseLine(shapeProperties, theme),
+    fill: parseFill(shapeProperties, relationships, theme, style),
+    line: parseLine(shapeProperties, theme, style),
     media: {
       type: 'image',
       targetUri: target ?? undefined
@@ -457,7 +459,8 @@ function parseBackground(
 function parseFill(
   shapeProperties: Record<string, unknown> | undefined,
   relationships: ReturnType<typeof relationshipsFor>,
-  theme?: PresentationTheme
+  theme?: PresentationTheme,
+  styleNode?: Record<string, unknown>
 ): PresentationFill | undefined {
   if (!shapeProperties) {
     return undefined;
@@ -496,10 +499,20 @@ function parseFill(
     };
   }
 
+  const styleFill = xmlChild<Record<string, unknown>>(styleNode, 'a:fillRef');
+  const styleFillColor = resolveColor(styleFill, theme);
+  if (styleFillColor?.color) {
+    return {
+      kind: 'solid',
+      color: styleFillColor.color,
+      opacity: styleFillColor.opacity
+    };
+  }
+
   return undefined;
 }
 
-function parseLine(shapeProperties: Record<string, unknown> | undefined, theme?: PresentationTheme): PresentationLine | undefined {
+function parseLine(shapeProperties: Record<string, unknown> | undefined, theme?: PresentationTheme, styleNode?: Record<string, unknown>): PresentationLine | undefined {
   const line = xmlChild<Record<string, unknown>>(shapeProperties, 'a:ln');
   if (!line) {
     return undefined;
@@ -514,11 +527,13 @@ function parseLine(shapeProperties: Record<string, unknown> | undefined, theme?:
 
   const solidFill = xmlChild<Record<string, unknown>>(line, 'a:solidFill');
   const resolved = solidFill ? resolveColor(solidFill, theme) : undefined;
+  const styleLine = xmlChild<Record<string, unknown>>(styleNode, 'a:lnRef');
+  const styleResolved = styleLine ? resolveColor(styleLine, theme) : undefined;
   return {
     kind: 'solid',
-    color: resolved?.color,
-    opacity: resolved?.opacity,
-    width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : undefined; })()
+    color: resolved?.color ?? styleResolved?.color,
+    opacity: resolved?.opacity ?? styleResolved?.opacity,
+    width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : xmlAttr(styleLine, 'idx') ? Number(xmlAttr(styleLine, 'idx')) * 6350 : undefined; })()
   };
 }
 
