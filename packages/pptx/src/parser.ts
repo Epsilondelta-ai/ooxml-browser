@@ -624,7 +624,7 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
   return {
     color,
     fontSizePt: size ? Number(size) / 100 : undefined,
-    fontFamily: xmlAttr(latin, 'typeface') ?? xmlAttr(eastAsian, 'typeface') ?? xmlAttr(complexScript, 'typeface') ?? undefined,
+    fontFamily: resolveThemeTypeface(xmlAttr(latin, 'typeface') ?? xmlAttr(eastAsian, 'typeface') ?? xmlAttr(complexScript, 'typeface') ?? undefined, theme),
     bold: xmlAttr(runProperties, 'b') === '1' || xmlAttr(endParagraphProperties, 'b') === '1'
       ? true
       : xmlAttr(runProperties, 'b') === '0' || xmlAttr(endParagraphProperties, 'b') === '0'
@@ -814,6 +814,21 @@ function parseThemeInfo(graph: PackageGraph, themeUri: string): PresentationThem
     minorLatinFont: minorLatin ? xmlAttr(minorLatin, 'typeface') : undefined,
     colors
   };
+}
+
+function resolveThemeTypeface(typeface: string | undefined, theme?: PresentationTheme): string | undefined {
+  switch (typeface) {
+    case '+mj-lt':
+    case '+mj-ea':
+    case '+mj-cs':
+      return theme?.majorLatinFont ?? typeface;
+    case '+mn-lt':
+    case '+mn-ea':
+    case '+mn-cs':
+      return theme?.minorLatinFont ?? typeface;
+    default:
+      return typeface;
+  }
 }
 
 function parseBackground(

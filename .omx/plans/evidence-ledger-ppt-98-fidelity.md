@@ -50,3 +50,13 @@
   - `sample5/2`: `81.14 -> 83.78`
   - `sample6/1`: `89.88 -> 91.16`
 - **Decision:** accepted because the scene renderer now beats the metadata fallback on all three target slides and gives a stronger base for the remaining 98% push, even though major geometry/text gaps remain.
+
+## Stage 4 — text-only scene nodes + font alias cleanup
+- **Status:** accepted
+- **What changed:** text-only rect placeholders now render as text nodes instead of unnecessary vector overlays, and theme font aliases resolve to concrete fonts before scene rendering.
+- **Verification:** `npm test -- pptx-inheritance.test.ts pptx-shape-transform.test.ts`, `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4279 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `87.05 -> 87.12`
+  - `sample5/2`: `83.43 -> 84.89`
+  - `sample6/1`: `91.04 -> 91.20`
+- **Decision:** accepted because all three target slides improved and the text engine now gives cleaner input to later hotspot-specific tuning.

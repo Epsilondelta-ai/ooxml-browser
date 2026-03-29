@@ -68,6 +68,11 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
     return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--image" style="${style}"><img src="${escapeHtml(shape.media.targetUri)}" alt="" data-media-uri="${escapeHtml(shape.media.targetUri)}"></div>`;
   }
 
+  if (shape.text && shouldRenderSceneTextOnly(shape)) {
+    const text = renderSceneText(shape, false, isSlideTitle || inferredCenterText);
+    return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--text" style="${style}">${text}</div>`;
+  }
+
   if (shape.pathCommands?.length || isPresetSceneVectorShape(shape.shapeType)) {
     const text = shape.text ? renderSceneText(shape, true, isSlideTitle || inferredCenterText) : '';
     return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--vector" style="${style};position:absolute;">${renderSceneShapeSvg(shape)}${text}</div>`;
@@ -75,6 +80,12 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
 
   const text = shape.text ? renderSceneText(shape, false, isSlideTitle || inferredCenterText) : '';
   return `<div class="ooxml-pptx-scene-node" style="${filledStyle}">${text}</div>`;
+}
+
+function shouldRenderSceneTextOnly(shape: SlideShape): boolean {
+  return (shape.shapeType === 'rect' || shape.shapeType === 'roundRect' || shape.shapeType === 'round2SameRect')
+    && (!shape.fill || shape.fill.kind === 'none')
+    && (!shape.line || shape.line.kind === 'none');
 }
 
 function renderSceneShapeSvg(shape: SlideShape): string {
