@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parsePptx } from '@ooxml/pptx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createInheritedPptxFixture } from './fixture-builders';
+import { createInheritedPptxFixture, createThemeColorSaturationPptxFixture } from './fixture-builders';
 
 describe('pptx master/layout/theme inheritance', () => {
   it('parses slide layout/master/theme linkage and theme font metadata', async () => {
@@ -32,5 +32,12 @@ describe('pptx master/layout/theme inheritance', () => {
     expect(html).toContain('Title Slide');
     expect(html).toContain('Aptos Display');
     expect(html).toContain('data-placeholder-type="title"');
+  });
+
+  it('applies theme saturation transforms to scheme colors', async () => {
+    const presentation = parsePptx(await openPackage(createThemeColorSaturationPptxFixture()));
+    const shape = presentation.slides[0]?.shapes.find((entry) => entry.name === 'Theme Saturation');
+
+    expect(shape?.fill?.color).toBe('#808080');
   });
 });

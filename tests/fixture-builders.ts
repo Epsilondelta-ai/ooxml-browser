@@ -333,6 +333,8 @@ export function createMultiPathCustomGeometryPptxFixture(): Uint8Array {
         <p:nvSpPr><p:cNvPr id="2" name="Multi Path"/></p:nvSpPr>
         <p:spPr>
           <a:xfrm><a:off x="100" y="200"/><a:ext cx="3000" cy="3000"/></a:xfrm>
+          <a:solidFill><a:srgbClr val="FF6600"/></a:solidFill>
+          <a:ln w="12700"><a:solidFill><a:srgbClr val="003366"/></a:solidFill></a:ln>
           <a:custGeom>
             <a:avLst/>
             <a:pathLst>
@@ -352,6 +354,43 @@ export function createMultiPathCustomGeometryPptxFixture(): Uint8Array {
           </a:custGeom>
         </p:spPr>
         <p:txBody><a:bodyPr/><a:p><a:r><a:t>Multi Path</a:t></a:r></a:p></p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`
+  }));
+}
+
+export function createDashedLinePptxFixture(): Uint8Array {
+  return zipSync(encodedEntries({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+  <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+</Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`,
+    'ppt/presentation.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldSz cx="9144000" cy="6858000"/><p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst></p:presentation>`,
+    'ppt/_rels/presentation.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/></Relationships>`,
+    'ppt/slides/slide1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="2" name="Dashed Oval"/></p:nvSpPr>
+        <p:spPr>
+          <a:xfrm><a:off x="100" y="200"/><a:ext cx="3000" cy="3000"/></a:xfrm>
+          <a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>
+          <a:noFill/>
+          <a:ln w="15875">
+            <a:solidFill><a:srgbClr val="69B6CC"/></a:solidFill>
+            <a:prstDash val="dash"/>
+          </a:ln>
+        </p:spPr>
       </p:sp>
     </p:spTree>
   </p:cSld>
@@ -457,6 +496,67 @@ export function createLayoutInheritedPlaceholderPptxFixture(): Uint8Array {
     </a:fontScheme>
   </a:themeElements>
 </a:theme>`
+  }));
+}
+
+export function createThemeColorSaturationPptxFixture(): Uint8Array {
+  return zipSync(encodedEntries({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+  <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+  <Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>
+  <Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>
+  <Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>
+</Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
+</Relationships>`,
+    'ppt/presentation.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:sldSz cx="9144000" cy="6858000"/>
+  <p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst>
+</p:presentation>`,
+    'ppt/_rels/presentation.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+</Relationships>`,
+    'ppt/slides/slide1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="2" name="Theme Saturation"/></p:nvSpPr>
+        <p:spPr>
+          <a:xfrm><a:off x="1000" y="1000"/><a:ext cx="4000" cy="2000"/></a:xfrm>
+          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+          <a:solidFill><a:schemeClr val="accent1"><a:satMod val="0"/></a:schemeClr></a:solidFill>
+        </p:spPr>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`,
+    'ppt/slides/_rels/slide1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+</Relationships>`,
+    'ppt/slideLayouts/slideLayout1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sldLayout xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:cSld><p:spTree/></p:cSld></p:sldLayout>`,
+    'ppt/slideLayouts/_rels/slideLayout1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/>
+</Relationships>`,
+    'ppt/slideMasters/slideMaster1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sldMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree/></p:cSld></p:sldMaster>`,
+    'ppt/slideMasters/_rels/slideMaster1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rIdTheme" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/>
+</Relationships>`,
+    'ppt/theme/theme1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Theme"><a:themeElements><a:clrScheme name="Scheme"><a:accent1><a:srgbClr val="FF0000"/></a:accent1></a:clrScheme></a:themeElements></a:theme>`
   }));
 }
 

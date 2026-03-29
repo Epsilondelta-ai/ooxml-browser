@@ -207,7 +207,7 @@ function parseShape(
     placeholderIndex: xmlAttr(placeholder, 'idx') ?? undefined,
     shapeType,
     transform,
-    fill: parseFill(shapeProperties, relationships, theme, style, shapeType),
+    fill: parseFill(shapeProperties, relationships, theme, style),
     line: parseLine(shapeProperties, theme, style),
     textStyle: parseTextStyle(shape, theme),
     pathCommands: pathGeometry.commands,
@@ -251,7 +251,7 @@ function parsePicture(
     text: '',
     shapeType: 'picture',
     transform,
-    fill: parseFill(shapeProperties, relationships, theme, style, 'picture'),
+    fill: parseFill(shapeProperties, relationships, theme, style),
     line: parseLine(shapeProperties, theme, style),
     pathCommands: pathGeometry.commands,
     pathViewport: pathGeometry.viewport,
@@ -764,8 +764,7 @@ function parseFill(
   shapeProperties: Record<string, unknown> | undefined,
   relationships: ReturnType<typeof relationshipsFor>,
   theme?: PresentationTheme,
-  styleNode?: Record<string, unknown>,
-  shapeType?: string
+  styleNode?: Record<string, unknown>
 ): PresentationFill | undefined {
   if (!shapeProperties) {
     return undefined;
@@ -823,9 +822,6 @@ function parseFill(
   }
 
   const styleFill = xmlChild<Record<string, unknown>>(styleNode, 'a:fillRef');
-  if (shapeType === 'custom' && xmlChild<Record<string, unknown>>(shapeProperties, 'a:ln')) {
-    return undefined;
-  }
   const styleFillColor = resolveColor(styleFill, theme);
   if (styleFillColor?.color) {
     return {
@@ -844,22 +840,29 @@ function parseLine(shapeProperties: Record<string, unknown> | undefined, theme?:
     return undefined;
   }
 
+  const presetDash = line['a:prstDash'] as Record<string, unknown> | undefined
+    ?? xmlChild<Record<string, unknown>>(line, 'a:prstDash')
+    ?? findElementsByLocalName(line, 'prstDash')[0] as Record<string, unknown> | undefined;
+  const styleLine = xmlChild<Record<string, unknown>>(styleNode, 'a:lnRef');
+  const dash = xmlAttr(presetDash, 'val') ?? undefined;
+
   if (xmlChild<Record<string, unknown> | string>(line, 'a:noFill') !== undefined) {
     return {
       kind: 'none',
-      width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : undefined; })()
+      width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : undefined; })(),
+      dash
     };
   }
 
   const solidFill = xmlChild<Record<string, unknown>>(line, 'a:solidFill');
   const resolved = solidFill ? resolveColor(solidFill, theme) : undefined;
-  const styleLine = xmlChild<Record<string, unknown>>(styleNode, 'a:lnRef');
   const styleResolved = styleLine ? resolveColor(styleLine, theme) : undefined;
   return {
     kind: 'solid',
     color: resolved?.color ?? styleResolved?.color,
     opacity: resolved?.opacity ?? styleResolved?.opacity,
-    width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : xmlAttr(styleLine, 'idx') ? Number(xmlAttr(styleLine, 'idx')) * 6350 : undefined; })()
+    width: (() => { const value = xmlAttr(line, 'w'); return value ? Number(value) : xmlAttr(styleLine, 'idx') ? Number(xmlAttr(styleLine, 'idx')) * 6350 : undefined; })(),
+    dash
   };
 }
 
@@ -906,6 +909,8 @@ function applyColorTransforms(color: string | undefined, node: Record<string, un
   const lumOff = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:lumOff'), 'val') ?? 0) / 100000;
   const shade = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:shade'), 'val') ?? 100000) / 100000;
   const tint = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:tint'), 'val') ?? 0) / 100000;
+  const satMod = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:satMod'), 'val') ?? 100000) / 100000;
+  const satOff = Number(xmlAttr(xmlChild<Record<string, unknown>>(node, 'a:satOff'), 'val') ?? 0) / 100000;
 
   const transformChannel = (channel: number): number => {
     let value = channel * lumMod + 255 * lumOff;
@@ -917,7 +922,54 @@ function applyColorTransforms(color: string | undefined, node: Record<string, un
   r = transformChannel(r);
   g = transformChannel(g);
   b = transformChannel(b);
+  if (satMod !== 1 || satOff !== 0) {
+    const [h, s, l] = rgbToHsl(r, g, b);
+    [r, g, b] = hslToRgb(h, Math.max(0, Math.min(1, s * satMod + satOff)), l);
+  }
   return `#${[r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+}
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  const [rn, gn, bn] = [r, g, b].map((value) => value / 255);
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const lightness = (max + min) / 2;
+  if (max === min) {
+    return [0, 0, lightness];
+  }
+
+  const delta = max - min;
+  const saturation = lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+  const hue =
+    max === rn ? ((gn - bn) / delta + (gn < bn ? 6 : 0))
+      : max === gn ? (bn - rn) / delta + 2
+        : (rn - gn) / delta + 4;
+  return [hue / 6, saturation, lightness];
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  if (s === 0) {
+    const value = Math.round(l * 255);
+    return [value, value, value];
+  }
+
+  const hueToRgb = (p: number, q: number, t: number): number => {
+    let adjusted = t;
+    if (adjusted < 0) adjusted += 1;
+    if (adjusted > 1) adjusted -= 1;
+    if (adjusted < 1 / 6) return p + (q - p) * 6 * adjusted;
+    if (adjusted < 1 / 2) return q;
+    if (adjusted < 2 / 3) return p + (q - p) * (2 / 3 - adjusted) * 6;
+    return p;
+  };
+
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return [
+    Math.round(hueToRgb(p, q, h + 1 / 3) * 255),
+    Math.round(hueToRgb(p, q, h) * 255),
+    Math.round(hueToRgb(p, q, h - 1 / 3) * 255)
+  ];
 }
 
 function parseAlpha(node: Record<string, unknown>): number | undefined {
