@@ -251,6 +251,16 @@
   - `sample6/1`: `93.02 -> 93.05`
 - **Decision:** accepted because it materially improved sample1, slightly improved sample6, and left sample5 unchanged.
 
+## Stage 23 — narrow small rotated trapezoids in the industrial cluster
+- **Status:** accepted
+- **What changed:** the scene-svg trapezoid primitive now uses a narrower top edge only for small rotated trapezoids, which targets the repeated industrial-cluster teeth on sample1 without changing larger trapezoid uses elsewhere.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4332 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.78 -> 91.79`
+  - `sample5/2`: `87.75 -> 87.75`
+  - `sample6/1`: `93.05 -> 93.05`
+- **Decision:** accepted because it produced a small real gain on sample1 while the other two targets stayed flat.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.

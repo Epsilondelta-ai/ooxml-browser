@@ -106,7 +106,7 @@ function renderSceneShapeSvg(shape: SlideShape): string {
     return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="${preserveAspectRatio}" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''}${evenOdd ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/></svg>`;
   }
 
-  const presetMarkup = buildPresetSceneSvgMarkup(shape.shapeType, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
+  const presetMarkup = buildPresetSceneSvgMarkup(shape, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
   if (!presetMarkup) {
     return '';
   }
@@ -223,13 +223,14 @@ function isPresetSceneVectorShape(shapeType: string | undefined): boolean {
 }
 
 function buildPresetSceneSvgMarkup(
-  shapeType: string | undefined,
+  shape: SlideShape,
   fill: string,
   fillOpacity: number | undefined,
   stroke: string,
   strokeWidth: number,
   strokeAttrs: string
 ): string | undefined {
+  const shapeType = shape.shapeType;
   const fillOpacityAttr = fill !== 'none' && fillOpacity !== undefined ? ` fill-opacity="${fillOpacity}"` : '';
   switch (shapeType) {
     case 'ellipse':
@@ -237,7 +238,7 @@ function buildPresetSceneSvgMarkup(
     case 'chevron':
       return `<path d="M 0 0 L 715 0 L 1000 500 L 715 1000 L 0 1000 L 330 500 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'trapezoid':
-      return `<path d="M 180 0 L 820 0 L 1000 1000 L 0 1000 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
+      return `<path d="${trapezoidPath(shape)}" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'roundRect':
     case 'round2SameRect':
       return `<rect x="0" y="0" width="1000" height="1000" rx="120" ry="120" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
@@ -246,6 +247,16 @@ function buildPresetSceneSvgMarkup(
     default:
       return undefined;
   }
+}
+
+function trapezoidPath(shape: SlideShape): string {
+  const transform = shape.transform;
+  const smallRotated = transform
+    && (transform.rotationDeg ?? 0) !== 0
+    && Math.max(transform.cx ?? 0, transform.cy ?? 0) < 400000;
+  return smallRotated
+    ? 'M 260 0 L 740 0 L 1000 1000 L 0 1000 Z'
+    : 'M 180 0 L 820 0 L 1000 1000 L 0 1000 Z';
 }
 
 function sceneStrokeDashArray(line: SlideShape['line']): string | undefined {
