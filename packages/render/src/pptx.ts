@@ -101,7 +101,7 @@ function renderSceneShapeSvg(shape: SlideShape): string {
     : '';
   if (shape.pathCommands?.length) {
     const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands);
-    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/></svg>`;
+    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/></svg>`;
   }
 
   const presetMarkup = buildPresetSceneSvgMarkup(shape.shapeType, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
@@ -175,16 +175,16 @@ function buildPresetSceneSvgMarkup(
   const fillOpacityAttr = fill !== 'none' && fillOpacity !== undefined ? ` fill-opacity="${fillOpacity}"` : '';
   switch (shapeType) {
     case 'ellipse':
-      return `<ellipse cx="500" cy="500" rx="500" ry="500" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+      return `<ellipse cx="500" cy="500" rx="500" ry="500" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'chevron':
-      return `<path d="M 0 0 L 760 0 L 1000 500 L 760 1000 L 0 1000 L 180 500 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+      return `<path d="M 0 0 L 760 0 L 1000 500 L 760 1000 L 0 1000 L 180 500 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'trapezoid':
-      return `<path d="M 180 0 L 820 0 L 1000 1000 L 0 1000 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+      return `<path d="M 180 0 L 820 0 L 1000 1000 L 0 1000 Z" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'roundRect':
     case 'round2SameRect':
-      return `<rect x="0" y="0" width="1000" height="1000" rx="120" ry="120" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+      return `<rect x="0" y="0" width="1000" height="1000" rx="120" ry="120" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     case 'rect':
-      return `<rect x="0" y="0" width="1000" height="1000" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/>`;
+      return `<rect x="0" y="0" width="1000" height="1000" fill="${escapeHtml(fill)}"${fillOpacityAttr} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}" vector-effect="non-scaling-stroke"/>`;
     default:
       return undefined;
   }

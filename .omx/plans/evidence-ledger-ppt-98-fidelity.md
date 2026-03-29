@@ -101,6 +101,26 @@
   - `sample6/1`: `92.07 -> 92.07`
 - **Decision:** accepted because the targeted slide improved, the others stayed neutral, and the renderer change remains generic rather than sample-specific.
 
+## Stage 9 — rounded vector stroke caps and joins
+- **Status:** accepted
+- **What changed:** scene-svg vector strokes now use rounded caps and joins, which improves thin stroked geometry such as the sample1 logo details and the sample5 agenda card borders/ring edges.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4282 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.27 -> 91.29`
+  - `sample5/2`: `86.06 -> 86.67`
+  - `sample6/1`: `92.07 -> 92.02`
+- **Decision:** accepted under mixed-evidence rule because the worst score change stayed bounded while the agenda-slide stroke hotspot improved materially and `sample1/1` also improved.
+
+## Stage 9 — parser-grounded text insets
+- **Status:** accepted
+- **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4282 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.27 -> 91.27`
+  - `sample5/2`: `86.10 -> 85.69`
+  - `sample6/1`: `92.07 -> 92.17`
+- **Decision:** mixed result; not accepted as a universal improvement. Keep the renderer-side generic left padding stage as accepted, but do not count OOXML inset wiring as a separate accepted gain until it proves net-positive across the target set.
+
 ## Stage 7 — remove generic scene chrome from evidence captures
 - **Status:** accepted
 - **What changed:** removed the generic preview border and box-shadow from the scene renderer surface so screenshot captures match the reference image bounds instead of inheriting preview chrome.
@@ -110,3 +130,12 @@
   - `sample5/2`: `84.94 -> 86.06`
   - `sample6/1`: `91.20 -> 92.07`
 - **Decision:** accepted because it materially improved all three target slides and removed non-semantic preview chrome from the evidence path.
+
+## Attempted but reverted — parser-grounded text insets
+- **Status:** reverted
+- **What changed:** tried flowing OOXML body inset semantics into the scene renderer for left-aligned text boxes.
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.27 -> 91.27`
+  - `sample5/2`: `86.10 -> 85.69`
+  - `sample6/1`: `92.07 -> 92.17`
+- **Decision:** reverted because the targeted agenda slide regressed and the net result was not positive.
