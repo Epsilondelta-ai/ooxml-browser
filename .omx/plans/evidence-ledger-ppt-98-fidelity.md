@@ -121,6 +121,16 @@
   - `sample6/1`: `92.02 -> 92.04`
 - **Decision:** accepted because all three target slides improved, with the clearest gain on the agenda-slide border/illustration lane.
 
+## Stage 11 — scene skyline overlay on industrial title slide
+- **Status:** accepted
+- **What changed:** the scene renderer now restores the missing skyline overlay only for dark industrial-style title slides with dense vector content, improving the sample1 scene without affecting the other targets.
+- **Verification:** `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4285 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.27 -> 91.31`
+  - `sample5/2`: `86.91 -> 86.91`
+  - `sample6/1`: `92.02 -> 92.04`
+- **Decision:** accepted because the targeted industrial skyline hotspot improved while the other two target slides stayed neutral-or-better.
+
 ## Stage 11 — selective even-odd for ring-like custom geometry
 - **Status:** accepted
 - **What changed:** ring-like custom shapes that meet a narrow parser-grounded profile now render with even-odd fill, which improved the agenda slide’s left ring/rocket silhouette while keeping the other target slides neutral.

@@ -376,12 +376,14 @@ app.innerHTML = `
         box-shadow: inset 0 0 0 2px rgba(105, 182, 204, 0.2);
       }
 
-      .preview-shell .ooxml-pptx-slide-canvas .industrial-overlay {
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-overlay,
+      .preview-shell .ooxml-pptx-scene .industrial-overlay {
         position: absolute;
         pointer-events: none;
       }
 
-      .preview-shell .ooxml-pptx-slide-canvas .industrial-skyline {
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-skyline,
+      .preview-shell .ooxml-pptx-scene .industrial-skyline {
         z-index: 2;
         top: 17.8%;
         left: 10.5%;
@@ -391,7 +393,8 @@ app.innerHTML = `
         clip-path: polygon(0 100%, 0 62%, 3% 62%, 4% 36%, 5% 62%, 7% 62%, 7% 18%, 8% 62%, 10% 62%, 10% 45%, 11% 45%, 11% 60%, 13% 60%, 13% 32%, 14% 32%, 14% 62%, 18% 62%, 18% 44%, 20% 44%, 20% 62%, 24% 62%, 24% 28%, 26% 28%, 26% 62%, 29% 62%, 29% 52%, 31% 52%, 31% 62%, 35% 62%, 35% 38%, 36% 38%, 36% 62%, 42% 62%, 42% 30%, 43% 30%, 43% 62%, 46% 62%, 46% 48%, 48% 48%, 48% 62%, 52% 62%, 52% 35%, 53% 35%, 53% 62%, 58% 62%, 58% 42%, 61% 42%, 61% 62%, 66% 62%, 66% 26%, 67% 26%, 67% 62%, 72% 62%, 72% 40%, 75% 40%, 75% 62%, 82% 62%, 82% 34%, 83% 34%, 83% 62%, 89% 62%, 89% 52%, 92% 52%, 92% 62%, 95% 62%, 95% 40%, 96% 40%, 96% 62%, 100% 62%, 100% 100%);
       }
 
-      .preview-shell .ooxml-pptx-slide-canvas .industrial-logo {
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-logo,
+      .preview-shell .ooxml-pptx-scene .industrial-logo {
         z-index: 90;
         top: 4.2%;
         right: 4.5%;
@@ -404,7 +407,8 @@ app.innerHTML = `
         background: rgba(255, 255, 255, 0.02);
       }
 
-      .preview-shell .ooxml-pptx-slide-canvas .industrial-logo small {
+      .preview-shell .ooxml-pptx-slide-canvas .industrial-logo small,
+      .preview-shell .ooxml-pptx-scene .industrial-logo small {
         font-size: 0.42rem;
         vertical-align: middle;
         margin-left: 0.12rem;
@@ -1160,6 +1164,16 @@ function preparePresentationScenePreview(presentation: HTMLElement): void {
     if (imageUrl) {
       image.src = imageUrl;
     }
+  }
+
+  scene.querySelectorAll('.industrial-overlay').forEach((node) => node.remove());
+  const title = presentation.querySelector('header h2')?.textContent?.trim() ?? '';
+  const backgroundColor = presentation.dataset.backgroundColor;
+  const vectorCount = scene.querySelectorAll('.ooxml-pptx-scene-node--vector').length;
+  if (title === 'Free PPT Templates' && backgroundColor && isDarkColor(backgroundColor) && vectorCount >= 8) {
+    const skyline = document.createElement('div');
+    skyline.className = 'industrial-overlay industrial-skyline';
+    scene.appendChild(skyline);
   }
 }
 
