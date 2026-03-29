@@ -4,7 +4,7 @@ import { openPackage } from '@ooxml/core';
 import { parsePptx } from '@ooxml/pptx';
 import { renderOfficeDocumentToHtml } from '@ooxml/render';
 
-import { createGroupedPptxFixture, createLayoutInheritedPlaceholderPptxFixture, createMultiPathCustomGeometryPptxFixture, createTransformedPptxFixture } from './fixture-builders';
+import { createGroupedPptxFixture, createLayoutInheritedPlaceholderPptxFixture, createLayoutPreferredPlaceholderPptxFixture, createMultiPathCustomGeometryPptxFixture, createTransformedPptxFixture } from './fixture-builders';
 
 describe('pptx richer shape metadata', () => {
   it('parses text and picture transforms into shape metadata', async () => {
@@ -58,6 +58,19 @@ describe('pptx richer shape metadata', () => {
     expect(inheritedShape?.textStyle?.color).toBe('#FFFFFF');
     expect(inheritedShape?.textStyle?.fontSizePt).toBe(32);
     expect(inheritedShape?.textStyle?.bold).toBe(true);
+  });
+
+  it('prefers layout placeholder defaults over conflicting master placeholder defaults', async () => {
+    const presentation = parsePptx(await openPackage(createLayoutPreferredPlaceholderPptxFixture()));
+    const inheritedShape = presentation.slides[0]?.shapes.find((shape) => shape.name === 'Body Placeholder');
+
+    expect(inheritedShape?.transform).toEqual({ x: 1200, y: 3400, cx: 5600, cy: 1800 });
+    expect(inheritedShape?.textStyle).toEqual({
+      color: '#123456',
+      fontSizePt: 32,
+      bold: true,
+      align: 'ctr'
+    });
   });
 
   it('preserves multi-path custom geometry command order and viewport metadata', async () => {

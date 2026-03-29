@@ -51,13 +51,15 @@ function parseSlide(graph: PackageGraph, uri: string, themeCache: Record<string,
   const layoutInfo = layoutRelationship?.resolvedTarget ? parseLayoutInfo(graph, layoutRelationship.resolvedTarget, themeCache) : undefined;
   const theme = layoutInfo?.themeUri ? themeCache[layoutInfo.themeUri] : undefined;
   const baseShapes = collectShapes(shapeTree, slideRelationships, theme, undefined, rawShapeXmlById);
+  const masterShapes = layoutInfo?.masterShapes ?? [];
+  const layoutShapes = layoutInfo?.layoutShapes ?? [];
   const inheritedShapes = [
-    ...(layoutInfo?.masterShapes ?? []),
-    ...(layoutInfo?.layoutShapes ?? [])
+    ...masterShapes,
+    ...layoutShapes
   ];
   const shapes = [
     ...inheritedShapes.filter((shape) => !shape.placeholderType && !shape.placeholderIndex),
-    ...applyInheritedPlaceholderProperties(baseShapes, inheritedShapes)
+    ...applyInheritedPlaceholderProperties(baseShapes, layoutShapes, masterShapes)
   ];
   const notesInfo = parseNotesInfo(graph, uri);
   const title = selectSlideTitle(shapes);
@@ -591,22 +593,30 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
   }
 
   const paragraph = xmlChild<Record<string, unknown>>(textBody, 'a:p');
+  const listStyle = xmlChild<Record<string, unknown>>(textBody, 'a:lstStyle');
   const paragraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'a:pPr');
+  const paragraphLevel = Number(xmlAttr(paragraphProperties, 'lvl') ?? 0);
+  const levelProperties = xmlChild<Record<string, unknown>>(listStyle, `a:lvl${Math.min(paragraphLevel + 1, 9)}pPr`);
   const run = xmlChild<Record<string, unknown>>(paragraph, 'a:r');
   const runProperties = xmlChild<Record<string, unknown>>(run, 'a:rPr');
   const endParagraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'a:endParaRPr');
+  const defaultRunProperties = xmlChild<Record<string, unknown>>(levelProperties, 'a:defRPr');
   const solidFill = xmlChild<Record<string, unknown>>(runProperties, 'a:solidFill')
-    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:solidFill');
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:solidFill')
+    ?? xmlChild<Record<string, unknown>>(defaultRunProperties, 'a:solidFill');
   const latin = xmlChild<Record<string, unknown>>(runProperties, 'a:latin')
-    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:latin');
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:latin')
+    ?? xmlChild<Record<string, unknown>>(defaultRunProperties, 'a:latin');
   const eastAsian = xmlChild<Record<string, unknown>>(runProperties, 'a:ea')
-    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:ea');
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:ea')
+    ?? xmlChild<Record<string, unknown>>(defaultRunProperties, 'a:ea');
   const complexScript = xmlChild<Record<string, unknown>>(runProperties, 'a:cs')
-    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:cs');
+    ?? xmlChild<Record<string, unknown>>(endParagraphProperties, 'a:cs')
+    ?? xmlChild<Record<string, unknown>>(defaultRunProperties, 'a:cs');
   const color = solidFill ? resolveColor(solidFill, theme)?.color : undefined;
-  const size = xmlAttr(runProperties, 'sz') ?? xmlAttr(endParagraphProperties, 'sz');
+  const size = xmlAttr(runProperties, 'sz') ?? xmlAttr(endParagraphProperties, 'sz') ?? xmlAttr(defaultRunProperties, 'sz');
 
-  if (!runProperties && !endParagraphProperties && !paragraphProperties) {
+  if (!runProperties && !endParagraphProperties && !paragraphProperties && !levelProperties && !defaultRunProperties) {
     return undefined;
   }
 
@@ -618,13 +628,21 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
       ? true
       : xmlAttr(runProperties, 'b') === '0' || xmlAttr(endParagraphProperties, 'b') === '0'
         ? false
-        : undefined,
+        : xmlAttr(defaultRunProperties, 'b') === '1'
+          ? true
+          : xmlAttr(defaultRunProperties, 'b') === '0'
+            ? false
+            : undefined,
     italic: xmlAttr(runProperties, 'i') === '1' || xmlAttr(endParagraphProperties, 'i') === '1'
       ? true
       : xmlAttr(runProperties, 'i') === '0' || xmlAttr(endParagraphProperties, 'i') === '0'
         ? false
-        : undefined,
-    align: xmlAttr(paragraphProperties, 'algn') ?? undefined
+        : xmlAttr(defaultRunProperties, 'i') === '1'
+          ? true
+          : xmlAttr(defaultRunProperties, 'i') === '0'
+            ? false
+            : undefined,
+    align: xmlAttr(paragraphProperties, 'algn') ?? xmlAttr(levelProperties, 'algn') ?? undefined
   };
 }
 
@@ -676,16 +694,14 @@ function parseLayoutInfo(
   return { layoutUri, layoutName, masterUri, masterName, themeUri, layoutBackground, masterBackground, layoutShapes, masterShapes };
 }
 
-function applyInheritedPlaceholderProperties(slideShapes: SlideShape[], inheritedShapes: SlideShape[]): SlideShape[] {
+function applyInheritedPlaceholderProperties(slideShapes: SlideShape[], layoutShapes: SlideShape[], masterShapes: SlideShape[]): SlideShape[] {
   return slideShapes.map((shape) => {
     if (!shape.placeholderType && !shape.placeholderIndex) {
       return shape;
     }
 
-    const match = inheritedShapes.find((candidate) =>
-      candidate.placeholderType === shape.placeholderType
-      && candidate.placeholderIndex === shape.placeholderIndex
-    );
+    const match = selectPlaceholderInheritanceMatch(shape, layoutShapes)
+      ?? selectPlaceholderInheritanceMatch(shape, masterShapes);
     if (!match) {
       return shape;
     }
@@ -700,6 +716,55 @@ function applyInheritedPlaceholderProperties(slideShapes: SlideShape[], inherite
       shapeType: shape.shapeType ?? match.shapeType
     };
   });
+}
+
+function selectPlaceholderInheritanceMatch(shape: SlideShape, candidates: SlideShape[]): SlideShape | undefined {
+  const placeholderType = shape.placeholderType;
+  const placeholderIndex = shape.placeholderIndex;
+  if (!placeholderType && !placeholderIndex) {
+    return undefined;
+  }
+
+  const exact = candidates.find((candidate) =>
+    candidate.placeholderType === placeholderType
+    && candidate.placeholderIndex === placeholderIndex
+  );
+  if (exact) {
+    return exact;
+  }
+
+  if (placeholderIndex) {
+    const indexMatch = candidates.find((candidate) => candidate.placeholderIndex === placeholderIndex);
+    if (indexMatch) {
+      return indexMatch;
+    }
+  }
+
+  if (placeholderType) {
+    const typeMatch = candidates.find((candidate) =>
+      candidate.placeholderType === placeholderType
+      || placeholderTypeFamily(candidate.placeholderType) === placeholderTypeFamily(placeholderType)
+    );
+    if (typeMatch) {
+      return typeMatch;
+    }
+  }
+
+  return undefined;
+}
+
+function placeholderTypeFamily(placeholderType: string | undefined): string | undefined {
+  switch (placeholderType) {
+    case 'title':
+    case 'ctrTitle':
+      return 'title';
+    case 'body':
+    case 'subTitle':
+    case 'obj':
+      return 'body';
+    default:
+      return placeholderType;
+  }
 }
 
 function mergeDefined<T extends object>(base: T | undefined, override: T | undefined): T | undefined {

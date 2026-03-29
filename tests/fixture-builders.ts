@@ -499,6 +499,111 @@ export function createLayoutInheritedPlaceholderPptxFixture(): Uint8Array {
   }));
 }
 
+export function createLayoutPreferredPlaceholderPptxFixture(): Uint8Array {
+  return zipSync(encodedEntries({
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+  <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+  <Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>
+  <Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>
+  <Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>
+</Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
+</Relationships>`,
+    'ppt/presentation.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:sldSz cx="9144000" cy="6858000"/>
+  <p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst>
+</p:presentation>`,
+    'ppt/_rels/presentation.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+</Relationships>`,
+    'ppt/slides/slide1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="2" name="Body Placeholder"/>
+          <p:nvPr><p:ph type="body" idx="10"/></p:nvPr>
+        </p:nvSpPr>
+        <p:txBody>
+          <a:bodyPr/>
+          <a:lstStyle/>
+          <a:p><a:r><a:rPr b="1"/><a:t>Layout-preferred body</a:t></a:r></a:p>
+        </p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`,
+    'ppt/slides/_rels/slide1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+</Relationships>`,
+    'ppt/slideLayouts/slideLayout1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sldLayout xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="3" name="Layout Body"/>
+          <p:nvPr><p:ph type="body" idx="10"/></p:nvPr>
+        </p:nvSpPr>
+        <p:spPr><a:xfrm><a:off x="1200" y="3400"/><a:ext cx="5600" cy="1800"/></a:xfrm></p:spPr>
+        <p:txBody>
+          <a:bodyPr/>
+          <a:lstStyle>
+            <a:lvl1pPr algn="ctr">
+              <a:defRPr sz="3200"><a:solidFill><a:srgbClr val="123456"/></a:solidFill></a:defRPr>
+            </a:lvl1pPr>
+          </a:lstStyle>
+          <a:p><a:r><a:t>Layout body</a:t></a:r></a:p>
+        </p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sldLayout>`,
+    'ppt/slideLayouts/_rels/slideLayout1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rIdMaster" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/>
+</Relationships>`,
+    'ppt/slideMasters/slideMaster1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<p:sldMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="4" name="Master Body"/>
+          <p:nvPr><p:ph type="body" idx="10"/></p:nvPr>
+        </p:nvSpPr>
+        <p:txBody>
+          <a:bodyPr/>
+          <a:lstStyle>
+            <a:lvl1pPr algn="l">
+              <a:defRPr sz="2000"><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill></a:defRPr>
+            </a:lvl1pPr>
+          </a:lstStyle>
+          <a:p><a:r><a:t>Master body</a:t></a:r></a:p>
+        </p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sldMaster>`,
+    'ppt/slideMasters/_rels/slideMaster1.xml.rels': `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rIdTheme" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/>
+</Relationships>`,
+    'ppt/theme/theme1.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme"><a:themeElements><a:clrScheme name="Office"><a:accent1><a:srgbClr val="123456"/></a:accent1></a:clrScheme><a:fontScheme name="Office Font Scheme"><a:majorFont><a:latin typeface="Aptos Display"/></a:majorFont><a:minorFont><a:latin typeface="Aptos"/></a:minorFont></a:fontScheme></a:themeElements></a:theme>`
+  }));
+}
+
 export function createThemeColorSaturationPptxFixture(): Uint8Array {
   return zipSync(encodedEntries({
     '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8"?>

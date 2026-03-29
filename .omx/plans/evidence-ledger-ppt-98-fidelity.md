@@ -30,3 +30,13 @@
   - `sample5/2`: `81.14 -> 82.37` but vision regressed badly (rocket/ring collapse and black block artifacts)
   - `sample6/1`: `89.88 -> 88.87` with text/layout degradation
 - **Decision:** revert default usage, keep scaffold hidden behind fallback, and continue toward inheritance/text + geometry completion before re-enabling it for evidence runs.
+
+## Stage 2 — placeholder/layout/master inheritance + text defaults
+- **Status:** accepted
+- **What changed:** parser now prefers layout placeholder matches over conflicting master placeholders and merges list-style/default-run placeholder text defaults into slide placeholders.
+- **Verification:** `npm test -- pptx-shape-transform.test.ts`, `npm test -- render-and-browser.test.ts pptx-shape-transform.test.ts`, `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4278 npm run quality:ppt-sample-screenshots`
+- **Evidence:**
+  - `sample1/1`: `85.20 -> 85.54` (essentially neutral)
+  - `sample5/2`: `81.14 -> 81.93` (improved)
+  - `sample6/1`: `89.88 -> 89.76` (small drop, but subtitle layout moved materially closer to centered multi-line behavior)
+- **Decision:** accepted under mixed-evidence rule because score loss stayed bounded and the text/layout hotspot class improved visibly on `sample6/1` while `sample5/2` improved numerically.
