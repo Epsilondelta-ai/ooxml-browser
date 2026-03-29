@@ -24,6 +24,7 @@ export interface PresentationLine {
   color?: string;
   opacity?: number;
   width?: number;
+  dash?: string;
 }
 
 export interface PresentationTextStyle {
