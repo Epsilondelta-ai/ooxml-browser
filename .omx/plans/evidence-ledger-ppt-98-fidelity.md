@@ -161,6 +161,16 @@
   - `sample6/1`: `92.04 -> 92.05`
 - **Decision:** accepted because the dashed-ring target improved, however slightly, while the other two target slides remained neutral.
 
+## Stage 14 — remove generic padding from centered scene text
+- **Status:** accepted
+- **What changed:** centered scene text now drops the generic preview padding while keeping the existing non-centered inset behavior, which tightened title-band placement on the agenda slide without broad typography churn.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4292 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.29 -> 91.30`
+  - `sample5/2`: `86.91 -> 87.26`
+  - `sample6/1`: `92.05 -> 92.03`
+- **Decision:** accepted under mixed-evidence rule because the sample5 target improved materially, sample1 also improved slightly, and the sample6 drift stayed negligible.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
