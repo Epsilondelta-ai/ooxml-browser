@@ -140,8 +140,8 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-scene {
-        border: 1px solid #cbd5e1;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+        border: none;
+        box-shadow: none;
       }
 
       .preview-shell .ooxml-pptx-scene-node,

@@ -80,3 +80,13 @@
   - `sample5/2`: `84.89 -> 84.94`
   - `sample6/1`: `91.20 -> 91.20`
 - **Decision:** accepted because all target slides stayed neutral-to-better and the stroke conversion is a more principled renderer baseline for later geometry work.
+
+## Stage 7 — remove generic scene chrome from evidence captures
+- **Status:** accepted
+- **What changed:** removed the generic preview border and box-shadow from the scene renderer surface so screenshot captures match the reference image bounds instead of inheriting preview chrome.
+- **Verification:** `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4281 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `89.47 -> 91.27`
+  - `sample5/2`: `84.94 -> 86.06`
+  - `sample6/1`: `91.20 -> 92.07`
+- **Decision:** accepted because it materially improved all three target slides and removed non-semantic preview chrome from the evidence path.
