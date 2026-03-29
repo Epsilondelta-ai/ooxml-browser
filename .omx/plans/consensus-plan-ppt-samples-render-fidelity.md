@@ -1,120 +1,131 @@
-# Consensus Plan: PPT sample render fidelity
+# Consensus Plan: PPT samples render fidelity
 
 ## RALPLAN-DR summary
 ### Principles
-1. Corpus truth beats intuition.
-2. Scene semantics belong in parser/render packages; product chrome stays thin.
-3. Visual verification must be repeatable and slide-indexed.
-4. Fix unsupported package detection before polishing supported slides.
-5. Improve slide-family fidelity in bounded, sample-driven waves.
+1. Corpus-backed rendering truth beats aesthetic guesswork.
+2. Fix package/parsing correctness before tuning slide cosmetics.
+3. Add reusable PPTX scene semantics in the core renderer; keep example-only heuristics thin.
+4. Visual progress must be measurable with deterministic screenshot evidence.
+5. Prefer staged coverage of dominant slide archetypes over shallow support for every shape effect.
 
 ### Decision drivers
-1. The paired `pptx/png` corpus provides direct evidence of real user expectations.
-2. Current PPTX output is still a semantic/debug renderer, not a slide-export-quality view.
-3. Sample6 shows a structural parser/root-detection gap that blocks honest corpus coverage.
+1. `sample6` currently fails at root PPTX detection, blocking trustworthy corpus-wide work.
+2. The current PPTX renderer is semantic/debug-oriented and lacks export-like scene composition.
+3. The paired PNG corpus makes screenshot-based verification practical and necessary.
 
 ### Viable options
-- **A. Corpus-first scene upgrade with parser + visual harness** — chosen
-  - Pros: directly targets the reference images, creates durable verification, fixes sample6-class detection
-  - Cons: larger up-front harness work before all visual wins are visible
-- **B. Example-only heuristics on top of the current renderer** — rejected
-  - Pros: fast local improvements
-  - Cons: fragile, hard to verify, and insufficient for six heterogeneous sample decks
-- **C. Full renderer rewrite before harnessing the corpus** — rejected
-  - Pros: cleaner long-term architecture if unlimited scope
-  - Cons: too broad, high risk, and poorly bounded for the current repo
+- **A. Core PPTX scene-rendering upgrade + screenshot harness** — chosen
+  - Pros: improves reusable library behavior, supports corpus-wide progress, gives measurable outcomes
+  - Cons: larger change set across parser/core/example/tests
+- **B. Example-only CSS/DOM heuristics over current semantic renderer** — rejected
+  - Pros: quick visible gains in the example
+  - Cons: does not fix library-level rendering semantics, brittle across six sample decks
+- **C. External rasterization bridge (PowerPoint/LibreOffice export) as runtime dependency** — rejected
+  - Pros: closer screenshots faster
+  - Cons: violates browser-first library direction and avoids solving parsing/render fidelity
 
 ### Decision
-Choose **Option A**. Build a corpus-backed PPTX fidelity lane that starts with package detection and screenshot/reference verification, then deepens parser/render semantics around the actual sample slide families.
+Choose **Option A**: fix parsing/root detection, add richer PPTX scene semantics in the renderer, and validate them with a screenshot/reference harness.
 
 ### Pre-mortem
-1. We polish the example UI while the core renderer still cannot reproduce the sample slide families.
-2. Sample6 stays unsupported and corrupts the final coverage story.
-3. Visual diffs are noisy/unactionable because the screenshot environment is not pinned.
+1. Screenshot tests are too flaky to trust.
+2. Renderer improvements overfit one sample family and regress others.
+3. Package/root fixes land, but slide-level visual semantics remain too shallow for the sample corpus.
 
 ### Expanded test plan
-- **Unit:** root detection, slide background/fill/theme helpers, media URL resolution, scene-layout helpers
-- **Integration:** sample deck open/render/navigate flows, parser+renderer coordination for representative slides
-- **E2E:** browser screenshot capture for representative slides per sample family
-- **Observability:** slide-indexed verdict JSON, mismatch summaries, unsupported-feature reports
+- **Unit:** root detection, background/theme extraction, shape/image projection helpers
+- **Integration:** sample corpus parse counts, slide navigation, image-part rendering, viewer mode
+- **E2E/visual:** Playwright screenshot capture against paired PNG exports for declared slide subset, then expand
+- **Observability:** per-slide comparison manifest with parser diagnostics and verdict notes
 
 ## Stage order
-### Stage 0 — corpus grounding + verification architecture
-- inventory sample corpus
-- define slide-index mapping and artifact layout
-- capture sample6 diagnosis
+### Stage 0 — corpus grounding + harness design
+Deliverables:
+- sample inventory and slide-count evidence
+- screenshot/reference manifest format
+- viewport/browser contract for deterministic captures
 
-### Stage 1 — package detection + corpus loader
-- fix root detection / opener for sample6-class files
-- add sample corpus manifest/loader utilities
+### Stage 1 — package/root correctness
+Deliverables:
+- fix PPTX root detection so `sample6` parses as PPTX
+- tests covering unusual package part ordering/root selection
 
-### Stage 2 — parser depth for visual semantics
-- background/fill/placeholder/image/theme extraction
-- transform and layer metadata hardening
+### Stage 2 — renderer scene foundation
+Deliverables:
+- richer PPTX render model for slide background, positioned shapes, image parts, and text blocks
+- reduce debug/meta chrome in preview surfaces
 
-### Stage 3 — PPTX scene renderer upgrade
-- title/content/divider/image slide-family rendering
-- actual image media projection
-- presentation-mode navigation/rendering surface
+### Stage 3 — archetype fidelity slices
+Deliverables:
+- title/hero slide fidelity
+- image-centric slide fidelity
+- card/list/content slide fidelity
+- representative diagram-heavy slide handling
 
-### Stage 4 — visual harness + reports
-- screenshot capture command
-- reference comparison artifacts and thresholds
-- mismatch triage reports
+### Stage 4 — screenshot verification pipeline
+Deliverables:
+- sample corpus screenshot runner
+- slide/reference manifest and report artifacts
+- documented comparison workflow
 
-### Stage 5 — hardening + surface sync
-- docs/playground/example alignment
-- residual outlier fixes
-- final sign-off evidence
+### Stage 5 — product surface alignment
+Deliverables:
+- browser example + playground slide-viewer updates
+- docs updates for PPTX visual capabilities and limits
+
+### Stage 6 — hardening exit
+Deliverables:
+- fresh corpus run
+- architect review
+- verifier review
+- deslop pass on changed files
 
 ## ADR
 ### Decision
-Adopt a corpus-first PPTX scene-fidelity plan driven by the local `ppt-samples` reference deck exports.
+Build a corpus-backed PPTX scene-rendering upgrade with screenshot verification.
 
 ### Drivers
-- Real reference images exist for every slide.
-- Current renderer lacks enough scene semantics.
-- Unsupported root detection blocks honest coverage today.
+- current semantic rendering is insufficient for exported-slide resemblance
+- sample6 parse failure blocks trust in corpus-wide work
+- paired PNGs make visual verification possible now
 
 ### Alternatives considered
-- Example-only styling pass
-- Full renderer rewrite before harnessing the corpus
+- example-only heuristics
+- external rasterization bridge
 
 ### Why chosen
-It is the smallest path that is still testable, durable, and directly tied to the user's real reference decks.
+This is the smallest path that improves the actual library and creates a durable verification lane.
 
 ### Consequences
-- We must invest in visual harness tooling now.
-- Parser/render changes will likely touch core PPTX semantics, not just UI chrome.
-- Completion will be measured by corpus evidence, not by subjective spot checks alone.
+- More upfront work in parser/renderer/test harness
+- Better foundation for future PPTX fidelity phases
+- Visual verification becomes part of the repo contract
 
 ### Follow-ups
-- Expand the harness to more PPTX corpora after this wave.
-- Consider moving stable scene semantics out of example-only code into reusable renderer modules.
-
-## Risks and mitigations
-- **Noisy screenshots:** pin capture environment and store structured verdicts.
-- **Theme/layout sparsity:** recover direct shape/background semantics and use bounded heuristics where necessary.
-- **Scope sprawl:** prioritize representative slide families and sample-driven mismatches only.
-- **Parser edge cases:** land sample6 detection fix with a regression test before broader polishing.
+- extend beyond declared sample subset once harness stabilizes
+- progressively support more DrawingML effects/fills/shape families
 
 ## Available-agent-types roster
-- `planner`, `architect`, `critic`, `executor`, `debugger`, `test-engineer`, `verifier`, `code-reviewer`, `writer`, `researcher`, `vision`
+- `planner`, `architect`, `critic`, `executor`, `debugger`, `test-engineer`, `verifier`, `researcher`, `writer`, `code-reviewer`
 
-## Ralph follow-up staffing guidance
-- **Lane A — corpus loader + diagnostics:** `executor` / `debugger` (high)
-- **Lane B — parser semantics:** `executor` / `architect` (high)
-- **Lane C — scene renderer + example/playground:** `executor` / `designer` / `vision` (high)
-- **Lane D — visual harness + reports:** `test-engineer` / `verifier` (high)
-- **Lane E — docs and evidence surfaces:** `writer` / `verifier` (medium)
+## Ralph lanes
+- **Lane A:** corpus + root-detection correctness (`packages/core`, `packages/pptx`, tests)
+- **Lane B:** PPTX renderer scene semantics (`packages/render`, `packages/pptx`)
+- **Lane C:** screenshot/reference harness + reports (`tools`, `tests`, possible fixtures/artifacts)
+- **Lane D:** product surfaces/docs (`examples/basic`, `playground`, docs)
+- **Lane E:** sign-off and consolidation
 
-## Team launch hints
-- Conservative Ralph path: keep implementation sequential but use parallel sidecar review for parser lane vs visual-harness lane.
-- If a team burst is needed later, split by lanes A-D and return to Ralph for final verification.
+## Suggested reasoning by lane
+- Lane A: high
+- Lane B: high
+- Lane C: medium-high
+- Lane D: medium
+- Lane E: high
 
-## Team verification path
-1. corpus loader recognizes all sample folders and slide counts
-2. sample6 handling is explicit and regression-tested
-3. representative slides from each sample family render and screenshot successfully
-4. verdict report is generated
-5. Ralph runs final end-to-end verification and sign-off
+## Verification path
+1. parse counts for sample1-6, including sample6 root fix
+2. screenshot/reference captures for declared subset
+3. browser example/playground verification
+4. full repo verification commands
+5. architect review
+6. verifier review

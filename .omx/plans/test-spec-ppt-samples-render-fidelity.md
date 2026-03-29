@@ -1,83 +1,49 @@
-# Test Specification: PPT sample render fidelity
+# Test Specification: PPT samples render fidelity
 
 ## Verification principles
-1. Screenshot/reference comparison is first-class evidence for this phase.
-2. Parser correctness and visual correctness are separate gates.
-3. Every corpus-driven rendering change must have an automated regression path.
-4. Sample6 root-detection coverage is mandatory because corpus completeness depends on it.
+1. The paired PPTX/PNG corpus is the source of truth for this phase.
+2. Visual progress must be measured with reproducible screenshot captures, not only semantic assertions.
+3. Parsing, rendering, and viewer behavior all need explicit coverage.
+4. Sample-specific regressions should be tracked slide-by-slide.
 
 ## Test layers
 ### Unit
-- PPTX root-document detection and fallback handling
-- slide/background/fill/theme parsing helpers
-- image/media part resolution for slide rendering
-- slide-family classification helpers used by the renderer
-- scene-layout helpers for transform-to-viewport projection
+- root document detection for malformed/unusual package ordering (`sample6`)
+- PPTX parser extraction of slide size, backgrounds, shape text, transforms, media, and placeholder metadata
+- PPTX renderer projection helpers for title/content/image/card slides
 
 ### Integration
-- open sample deck -> parse -> render selected slide -> serialize/reopen where applicable
-- example presentation mode loads a sample PPTX and navigates slides without throwing
-- media-backed slides resolve image parts to browser-renderable URLs
+- open `sample{1..6}/sample.pptx` and verify slide counts match paired PNG counts
+- render selected slides from each sample and verify expected DOM markers/image usage
+- browser example loads sample decks and supports slide navigation
 
-### Visual / golden
-- browser screenshot capture per slide for the sample corpus
-- reference comparison against paired `sample.###.png`
-- per-slide verdict JSON with score, mismatch categories, and actionable diffs
-- visual baselines grouped by sample folder and slide index
-
-### E2E
-- load a sample PPTX in `examples/basic`
-- navigate slides
-- verify slide count/active slide state
-- capture screenshots for selected representative slides (title, content, image-heavy, section-break)
+### Visual regression
+- capture screenshots for declared slides from each sample deck using pinned viewport/browser settings
+- compare against paired PNG exports
+- record per-slide verdicts and hotspot notes for iteration
 
 ### Observability
-- corpus manifest with slide counts and status
-- mismatch report summarizing top visual divergence causes
-- unsupported/partial-support report for any remaining slides
+- persist a manifest/report mapping sample folder -> slide number -> screenshot path -> reference path -> verdict
+- record parser diagnostics for unsupported shapes/effects encountered during runs
 
-## Corpus matrix
-- sample1: text/vector heavy, 48 slides
-- sample2: includes image-heavy slides, 48 slides
-- sample3: mixed image/text, 48 slides
-- sample4: text/vector heavy, 48 slides
-- sample5: different deck size and style family, 37 slides
-- sample6: current root-detection failure case
+## Minimum declared corpus gate
+- sample1: title slide, section break, representative dense content slide
+- sample2: title slide, image-heavy slide, mixed text/image slide
+- sample3: title slide, representative content slide
+- sample4: title slide, representative content slide
+- sample5: title slide, representative graphical/content slide
+- sample6: title slide plus one later representative slide after parse root is fixed
 
-## Stage-specific evidence gates
-### Stage 1
-- sample6 root-detection failure reproduced with a regression test
-- corpus manifest or loader covers all sample folders and slide counts
+## Required commands
+- `npm test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- any new screenshot/reference command introduced by this phase
+- `git diff --check`
 
-### Stage 2
-- parser tests cover background/fill/image/placeholder extraction needed by the sample corpus
-- representative slides from sample1/sample2/sample5 show richer scene metadata than today
-
-### Stage 3
-- presentation renderer displays actual image media for image slides
-- title/content slide families render with transform-aware scene placement
-- browser example can switch slides without layout collapse
-
-### Stage 4
-- screenshot/reference comparison command runs for the sample corpus
-- per-slide verdict artifacts written to a durable report location
-- pass threshold defined (target 90+, revise below 90)
-
-### Stage 5
-- docs/examples/playground updated alongside renderer behavior
-- final corpus run shows no parser crashes and a materially improved visual score distribution
-
-## Commands to add or use
-- targeted PPTX parser/render tests under `tests/`
-- example/build checks
-- screenshot/reference harness command (new)
-- final repo verification:
-  - `npm test`
-  - `npm run typecheck`
-  - `npm run lint`
-  - relevant build/example checks
-
-## Acceptance thresholds
-- No sample deck may fail to open without an explicit tested diagnostic path.
-- Title/content/image representative slides from each sample family should reach the agreed visual score threshold or have documented residual gaps.
-- Renderer regressions in existing PPTX tests are not allowed.
+## Exit criteria
+1. no sample deck parses as empty/unknown when it should be PPTX,
+2. declared screenshot comparisons are captured and reviewed,
+3. browser example/playground preview changes are covered by tests or deterministic harness evidence,
+4. final architect + verifier sign-off approve the evidence set.
