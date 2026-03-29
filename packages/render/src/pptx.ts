@@ -16,7 +16,7 @@ export function renderPresentation(presentation: PresentationDocument, options: 
   const theme = slide.themeUri ? presentation.themes[slide.themeUri] : undefined;
   if (options.pptxRenderer === 'scene-svg') {
     const sceneBackgroundStyle = buildSceneBackgroundStyle(slide.background);
-    const sceneShapes = slide.shapes.map((shape) => renderSceneShape(shape, presentation.size.cx, presentation.size.cy)).join('');
+    const sceneShapes = slide.shapes.map((shape) => renderSceneShape(shape, presentation.size.cx, presentation.size.cy, slide.title)).join('');
     return `<section class="ooxml-render ooxml-render--pptx ooxml-render--pptx-scene" data-presentation-cx="${presentation.size.cx}" data-presentation-cy="${presentation.size.cy}"${slide.background?.color ? ` data-background-color="${escapeHtml(slide.background.color)}"` : ''}${slide.background?.opacity !== undefined ? ` data-background-opacity="${slide.background.opacity}"` : ''}${slide.background?.targetUri ? ` data-background-image-uri="${escapeHtml(slide.background.targetUri)}"` : ''}${slide.layoutUri ? ` data-layout-uri="${escapeHtml(slide.layoutUri)}"` : ''}${slide.masterUri ? ` data-master-uri="${escapeHtml(slide.masterUri)}"` : ''}${slide.themeUri ? ` data-theme-uri="${escapeHtml(slide.themeUri)}"` : ''}><header><h2>${escapeHtml(slide.title)}</h2><p>${presentation.size.cx} × ${presentation.size.cy}</p></header><div class="ooxml-pptx-scene" style="${sceneBackgroundStyle};aspect-ratio:${presentation.size.cx} / ${presentation.size.cy};"${slide.background?.targetUri ? ` data-background-image-uri="${escapeHtml(slide.background.targetUri)}"` : ''}>${sceneShapes}</div><dl class="ooxml-pptx-inheritance"><dt>Layout</dt><dd>${escapeHtml(slide.layoutName ?? slide.layoutUri ?? 'none')}</dd><dt>Master</dt><dd>${escapeHtml(slide.masterName ?? slide.masterUri ?? 'none')}</dd><dt>Theme</dt><dd>${escapeHtml(theme?.name ?? theme?.colorSchemeName ?? slide.themeUri ?? 'none')}</dd></dl></section>`;
   }
 
@@ -29,11 +29,14 @@ export function renderPresentation(presentation: PresentationDocument, options: 
   return `<section class="ooxml-render ooxml-render--pptx" data-presentation-cx="${presentation.size.cx}" data-presentation-cy="${presentation.size.cy}"${slide.background?.color ? ` data-background-color="${escapeHtml(slide.background.color)}"` : ''}${slide.background?.opacity !== undefined ? ` data-background-opacity="${slide.background.opacity}"` : ''}${slide.background?.targetUri ? ` data-background-image-uri="${escapeHtml(slide.background.targetUri)}"` : ''}${slide.layoutUri ? ` data-layout-uri="${escapeHtml(slide.layoutUri)}"` : ''}${slide.masterUri ? ` data-master-uri="${escapeHtml(slide.masterUri)}"` : ''}${slide.themeUri ? ` data-theme-uri="${escapeHtml(slide.themeUri)}"` : ''}><header><h2>${escapeHtml(slide.title)}</h2><p>${presentation.size.cx} × ${presentation.size.cy}</p></header>${inheritanceMarkup}${timingMarkup}${shapeMarkup}${commentsMarkup}${notes}</section>`;
 }
 
-function renderSceneShape(shape: SlideShape, presentationCx: number, presentationCy: number): string {
+function renderSceneShape(shape: SlideShape, presentationCx: number, presentationCy: number, slideTitle: string): string {
   const x = shape.transform?.x ?? 0;
   const y = shape.transform?.y ?? 0;
   const width = shape.transform?.cx ?? Math.max(presentationCx * 0.1, 1);
   const height = shape.transform?.cy ?? Math.max(presentationCy * 0.05, 1);
+  const isSlideTitle = shape.text.trim() === slideTitle.trim() && slideTitle.trim().length > 0;
+  const inferredCenterText = !shape.textStyle?.align && width / presentationCx > 0.6 && shape.text.trim().length > 0;
+  const textAlign = isSlideTitle || inferredCenterText ? 'center' : toCssAlign(shape.textStyle?.align);
   const style = [
     'position:absolute',
     `left:${(x / presentationCx) * 100}%`,
@@ -50,10 +53,10 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
     shape.textStyle?.fontSizePt !== undefined ? `font-size:${Math.max(shape.textStyle.fontSizePt, 12)}px` : '',
     shape.textStyle?.bold ? 'font-weight:700' : '',
     shape.textStyle?.italic ? 'font-style:italic' : '',
-    `text-align:${toCssAlign(shape.textStyle?.align)}`,
+    `text-align:${textAlign}`,
     'display:flex',
-    'align-items:center',
-    'justify-content:center'
+    `align-items:${toCssAnchor(shape.textStyle?.anchor)}`,
+    isSlideTitle || inferredCenterText ? 'justify-content:center' : 'justify-content:flex-start'
   ].filter(Boolean).join(';');
   const filledStyle = [
     style,
@@ -66,23 +69,27 @@ function renderSceneShape(shape: SlideShape, presentationCx: number, presentatio
   }
 
   if (shape.pathCommands?.length || isPresetSceneVectorShape(shape.shapeType)) {
-    const text = shape.text ? `<div class="ooxml-pptx-scene-text ooxml-pptx-scene-text--overlay">${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>` : '';
+    const text = shape.text ? renderSceneText(shape, true, isSlideTitle || inferredCenterText) : '';
     return `<div class="ooxml-pptx-scene-node ooxml-pptx-scene-node--vector" style="${style};position:absolute;">${renderSceneShapeSvg(shape)}${text}</div>`;
   }
 
-  const text = shape.text ? `<div class="ooxml-pptx-scene-text">${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>` : '';
+  const text = shape.text ? renderSceneText(shape, false, isSlideTitle || inferredCenterText) : '';
   return `<div class="ooxml-pptx-scene-node" style="${filledStyle}">${text}</div>`;
 }
 
 function renderSceneShapeSvg(shape: SlideShape): string {
-  const fill = shape.fill?.gradientStops?.length ? 'none' : shape.fill?.color ?? 'none';
+  const gradientId = shape.fill?.gradientStops?.length ? 'ooxml-scene-gradient' : undefined;
+  const fill = gradientId ? `url(#${gradientId})` : shape.fill?.color ?? 'none';
   const stroke = shape.line?.color ?? 'none';
   const strokeWidth = Math.max(1, Math.round((shape.line?.width ?? 0) / 12700));
   const strokeDashArray = sceneStrokeDashArray(shape.line);
   const strokeAttrs = `${shape.line?.opacity !== undefined ? ` stroke-opacity="${shape.line.opacity}"` : ''}${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}`;
+  const gradientMarkup = gradientId
+    ? `<defs><linearGradient id="${gradientId}" gradientTransform="rotate(${shape.fill?.angleDeg ?? 0}, 0.5, 0.5)">${(shape.fill?.gradientStops ?? []).map((stop) => `<stop offset="${stop.position}%" stop-color="${escapeHtml(stop.color ?? '#000000')}"${stop.opacity !== undefined ? ` stop-opacity="${stop.opacity}"` : ''}/>`).join('')}</linearGradient></defs>`
+    : '';
   if (shape.pathCommands?.length) {
     const viewBox = shape.pathViewport ? `0 0 ${shape.pathViewport.width} ${shape.pathViewport.height}` : buildPathViewBox(shape.pathCommands);
-  return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true"><path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/></svg>`;
+    return `<svg class="ooxml-pptx-scene-svg" viewBox="${viewBox}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtml(toSvgPath(shape.pathCommands))}" fill="${escapeHtml(fill)}"${shape.fill?.opacity !== undefined && !gradientId ? ` fill-opacity="${shape.fill.opacity}"` : ''} stroke="${escapeHtml(stroke)}"${strokeAttrs} stroke-width="${strokeWidth}"/></svg>`;
   }
 
   const presetMarkup = buildPresetSceneSvgMarkup(shape.shapeType, fill, shape.fill?.opacity, stroke, strokeWidth, strokeAttrs);
@@ -90,7 +97,7 @@ function renderSceneShapeSvg(shape: SlideShape): string {
     return '';
   }
 
-  return `<svg class="ooxml-pptx-scene-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${presetMarkup}</svg>`;
+  return `<svg class="ooxml-pptx-scene-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}${presetMarkup}</svg>`;
 }
 
 function buildSceneBackgroundStyle(fill: PresentationFill | undefined): string {
@@ -196,6 +203,27 @@ function toCssAlign(value: string | undefined): string {
     case 'just': return 'justify';
     default: return 'left';
   }
+}
+
+function toCssAnchor(value: string | undefined): string {
+  switch (value) {
+    case 'ctr':
+      return 'center';
+    case 'b':
+      return 'flex-end';
+    default:
+      return 'flex-start';
+  }
+}
+
+function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: boolean): string {
+  const style = [
+    `text-align:${isSlideTitle ? 'center' : toCssAlign(shape.textStyle?.align)}`,
+    overlay ? `align-items:${toCssAnchor(shape.textStyle?.anchor)}` : '',
+    overlay ? (isSlideTitle ? 'justify-content:center' : 'justify-content:flex-start') : ''
+  ].filter(Boolean).join(';');
+  const className = overlay ? 'ooxml-pptx-scene-text ooxml-pptx-scene-text--overlay' : 'ooxml-pptx-scene-text';
+  return `<div class="${className}"${style ? ` style="${style}"` : ''}>${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>`;
 }
 
 function applyOpacity(color: string, opacity: number | undefined): string {

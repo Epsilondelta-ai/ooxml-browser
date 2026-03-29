@@ -592,6 +592,7 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
     return undefined;
   }
 
+  const bodyProperties = xmlChild<Record<string, unknown>>(textBody, 'a:bodyPr');
   const paragraph = xmlChild<Record<string, unknown>>(textBody, 'a:p');
   const listStyle = xmlChild<Record<string, unknown>>(textBody, 'a:lstStyle');
   const paragraphProperties = xmlChild<Record<string, unknown>>(paragraph, 'a:pPr');
@@ -642,7 +643,8 @@ function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationThem
           : xmlAttr(defaultRunProperties, 'i') === '0'
             ? false
             : undefined,
-    align: xmlAttr(paragraphProperties, 'algn') ?? xmlAttr(levelProperties, 'algn') ?? undefined
+    align: xmlAttr(paragraphProperties, 'algn') ?? xmlAttr(levelProperties, 'algn') ?? undefined,
+    anchor: xmlAttr(bodyProperties, 'anchor') ?? undefined
   };
 }
 

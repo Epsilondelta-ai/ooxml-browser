@@ -34,6 +34,7 @@ export interface PresentationTextStyle {
   bold?: boolean;
   italic?: boolean;
   align?: string;
+  anchor?: string;
 }
 
 export interface PresentationPathCommand {

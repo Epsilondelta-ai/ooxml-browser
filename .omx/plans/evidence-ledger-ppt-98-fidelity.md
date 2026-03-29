@@ -40,3 +40,13 @@
   - `sample5/2`: `81.14 -> 81.93` (improved)
   - `sample6/1`: `89.88 -> 89.76` (small drop, but subtitle layout moved materially closer to centered multi-line behavior)
 - **Decision:** accepted under mixed-evidence rule because score loss stayed bounded and the text/layout hotspot class improved visibly on `sample6/1` while `sample5/2` improved numerically.
+
+## Stage 3 — scene geometry refinement
+- **Status:** accepted
+- **What changed:** the scene renderer now keeps vector-node text overlays, supports core preset vectors (`rect`, `ellipse`, `chevron`, `trapezoid`, rounded rects), and the screenshot harness can target the `scene-svg` lane directly.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `npm test -- render-and-browser.test.ts`, `PPT_SAMPLE_SCREENSHOT_PORT=4279 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `85.20 -> 86.94`
+  - `sample5/2`: `81.14 -> 83.78`
+  - `sample6/1`: `89.88 -> 91.16`
+- **Decision:** accepted because the scene renderer now beats the metadata fallback on all three target slides and gives a stronger base for the remaining 98% push, even though major geometry/text gaps remain.
