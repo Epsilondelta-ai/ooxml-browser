@@ -233,10 +233,15 @@ function toCssAnchor(value: string | undefined): string {
 }
 
 function renderSceneText(shape: SlideShape, overlay: boolean, isSlideTitle: boolean): string {
+  const isCentered = isSlideTitle || shape.textStyle?.align === 'ctr';
   const style = [
-    `text-align:${isSlideTitle ? 'center' : toCssAlign(shape.textStyle?.align)}`,
+    `text-align:${isCentered ? 'center' : toCssAlign(shape.textStyle?.align)}`,
     overlay ? `align-items:${toCssAnchor(shape.textStyle?.anchor)}` : '',
-    overlay ? (isSlideTitle ? 'justify-content:center' : 'justify-content:flex-start') : ''
+    overlay ? (isCentered ? 'justify-content:center' : 'justify-content:flex-start') : '',
+    isCentered ? '' : 'padding:6px 18px 6px 18px',
+    isCentered ? '' : 'line-height:1.2',
+    isCentered ? '' : 'box-sizing:border-box',
+    isCentered ? '' : 'width:100%'
   ].filter(Boolean).join(';');
   const className = overlay ? 'ooxml-pptx-scene-text ooxml-pptx-scene-text--overlay' : 'ooxml-pptx-scene-text';
   return `<div class="${className}"${style ? ` style="${style}"` : ''}>${escapeHtml(shape.text).replaceAll('\n', '<br>')}</div>`;

@@ -91,6 +91,16 @@
   - `sample6/1`: `91.20 -> 92.07`
 - **Decision:** accepted because all three target slides improved materially and the evidence path now measures slide content at the correct output size.
 
+## Stage 8 — left-aligned scene text padding
+- **Status:** accepted
+- **What changed:** left-aligned scene text now gets a small stable inset and line-height treatment, which slightly improves the agenda slide text-box fidelity without harming the other targets.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4282 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.27 -> 91.27`
+  - `sample5/2`: `86.06 -> 86.10`
+  - `sample6/1`: `92.07 -> 92.07`
+- **Decision:** accepted because the targeted slide improved, the others stayed neutral, and the renderer change remains generic rather than sample-specific.
+
 ## Stage 7 — remove generic scene chrome from evidence captures
 - **Status:** accepted
 - **What changed:** removed the generic preview border and box-shadow from the scene renderer surface so screenshot captures match the reference image bounds instead of inheriting preview chrome.
