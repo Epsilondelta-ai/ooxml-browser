@@ -759,6 +759,7 @@ function enhancePresentationPreview(): void {
     const fillGradientStops = parseGradientStops(shape.dataset.fillGradientStops);
     const fillGradientAngle = Number(shape.dataset.fillGradientAngle ?? 0);
     const lineColor = shape.dataset.lineColor;
+    const lineOpacity = Number(shape.dataset.lineOpacity ?? 1);
     const lineWidth = Number(shape.dataset.lineWidth ?? 0);
     const textColor = shape.dataset.textColor;
     const fontSizePt = Number(shape.dataset.fontSizePt ?? 0);
@@ -911,6 +912,7 @@ function enhancePresentationPreview(): void {
         continue;
       }
       const pathCommands = shape.dataset.pathCommands;
+      const pathViewport = parsePathViewport(shape.dataset.pathViewport);
       const renderFillColor = isYellowAgendaShape && name.includes('Freeform 13') ? '#56595e' : fillColor;
       const lightTitlePathCandidate = titleLike
         && !darkBackground
@@ -925,8 +927,8 @@ function enhancePresentationPreview(): void {
         && (fillGradientStops.length > 0 || (width / cx) < 0.18 || (height / cy) < 0.18);
       const shouldRenderPath = Boolean(
         pathCommands
-        && (lightTitlePathCandidate || rocketCoverPathCandidate || industrialPathCandidate || (yellowTheme && (x / cx) < 0.35))
-        && (renderFillColor || fillGradientStops.length > 0)
+        && (lightTitlePathCandidate || rocketCoverPathCandidate || industrialPathCandidate || (yellowTheme && (x / cx) < 0.35) || Boolean(pathViewport))
+        && (renderFillColor || fillGradientStops.length > 0 || lineColor)
         && shape.dataset.shapeType === 'custom'
       );
       if (titleLike && yellowTheme && fillColor === '#FFFFFF' && (width / cx) > 0.35 && (height / cy) > 0.35) {
@@ -934,7 +936,7 @@ function enhancePresentationPreview(): void {
         shape.style.borderRadius = '36% 36% 0 0 / 24% 24% 0 0';
       }
       if (shouldRenderPath) {
-        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', renderFillColor, lineColor, lineWidth, fillGradientStops, fillGradientAngle, fillGradientStops.length > 0);
+        const svgMarkup = buildDecorativeSvg(pathCommands ?? '', renderFillColor, fillOpacity, lineColor, lineOpacity, lineWidth, fillGradientStops, fillGradientAngle, fillGradientStops.length > 0, pathViewport);
         if (svgMarkup) {
           shape.style.background = 'transparent';
           shape.style.border = 'none';
@@ -1156,7 +1158,18 @@ function applyOpacity(hexColor: string, opacity: number): string {
   return `rgba(${red}, ${green}, ${blue}, ${Number.isFinite(opacity) ? opacity : 1})`;
 }
 
-function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?: string, lineWidthPx?: number, gradientStops: GradientStop[] = [], gradientAngle = 0, evenOddFill = false): string {
+function buildDecorativeSvg(
+  pathCommands: string,
+  fillColor?: string,
+  fillOpacity?: number,
+  lineColor?: string,
+  lineOpacity?: number,
+  lineWidthPx?: number,
+  gradientStops: GradientStop[] = [],
+  gradientAngle = 0,
+  evenOddFill = false,
+  viewport?: { width: number; height: number }
+): string {
   const segments = pathCommands.split(';').filter(Boolean);
   const points = [];
   const commands = [];
@@ -1198,16 +1211,24 @@ function buildDecorativeSvg(pathCommands: string, fillColor?: string, lineColor?
   const minY = Math.min(...points.map((point) => point.y));
   const maxX = Math.max(...points.map((point) => point.x));
   const maxY = Math.max(...points.map((point) => point.y));
-  const width = Math.max(maxX - minX, 1);
-  const height = Math.max(maxY - minY, 1);
+  const width = viewport?.width ?? Math.max(maxX - minX, 1);
+  const height = viewport?.height ?? Math.max(maxY - minY, 1);
+  const viewBoxMinX = viewport ? 0 : minX;
+  const viewBoxMinY = viewport ? 0 : minY;
   const d = commands.join(' ');
   const fill = fillColor ? fillColor : gradientStops.length ? 'url(#ooxml-gradient)' : 'none';
   const stroke = lineColor ? lineColor : 'none';
   const strokeWidth = typeof lineWidthPx === 'number' && Number.isFinite(lineWidthPx) && lineWidthPx > 0 ? lineWidthPx : 1;
+  const fillOpacityAttr = fill !== 'none' && Number.isFinite(fillOpacity) && fillOpacity !== undefined && fillOpacity < 1
+    ? ` fill-opacity="${fillOpacity}"`
+    : '';
+  const strokeOpacityAttr = stroke !== 'none' && Number.isFinite(lineOpacity) && lineOpacity !== undefined && lineOpacity < 1
+    ? ` stroke-opacity="${lineOpacity}"`
+    : '';
   const gradientMarkup = gradientStops.length
     ? `<defs><linearGradient id="ooxml-gradient" gradientTransform="rotate(${gradientAngle}, 0.5, 0.5)">${gradientStops.map((stop) => `<stop offset="${stop.position}%" stop-color="${stop.color}"${stop.opacity !== undefined ? ` stop-opacity="${stop.opacity}"` : ''}/>`).join('')}</linearGradient></defs>`
     : '';
-  return `<svg viewBox="${minX} ${minY} ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtmlText(d)}" fill="${fill}"${evenOddFill ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${stroke}" stroke-width="${strokeWidth}"/></svg>`;
+  return `<svg viewBox="${viewBoxMinX} ${viewBoxMinY} ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">${gradientMarkup}<path d="${escapeHtmlText(d)}" fill="${fill}"${fillOpacityAttr}${evenOddFill ? ' fill-rule="evenodd" clip-rule="evenodd"' : ''} stroke="${stroke}"${strokeOpacityAttr} stroke-width="${strokeWidth}"/></svg>`;
 }
 
 type GradientStop = { position: number; color: string; opacity?: number };
@@ -1224,6 +1245,15 @@ function parseGradientStops(serialized?: string): GradientStop[] {
       }
       return [{ position, color, opacity: Number.isFinite(opacity) ? opacity : undefined }];
     });
+}
+
+function parsePathViewport(serialized?: string): { width: number; height: number } | undefined {
+  const [widthRaw, heightRaw] = (serialized ?? '').split(':');
+  const width = Number(widthRaw);
+  const height = Number(heightRaw);
+  return Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
+    ? { width, height }
+    : undefined;
 }
 
 function buildCssGradient(stops: GradientStop[], angle = 0): string {

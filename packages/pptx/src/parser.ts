@@ -143,6 +143,14 @@ interface TransformContext {
   flipV: boolean;
 }
 
+interface PathGeometry {
+  commands?: PresentationPathCommand[];
+  viewport?: {
+    width: number;
+    height: number;
+  };
+}
+
 const identityTransformContext: TransformContext = {
   a: 1,
   b: 0,
@@ -189,6 +197,7 @@ function parseShape(
   const style = xmlChild<Record<string, unknown>>(shape, 'p:style');
   const shapeType = parseShapeType(shapeProperties);
   const transform = applyTransformContext(parseTransform(shapeProperties), context);
+  const pathGeometry = parsePathGeometry(shapeProperties, rawShapeXmlById?.[xmlAttr(cNvPr, 'id') ?? '']);
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
@@ -201,7 +210,8 @@ function parseShape(
     fill: parseFill(shapeProperties, relationships, theme, style, shapeType),
     line: parseLine(shapeProperties, theme, style),
     textStyle: parseTextStyle(shape, theme),
-    pathCommands: parsePathCommands(shapeProperties, rawShapeXmlById?.[xmlAttr(cNvPr, 'id') ?? ''])
+    pathCommands: pathGeometry.commands,
+    pathViewport: pathGeometry.viewport
   };
 }
 
@@ -233,6 +243,7 @@ function parsePicture(
   const shapeProperties = xmlChild<Record<string, unknown>>(picture, 'p:spPr');
   const style = xmlChild<Record<string, unknown>>(picture, 'p:style');
   const transform = applyTransformContext(parseTransform(shapeProperties), context);
+  const pathGeometry = parsePathGeometry(shapeProperties, rawShapeXmlById?.[xmlAttr(cNvPr, 'id') ?? '']);
 
   return {
     id: xmlAttr(cNvPr, 'id') ?? '',
@@ -242,7 +253,8 @@ function parsePicture(
     transform,
     fill: parseFill(shapeProperties, relationships, theme, style, 'picture'),
     line: parseLine(shapeProperties, theme, style),
-    pathCommands: parsePathCommands(shapeProperties, rawShapeXmlById?.[xmlAttr(cNvPr, 'id') ?? '']),
+    pathCommands: pathGeometry.commands,
+    pathViewport: pathGeometry.viewport,
     media: {
       type: 'image',
       targetUri: target ?? undefined
@@ -444,53 +456,64 @@ function parseShapeType(shapeProperties: Record<string, unknown> | undefined): s
   return xmlAttr(preset, 'prst') ?? undefined;
 }
 
-function parsePathCommands(shapeProperties: Record<string, unknown> | undefined, rawShapeXml?: string): PresentationPathCommand[] | undefined {
+function parsePathGeometry(shapeProperties: Record<string, unknown> | undefined, rawShapeXml?: string): PathGeometry {
   const orderedCommands = rawShapeXml && (rawShapeXml.includes('<a:gradFill') || rawShapeXml.includes('txBox="1"'))
-    ? parseOrderedPathCommands(rawShapeXml)
+    ? parseOrderedPathGeometry(rawShapeXml)
     : undefined;
-  if (orderedCommands?.length) {
+  if (orderedCommands?.commands?.length) {
     return orderedCommands;
   }
   const customGeometry = xmlChild<Record<string, unknown>>(shapeProperties, 'a:custGeom');
   const pathList = xmlChild<Record<string, unknown>>(customGeometry, 'a:pathLst');
-  const pathNode = xmlChild<Record<string, unknown>>(pathList, 'a:path');
-  if (!pathNode) {
-    return undefined;
+  const pathNodes = xmlChildren<Record<string, unknown>>(pathList, 'a:path');
+  if (!pathNodes.length) {
+    return {};
   }
 
   const commands: PresentationPathCommand[] = [];
-  for (const [key, value] of Object.entries(pathNode)) {
-    if (key.startsWith('@_')) {
-      continue;
-    }
+  let viewportWidth = 0;
+  let viewportHeight = 0;
+  for (const pathNode of pathNodes) {
+    viewportWidth = Math.max(viewportWidth, Number(xmlAttr(pathNode, 'w') ?? 0));
+    viewportHeight = Math.max(viewportHeight, Number(xmlAttr(pathNode, 'h') ?? 0));
+    for (const [key, value] of Object.entries(pathNode)) {
+      if (key.startsWith('@_')) {
+        continue;
+      }
 
-    const entries = Array.isArray(value) ? value : [value];
-    for (const entry of entries) {
-      if (key === 'a:moveTo' || key === 'a:lnTo') {
-        const point = xmlChild<Record<string, unknown>>(entry, 'a:pt');
-        commands.push({
-          type: key === 'a:moveTo' ? 'moveTo' : 'lineTo',
-          x: (() => { const raw = xmlAttr(point, 'x'); return raw ? Number(raw) : undefined; })(),
-          y: (() => { const raw = xmlAttr(point, 'y'); return raw ? Number(raw) : undefined; })()
-        });
-      } else if (key === 'a:cubicBezTo') {
-        const points = xmlChildren<Record<string, unknown>>(entry, 'a:pt');
-        commands.push({
-          type: 'cubicTo',
-          x1: (() => { const raw = xmlAttr(points[0], 'x'); return raw ? Number(raw) : undefined; })(),
-          y1: (() => { const raw = xmlAttr(points[0], 'y'); return raw ? Number(raw) : undefined; })(),
-          x2: (() => { const raw = xmlAttr(points[1], 'x'); return raw ? Number(raw) : undefined; })(),
-          y2: (() => { const raw = xmlAttr(points[1], 'y'); return raw ? Number(raw) : undefined; })(),
-          x: (() => { const raw = xmlAttr(points[2], 'x'); return raw ? Number(raw) : undefined; })(),
-          y: (() => { const raw = xmlAttr(points[2], 'y'); return raw ? Number(raw) : undefined; })()
-        });
-      } else if (key === 'a:close') {
-        commands.push({ type: 'close' });
+      const entries = Array.isArray(value) ? value : [value];
+      for (const entry of entries) {
+        if (key === 'a:moveTo' || key === 'a:lnTo') {
+          const point = xmlChild<Record<string, unknown>>(entry, 'a:pt');
+          commands.push({
+            type: key === 'a:moveTo' ? 'moveTo' : 'lineTo',
+            x: (() => { const raw = xmlAttr(point, 'x'); return raw ? Number(raw) : undefined; })(),
+            y: (() => { const raw = xmlAttr(point, 'y'); return raw ? Number(raw) : undefined; })()
+          });
+        } else if (key === 'a:cubicBezTo') {
+          const points = xmlChildren<Record<string, unknown>>(entry, 'a:pt');
+          commands.push({
+            type: 'cubicTo',
+            x1: (() => { const raw = xmlAttr(points[0], 'x'); return raw ? Number(raw) : undefined; })(),
+            y1: (() => { const raw = xmlAttr(points[0], 'y'); return raw ? Number(raw) : undefined; })(),
+            x2: (() => { const raw = xmlAttr(points[1], 'x'); return raw ? Number(raw) : undefined; })(),
+            y2: (() => { const raw = xmlAttr(points[1], 'y'); return raw ? Number(raw) : undefined; })(),
+            x: (() => { const raw = xmlAttr(points[2], 'x'); return raw ? Number(raw) : undefined; })(),
+            y: (() => { const raw = xmlAttr(points[2], 'y'); return raw ? Number(raw) : undefined; })()
+          });
+        } else if (key === 'a:close') {
+          commands.push({ type: 'close' });
+        }
       }
     }
   }
 
-  return commands.length ? commands : undefined;
+  return {
+    commands: commands.length ? commands : undefined,
+    viewport: viewportWidth > 0 && viewportHeight > 0
+      ? { width: viewportWidth, height: viewportHeight }
+      : undefined
+  };
 }
 
 function buildRawShapeXmlIndex(source: string): Record<string, string> {
@@ -508,46 +531,57 @@ function buildRawShapeXmlIndex(source: string): Record<string, string> {
   return entries;
 }
 
-function parseOrderedPathCommands(rawShapeXml: string): PresentationPathCommand[] | undefined {
-  const pathMatch = rawShapeXml.match(/<a:path\b[^>]*>([\s\S]*?)<\/a:path>/);
-  if (!pathMatch) {
-    return undefined;
+function parseOrderedPathGeometry(rawShapeXml: string): PathGeometry {
+  const pathMatches = [...rawShapeXml.matchAll(/<a:path\b([^>]*)>([\s\S]*?)<\/a:path>/g)];
+  if (!pathMatches.length) {
+    return {};
   }
 
   const commands: PresentationPathCommand[] = [];
   const commandPattern = /<(a:moveTo|a:lnTo|a:cubicBezTo|a:close)\b[^>]*>([\s\S]*?)<\/\1>|<a:close\b[^>]*\/>/g;
-  for (const match of pathMatch[0].matchAll(commandPattern)) {
-    const type = match[1] ?? 'a:close';
-    const body = match[2] ?? '';
-    if (type === 'a:close') {
-      commands.push({ type: 'close' });
-      continue;
-    }
-    const points = [...body.matchAll(/<a:pt\b[^>]*x="([^"]+)"[^>]*y="([^"]+)"[^>]*\/>/g)].map((point) => ({
-      x: Number(point[1]),
-      y: Number(point[2])
-    }));
-    if (type === 'a:moveTo' || type === 'a:lnTo') {
-      const point = points[0];
-      if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
-        commands.push({ type: type === 'a:moveTo' ? 'moveTo' : 'lineTo', x: point.x, y: point.y });
+  let viewportWidth = 0;
+  let viewportHeight = 0;
+  for (const pathMatch of pathMatches) {
+    viewportWidth = Math.max(viewportWidth, Number((pathMatch[1].match(/\bw="([^"]+)"/)?.[1]) ?? 0));
+    viewportHeight = Math.max(viewportHeight, Number((pathMatch[1].match(/\bh="([^"]+)"/)?.[1]) ?? 0));
+    for (const match of pathMatch[0].matchAll(commandPattern)) {
+      const type = match[1] ?? 'a:close';
+      const body = match[2] ?? '';
+      if (type === 'a:close') {
+        commands.push({ type: 'close' });
+        continue;
       }
-      continue;
-    }
-    if (type === 'a:cubicBezTo' && points.length >= 3) {
-      commands.push({
-        type: 'cubicTo',
-        x1: points[0]?.x,
-        y1: points[0]?.y,
-        x2: points[1]?.x,
-        y2: points[1]?.y,
-        x: points[2]?.x,
-        y: points[2]?.y
-      });
+      const points = [...body.matchAll(/<a:pt\b[^>]*x="([^"]+)"[^>]*y="([^"]+)"[^>]*\/>/g)].map((point) => ({
+        x: Number(point[1]),
+        y: Number(point[2])
+      }));
+      if (type === 'a:moveTo' || type === 'a:lnTo') {
+        const point = points[0];
+        if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
+          commands.push({ type: type === 'a:moveTo' ? 'moveTo' : 'lineTo', x: point.x, y: point.y });
+        }
+        continue;
+      }
+      if (type === 'a:cubicBezTo' && points.length >= 3) {
+        commands.push({
+          type: 'cubicTo',
+          x1: points[0]?.x,
+          y1: points[0]?.y,
+          x2: points[1]?.x,
+          y2: points[1]?.y,
+          x: points[2]?.x,
+          y: points[2]?.y
+        });
+      }
     }
   }
 
-  return commands.length ? commands : undefined;
+  return {
+    commands: commands.length ? commands : undefined,
+    viewport: viewportWidth > 0 && viewportHeight > 0
+      ? { width: viewportWidth, height: viewportHeight }
+      : undefined
+  };
 }
 
 function parseTextStyle(shape: Record<string, unknown>, theme?: PresentationTheme): PresentationTextStyle | undefined {

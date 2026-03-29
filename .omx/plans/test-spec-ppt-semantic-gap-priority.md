@@ -5,6 +5,7 @@
 2. Every priority step needs fresh evidence before the next edit cycle.
 3. Screenshot metrics and visual inspection are complementary; neither is sufficient alone.
 4. Regressions are handled by rollback of the current step, not by silently keeping degraded code.
+5. Generated screenshot/diff/report artifacts must be cleaned or intentionally staged before each commit.
 
 ## Baseline gate
 Before stage 1:
