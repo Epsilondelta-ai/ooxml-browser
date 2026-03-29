@@ -13,6 +13,30 @@ Browser-first workspace for parsing, rendering, editing, and serializing OOXML (
 - `@ooxml/browser` - browser session facade for open/render/edit/save flows
 - `@ooxml/devtools` - package/document summary helpers
 
+## Getting started
+
+The easiest entry point is `@ooxml/browser`.
+
+```ts
+import { createBrowserSession } from '@ooxml/browser';
+
+const session = await createBrowserSession(file);
+const html = session.renderToHtml();
+const savedBlob = session.save();
+```
+
+From a browser session you can:
+
+- inspect `packageSummary` and `documentSummary`
+- render with `renderToHtml()` or `mount()`
+- create an editor with `createEditor()`
+- save the current document back to a `Blob`
+
+For full usage documentation, package-selection guidance, and lower-level examples, see:
+
+- [`docs/guides/using-the-library.md`](./docs/guides/using-the-library.md)
+- [`docs/reference/editing-surface-matrix.md`](./docs/reference/editing-surface-matrix.md)
+
 ## Current capability baseline
 - open OOXML archives into a relationship-aware package graph
 - parse representative docx/xlsx/pptx fixtures into typed models

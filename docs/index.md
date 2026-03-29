@@ -12,6 +12,9 @@ This documentation set is the implementation baseline for a browser-first librar
 
 ## Documentation map
 
+### User guides
+- [Using the library](./guides/using-the-library.md)
+
 ### Research / source baseline
 - [Research source map](./research/sources.md)
 
