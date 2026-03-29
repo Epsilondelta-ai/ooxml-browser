@@ -253,7 +253,7 @@ function sceneStrokeDashArray(line: SlideShape['line']): string | undefined {
   switch (line?.dash) {
     case 'dash':
     case 'sysDash':
-      return `${width * 4} ${width * 2}`;
+      return `${width * 3} ${width * 2}`;
     case 'lgDash':
       return `${width * 6} ${width * 2}`;
     case 'dot':

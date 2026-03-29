@@ -151,6 +151,16 @@
   - `sample6/1`: `92.02 -> 92.04`
 - **Decision:** accepted because the targeted industrial logo lane improved slightly while the other two target slides stayed neutral-or-better.
 
+## Stage 13 — shorter generic dash cadence
+- **Status:** accepted
+- **What changed:** scene-svg now renders OOXML `dash`/`sysDash` strokes with a slightly shorter cadence, which better matches the PPT-export dashed badge ring without perturbing the other active lanes.
+- **Verification:** `npm run typecheck`, `npm run build --workspace @ooxml/example-basic`, `PPT_SAMPLE_SCREENSHOT_PORT=4288 PPT_SAMPLE_RENDER_QUERY='pptxRenderer=scene-svg' npm run quality:ppt-sample-screenshots`
+- **Evidence (`scene-svg` lane):**
+  - `sample1/1`: `91.29 -> 91.29`
+  - `sample5/2`: `86.91 -> 86.91`
+  - `sample6/1`: `92.04 -> 92.05`
+- **Decision:** accepted because the dashed-ring target improved, however slightly, while the other two target slides remained neutral.
+
 ## Stage 9 — parser-grounded text insets
 - **Status:** accepted
 - **What changed:** text body inset semantics now flow from OOXML body properties into the scene renderer, giving left-aligned text boxes a parser-grounded internal margin instead of a hardcoded renderer assumption.
