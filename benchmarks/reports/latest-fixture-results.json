@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-28T16:30:32.610Z",
+  "generatedAt": "2026-03-29T00:31:26.944Z",
   "results": [
     {
       "id": "docx-basic",
@@ -210,6 +210,25 @@
       "totalOriginalPartCount": 5,
       "officeStatus": "seed-fixture-attestation-pending",
       "libreOfficeStatus": "seed-fixture-attestation-pending"
+    },
+    {
+      "id": "xlsx-bubble",
+      "format": "xlsx",
+      "fixturePath": "fixtures/xlsx/representative/bubble.xlsx",
+      "mutation": "cell-value-edit",
+      "parserOpen": true,
+      "parserRoundTrip": true,
+      "editedRoundTrip": true,
+      "changedParts": [
+        "/xl/worksheets/sheet1.xml"
+      ],
+      "addedParts": [],
+      "removedParts": [],
+      "changedPartCount": 1,
+      "preservedPartCount": 7,
+      "totalOriginalPartCount": 8,
+      "officeStatus": "stage-6-attestation-pending",
+      "libreOfficeStatus": "stage-6-attestation-pending"
     },
     {
       "id": "xlsx-charted",
