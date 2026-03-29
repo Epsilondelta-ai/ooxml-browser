@@ -313,20 +313,20 @@ app.innerHTML = `
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.kind-title .ooxml-pptx-shape-content {
-        font-size: 2.9rem;
+        font-size: 2.35rem;
         font-weight: 800;
         font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #57A7BD;
-        line-height: 1.05;
+        line-height: 1.08;
         text-align: center;
       }
 
       .preview-shell .ooxml-pptx-slide-canvas.is-title-slide-badge .ooxml-pptx-shape.kind-subtitle .ooxml-pptx-shape-content {
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-size: 0.82rem;
+        font-weight: 600;
         font-family: Arial, "Malgun Gothic", system-ui, sans-serif;
         color: #57A7BD;
-        line-height: 1.15;
+        line-height: 1.2;
         text-align: center;
       }
 
