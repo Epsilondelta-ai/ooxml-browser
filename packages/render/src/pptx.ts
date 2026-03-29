@@ -209,7 +209,7 @@ function sceneStrokeDashArray(line: SlideShape['line']): string | undefined {
 }
 
 function emuToPx(value: number): number {
-  return Math.max(1, Math.round(value / 9525));
+  return Math.max(0.5, Number((value / 9525).toFixed(2)));
 }
 
 function toCssAlign(value: string | undefined): string {
