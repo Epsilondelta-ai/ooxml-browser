@@ -1,0 +1,188 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1774829039846,
+  "projectRoot": "/Users/juunini/Desktop/code/epsilondelta/ooxml",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "vite",
+        "version": "7.1.7",
+        "category": "build"
+      },
+      {
+        "name": "vitest",
+        "version": "3.2.4",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "build": "tsc -b && npm run build --workspace @ooxml/playground && npm run build --workspace @ooxml/example-basic",
+      "typecheck": "tsc -b --pretty false",
+      "test": "vitest run",
+      "lint": "eslint .",
+      "dev": "npm run dev --workspace @ooxml/playground",
+      "bench": "vite-node benchmarks/run-benchmarks.mjs",
+      "quality:fixtures": "vite-node tools/generate-fixture-results.mjs",
+      "quality:attestations": "vite-node tools/generate-attestation-report.mjs",
+      "quality:artifacts": "vite-node tools/generate-quality-artifacts.mjs",
+      "quality:ppt-samples": "vite-node tools/generate-ppt-sample-report.mjs",
+      "quality:ppt-sample-screenshots": "node tools/generate-ppt-sample-screenshot-report.mjs"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": "*.test.ts",
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": true,
+    "workspaces": [
+      "packages/*",
+      "examples/*",
+      "playground"
+    ],
+    "mainDirectories": [
+      "docs",
+      "examples",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "benchmarks": {
+      "path": "benchmarks",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1774829039812,
+      "keyFiles": [
+        "run-benchmarks.mjs"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1774829039813,
+      "keyFiles": [
+        "index.md"
+      ]
+    },
+    "examples": {
+      "path": "examples",
+      "purpose": "Example code",
+      "fileCount": 0,
+      "lastAccessed": 1774829039815,
+      "keyFiles": []
+    },
+    "fixtures": {
+      "path": "fixtures",
+      "purpose": "Test fixtures",
+      "fileCount": 2,
+      "lastAccessed": 1774829039823,
+      "keyFiles": [
+        "README.md"
+      ]
+    },
+    "packages": {
+      "path": "packages",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1774829039823,
+      "keyFiles": []
+    },
+    "playground": {
+      "path": "playground",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1774829039824,
+      "keyFiles": [
+        "index.html",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.tsbuildinfo",
+        "vite.config.ts"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 36,
+      "lastAccessed": 1774829039824,
+      "keyFiles": [
+        "attestation-report.test.ts",
+        "benchmark-artifacts.test.ts",
+        "core-stage1-foundation.test.ts",
+        "docx-media.test.ts",
+        "docx-numbering.test.ts"
+      ]
+    },
+    "tools": {
+      "path": "tools",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1774829039825,
+      "keyFiles": [
+        "generate-attestation-report.mjs",
+        "generate-fixture-results.mjs",
+        "generate-ppt-sample-report.mjs",
+        "generate-ppt-sample-screenshot-report.mjs",
+        "generate-quality-artifacts.mjs"
+      ]
+    },
+    "playground/dist": {
+      "path": "playground/dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 1,
+      "lastAccessed": 1774829039827,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "playground/node_modules": {
+      "path": "playground/node_modules",
+      "purpose": "Dependencies",
+      "fileCount": 0,
+      "lastAccessed": 1774829039828,
+      "keyFiles": []
+    },
+    "playground/src": {
+      "path": "playground/src",
+      "purpose": "Source code",
+      "fileCount": 1,
+      "lastAccessed": 1774829039828,
+      "keyFiles": [
+        "main.ts"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}
